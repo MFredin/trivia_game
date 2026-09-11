@@ -22,6 +22,7 @@ export const DIFFICULTY_TIERS = [
   {
     value: 'Order of the Phoenix',
     label: 'Order of the Phoenix',
+    tickLabel: 'Phoenix',
     description: 'The hardest tier — obscure canon that even devotees argue about.',
   },
 ];
