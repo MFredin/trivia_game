@@ -12,7 +12,11 @@ body,
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 900px 500px at 50% -8%, var(--ink-800) 0%, transparent 60%),
+    radial-gradient(ellipse 1000px 700px at 50% 110%, #0c0e13 0%, transparent 55%),
+    linear-gradient(180deg, #14171f 0%, var(--ink-900) 40%, #0f1219 100%);
+  background-attachment: fixed;
   color: var(--text-on-bg);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -37,51 +41,200 @@ button {
   padding: 2rem 1.25rem 4rem;
 }
 
-.wordmark {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: 0.01em;
-  color: var(--accent);
+/* --- persistent nav --- */
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(237, 230, 214, 0.1);
 }
 
-.tag-row {
+.nav-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.4rem;
+  letter-spacing: 0.01em;
+  color: var(--brass-300);
+}
+
+.nav-wordmark-glyph {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.nav-links {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  margin-bottom: 0.75rem;
 }
 
-.tag {
+.nav-btn {
   font-family: var(--font-body);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
-  border: 1px solid var(--ash-300);
-  border-radius: 2px;
-  padding: 0.15rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ash-300);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(237, 230, 214, 0.16);
+  border-radius: 3px;
+  padding: 0.55rem 1rem;
+  letter-spacing: 0.01em;
 }
 
-.tag--divergence {
-  color: var(--verdigris-400);
-  border-color: var(--verdigris-400);
+.nav-btn:hover {
+  border-color: rgba(184, 146, 61, 0.4);
+  color: var(--parchment-100);
 }
 
-.question-card {
-  background: var(--surface);
-  color: var(--text-on-surface);
-  border-radius: 4px;
+.nav-btn.is-active {
+  color: var(--brass-300);
+  border-color: rgba(184, 146, 61, 0.5);
+  background: rgba(184, 146, 61, 0.08);
+}
+
+.screen-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.5rem;
+}
+
+.screen-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brass-500);
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+}
+
+.screen-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* --- the parchment plate: the one repeated card motif --- */
+.plate {
+  position: relative;
+  background: var(--parchment-100);
+  background-image: var(--paper-grain);
+  border-radius: 3px;
   padding: 1.75rem;
-  border: 1px solid rgba(18, 21, 28, 0.15);
+  color: var(--text-on-surface);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.5),
+    0 10px 24px -10px rgba(0, 0, 0, 0.6),
+    0 28px 54px -30px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(184, 146, 61, 0.35);
+}
+
+.plate::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--brass-500) 12%, var(--brass-300) 50%, var(--brass-500) 88%, transparent);
+  opacity: 0.85;
+}
+
+.plate--no-gilt::before {
+  display: none;
+}
+
+.plate-corner {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  border: 1px solid rgba(184, 146, 61, 0.55);
+  pointer-events: none;
+}
+
+.plate-corner.tl {
+  top: 14px;
+  left: 14px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.plate-corner.tr {
+  top: 14px;
+  right: 14px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.plate-corner.bl {
+  bottom: 14px;
+  left: 14px;
+  border-right: none;
+  border-top: none;
+}
+
+.plate-corner.br {
+  bottom: 14px;
+  right: 14px;
+  border-left: none;
+  border-top: none;
+}
+
+/* --- catalog tabs (category/tier metadata, sitting on the plate's edge) --- */
+.catalog-tabs {
+  display: flex;
+  gap: 6px;
+  padding-left: 20px;
+}
+
+.catalog-tab {
+  position: relative;
+  top: 1px;
+  background: var(--parchment-200);
+  border: 1px solid rgba(18, 21, 28, 0.2);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  padding: 0.45rem 0.85rem 0.6rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(18, 21, 28, 0.68);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.catalog-tab--divergence {
+  color: #2f5e52;
+  border-color: rgba(78, 140, 124, 0.5);
+  background: #dfe9e5;
+}
+
+.plate--tabbed {
+  border-top-left-radius: 0;
+}
+
+.plate--tabbed .plate-corner.tl {
+  display: none;
 }
 
 .question-text {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 600;
-  line-height: 1.35;
-  margin: 0.5rem 0 1.5rem;
+  line-height: 1.32;
+  letter-spacing: -0.005em;
+  margin: 0.25rem 0 1.75rem;
   text-align: left;
 }
 
@@ -90,21 +243,21 @@ button {
   flex-direction: column;
   gap: 0.6rem;
   padding: 0;
-  margin: 0;
+  margin: 0 0 0.4rem;
   list-style: none;
 }
 
 .choice-button {
   display: flex;
-  gap: 0.75rem;
-  align-items: baseline;
+  gap: 0.85rem;
+  align-items: center;
   width: 100%;
   text-align: left;
-  background: transparent;
-  border: 1px solid rgba(18, 21, 28, 0.25);
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(18, 21, 28, 0.16);
   border-radius: 3px;
-  padding: 0.65rem 0.9rem;
-  font-size: 1rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.98rem;
   color: var(--text-on-surface);
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -119,39 +272,100 @@ button {
 
 .choice-button.is-correct {
   border-color: var(--verdigris-400);
-  background: rgba(78, 140, 124, 0.15);
+  background: rgba(78, 140, 124, 0.16);
 }
 
 .choice-button.is-wrong {
   border-color: var(--oxblood-600);
-  background: rgba(92, 26, 43, 0.12);
+  background: rgba(92, 26, 43, 0.09);
 }
 
-.choice-letter {
+.choice-button.is-muted {
+  opacity: 0.55;
+}
+
+.choice-chip {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 2px;
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-display);
-  color: var(--ash-300);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(18, 21, 28, 0.6);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.is-correct .choice-chip {
+  border-color: var(--verdigris-400);
+  color: #2f5e52;
+  background: rgba(78, 140, 124, 0.14);
+}
+
+.is-wrong .choice-chip {
+  border-color: var(--oxblood-600);
+  color: var(--oxblood-600);
+  background: rgba(92, 26, 43, 0.08);
+}
+
+.choice-text {
+  flex: 1;
+}
+
+.choice-mark {
+  flex: none;
+  margin-left: auto;
+}
+
+.is-correct .choice-mark {
+  color: #2f5e52;
+}
+
+.is-wrong .choice-mark {
+  color: var(--oxblood-600);
 }
 
 .hud-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(18, 21, 28, 0.15);
-  margin-top: 1.5rem;
-  padding-top: 0.85rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  border-top: 1px solid rgba(18, 21, 28, 0.14);
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
   font-variant-numeric: tabular-nums;
 }
 
 .hud-row .streak {
   color: var(--brass-500);
+  font-weight: 600;
 }
 
+.hud-icon {
+  vertical-align: -2px;
+  margin-right: 0.3rem;
+}
+
+/* --- verdict panel (answer reveal) --- */
 .result-reveal {
+  position: relative;
+  margin-top: 1.4rem;
+  background: linear-gradient(180deg, var(--ink-800) 0%, var(--ink-900) 100%);
+  border: 1px solid rgba(78, 140, 124, 0.35);
+  border-radius: 3px;
+  padding: 1.9rem 2rem 2.1rem;
   text-align: center;
-  padding: 1.5rem 0;
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.7);
   animation: reveal-settle 0.35s ease-out;
+}
+
+.result-reveal.is-wrong {
+  border-color: rgba(92, 26, 43, 0.5);
 }
 
 @keyframes reveal-settle {
@@ -165,68 +379,204 @@ button {
   }
 }
 
-.result-reveal .points {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
+.result-reveal h2 {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--verdigris-400);
   font-weight: 700;
-  color: var(--brass-500);
+  margin: 0 0 0.4rem;
 }
 
-.result-reveal.is-wrong .points {
-  color: var(--oxblood-600);
+.result-reveal.is-wrong h2 {
+  color: var(--brass-300);
+}
+
+.result-reveal .points {
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: var(--brass-300);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
 }
 
 .explanation {
   color: var(--ash-300);
-  font-size: 0.9rem;
-  margin-top: 0.75rem;
-  line-height: 1.5;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  max-width: 420px;
+  margin: 0 auto 1.4rem;
+}
+
+.explanation b {
+  color: var(--parchment-100);
+  font-weight: 600;
+}
+
+/* Text sitting on the parchment plate needs the darker muted tone, not the
+   ash tone tuned for the dark page background. */
+.plate .explanation {
+  color: var(--text-muted-on-surface);
+  margin: 0 0 1rem;
+  max-width: none;
+}
+
+.plate .explanation b {
+  color: var(--text-on-surface);
+}
+
+.leaderboard-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ledger-divider {
+  height: 1px;
+  background: rgba(18, 21, 28, 0.14);
+  margin: 0 -1.75rem 0.5rem;
 }
 
 .start-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
-.start-form label {
+.start-form label,
+.start-form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
+  gap: 0.4rem;
+}
+
+.start-form label,
+.field-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(18, 21, 28, 0.55);
 }
 
 .start-form input,
 .start-form select {
-  background: var(--surface);
+  background: #f6f1e6;
   color: var(--text-on-surface);
-  border: 1px solid var(--ash-300);
+  border: 1px solid rgba(18, 21, 28, 0.18);
   border-radius: 3px;
-  padding: 0.55rem 0.7rem;
+  padding: 0.75rem 0.85rem;
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
 }
 
 .primary-button {
-  background: var(--brass-500);
-  color: var(--ink-900);
+  background: linear-gradient(180deg, var(--brass-300) 0%, var(--brass-500) 55%, #9c7830 100%);
+  color: #201405;
   border: none;
   border-radius: 3px;
-  padding: 0.75rem 1.25rem;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 6px 16px -6px rgba(184, 146, 61, 0.55);
 }
 
+/* Sits on the parchment plate, unlike .nav-btn which sits on the dark page. */
 .secondary-button {
-  background: transparent;
-  color: var(--text-on-bg);
-  border: 1px solid var(--ash-300);
+  background: rgba(255, 255, 255, 0.3);
+  color: var(--text-on-surface);
+  border: 1px solid rgba(18, 21, 28, 0.22);
   border-radius: 3px;
   padding: 0.6rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
+.secondary-button:hover {
+  border-color: var(--brass-500);
+}
+
+/* --- difficulty slider --- */
+.difficulty-slider {
+  padding: 0.2rem 0.1rem 0;
+}
+
+.rs-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(18, 21, 28, 0.18);
+  margin: 0.4rem 0 0.6rem;
+}
+
+.rs-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--brass-300), var(--brass-500));
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.rs-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--brass-300), var(--brass-500));
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.difficulty-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  color: rgba(18, 21, 28, 0.5);
+  text-transform: none;
+  font-weight: 500;
+}
+
+.difficulty-ticks span {
+  flex: 1;
+  text-align: center;
+}
+
+.difficulty-ticks span:first-child {
+  text-align: left;
+}
+
+.difficulty-ticks span:last-child {
+  text-align: right;
+}
+
+.difficulty-ticks .is-active {
+  color: var(--brass-500);
+  font-weight: 700;
+}
+
+.difficulty-desc {
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted-on-surface);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+/* --- leaderboard ledger --- */
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
@@ -236,16 +586,49 @@ button {
 .leaderboard-table th,
 .leaderboard-table td {
   text-align: left;
-  padding: 0.5rem 0.6rem;
-  border-bottom: 1px solid rgba(237, 230, 214, 0.15);
+  padding: 0.85rem 1.1rem;
 }
 
-.leaderboard-table th {
-  color: var(--text-muted);
-  font-weight: 500;
-  font-size: 0.75rem;
-  letter-spacing: 0.03em;
+.leaderboard-table thead th {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: rgba(18, 21, 28, 0.55);
+  font-weight: 700;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.16);
+}
+
+.leaderboard-table tbody td {
+  border-bottom: 1px solid rgba(18, 21, 28, 0.08);
+}
+
+.leaderboard-table tbody tr:nth-child(odd) td {
+  background: rgba(184, 146, 61, 0.045);
+}
+
+.leaderboard-table .rank {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  color: rgba(18, 21, 28, 0.55);
+}
+
+.leaderboard-table tbody tr:first-child .rank {
+  color: var(--brass-500);
+}
+
+.leaderboard-table .player {
+  font-weight: 600;
+}
+
+.leaderboard-table .score {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.leaderboard-table .category {
+  color: var(--text-muted-on-surface);
+  font-size: 0.85rem;
 }
 
 .error-banner {
@@ -255,13 +638,14 @@ button {
   padding: 0.6rem 0.9rem;
   font-size: 0.9rem;
   margin-bottom: 1rem;
+  background: rgba(92, 26, 43, 0.08);
 }
 
 .summary-score {
   font-family: var(--font-display);
   font-size: 3rem;
   font-weight: 700;
-  color: var(--brass-500);
+  color: var(--brass-300);
   text-align: center;
   margin: 1rem 0;
 }

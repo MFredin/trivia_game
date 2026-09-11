@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import FriendsPanel from './FriendsPanel.jsx';
+import Plate from './Plate.jsx';
+import DifficultySlider from './DifficultySlider.jsx';
 
-export default function StartScreen({ categories, currentUser, token, onStart, onLogout, error }) {
+export default function StartScreen({ categories, currentUser, onStart, error }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
   const [canonSource, setCanonSource] = useState('combined');
@@ -19,63 +20,60 @@ export default function StartScreen({ categories, currentUser, token, onStart, o
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <span className="explanation">Playing as {currentUser.username}</span>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <FriendsPanel token={token} />
-          <button type="button" className="secondary-button" onClick={onLogout}>
-            Log out
-          </button>
+      <div className="screen-head">
+        <div>
+          <p className="screen-eyebrow">New Enquiry</p>
+          <h2 className="screen-title">Begin an Enquiry</h2>
         </div>
+        <span className="explanation" style={{ margin: 0 }}>
+          Playing as <b>{currentUser.username}</b>
+        </span>
       </div>
-      <form className="start-form" onSubmit={handleSubmit}>
-        {error && <div className="error-banner">{error}</div>}
-        <label>
-          Mode
-          <select value={mode} onChange={(e) => setMode(e.target.value)}>
-            <option value="classic">Classic Quiz</option>
-            <option value="daily">Daily Challenge</option>
-            <option value="blitz">Blitz (60s, race the clock)</option>
-            <option value="survival">Survival (one miss ends the run)</option>
-          </select>
-        </label>
-        {mode !== 'daily' && (
-          <>
-            <label>
-              Category
-              <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="">All categories</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Canon source
-              <select value={canonSource} onChange={(e) => setCanonSource(e.target.value)}>
-                <option value="combined">Combined</option>
-                <option value="books">Books</option>
-                <option value="movies">Movies</option>
-              </select>
-            </label>
-            <label>
-              Difficulty
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                <option value="">Any difficulty</option>
-                <option value="First Year">First Year</option>
-                <option value="O.W.L.">O.W.L.</option>
-                <option value="N.E.W.T.">N.E.W.T.</option>
-                <option value="Order of the Phoenix">Order of the Phoenix</option>
-              </select>
-            </label>
-          </>
-        )}
-        <button type="submit" className="primary-button">
-          Begin
-        </button>
-      </form>
+
+      <Plate>
+        <form className="start-form" onSubmit={handleSubmit}>
+          {error && <div className="error-banner">{error}</div>}
+          <label>
+            Mode
+            <select value={mode} onChange={(e) => setMode(e.target.value)}>
+              <option value="classic">Classic Quiz</option>
+              <option value="daily">Daily Challenge</option>
+              <option value="blitz">Blitz (60s, race the clock)</option>
+              <option value="survival">Survival (one miss ends the run)</option>
+            </select>
+          </label>
+          {mode !== 'daily' && (
+            <>
+              <label>
+                Category
+                <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                  <option value="">All categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Canon source
+                <select value={canonSource} onChange={(e) => setCanonSource(e.target.value)}>
+                  <option value="combined">Combined</option>
+                  <option value="books">Books</option>
+                  <option value="movies">Movies</option>
+                </select>
+              </label>
+              <div className="start-form-field">
+                <span className="field-label">Difficulty</span>
+                <DifficultySlider value={difficulty} onChange={setDifficulty} />
+              </div>
+            </>
+          )}
+          <button type="submit" className="primary-button">
+            Begin
+          </button>
+        </form>
+      </Plate>
     </div>
   );
 }

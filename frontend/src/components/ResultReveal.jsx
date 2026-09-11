@@ -6,7 +6,11 @@ export default function ResultReveal({ correct, timedOut, points, correctAnswer,
         {correct ? '+' : ''}
         {points}
       </div>
-      {!correct && <p>The answer was: {correctAnswer}</p>}
+      {!correct && (
+        <p className="explanation">
+          The answer was <b>{correctAnswer}</b>
+        </p>
+      )}
       {explanation && <p className="explanation">{explanation}</p>}
       <button type="button" className="primary-button" onClick={onContinue}>
         {isLast ? 'See results' : 'Next question'}
