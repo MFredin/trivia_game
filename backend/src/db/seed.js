@@ -6,10 +6,8 @@ import { pool } from './pool.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function seed() {
-  const raw = readFileSync(
-    path.join(__dirname, '..', 'data', 'question-bank-starter.json'),
-    'utf-8',
-  );
+  const fileName = process.env.SEED_FILE || 'question-bank-starter.json';
+  const raw = readFileSync(path.join(__dirname, '..', 'data', fileName), 'utf-8');
   const { questions } = JSON.parse(raw);
 
   for (const q of questions) {
@@ -47,7 +45,7 @@ async function seed() {
     );
   }
 
-  console.log(`Seeded ${questions.length} questions.`);
+  console.log(`Seeded ${questions.length} questions from ${fileName}.`);
   await pool.end();
 }
 

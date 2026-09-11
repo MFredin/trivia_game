@@ -22,10 +22,17 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 ```bash
 cd backend
 npm install
-cp .env.example .env   # set DATABASE_URL and QUESTION_TOKEN_SECRET
+cp .env.example .env   # set DATABASE_URL, QUESTION_TOKEN_SECRET, AUTH_TOKEN_SECRET
 npm run db:migrate
 npm run db:seed
 npm run dev             # http://localhost:4000
+```
+
+`db:seed` loads `src/data/question-bank-starter.json` (the reviewed 40-question Phase 1 set) by
+default. To seed a different file — e.g. a larger draft pending review — set `SEED_FILE`:
+
+```bash
+SEED_FILE=question-bank-full-draft.json npm run db:seed
 ```
 
 ### Frontend
@@ -44,8 +51,9 @@ the same GitHub repo, pointing each at a different root directory:
 
 1. **Postgres**: in your Railway project, add a Postgres plugin — it provides `DATABASE_URL`.
 2. **Backend service** — root directory `backend`:
-   - Variables: `DATABASE_URL` (reference the Postgres plugin), `QUESTION_TOKEN_SECRET` (a long
-     random string), `NODE_ENV=production`.
+   - Variables: `DATABASE_URL` (reference the Postgres plugin), `QUESTION_TOKEN_SECRET` and
+     `AUTH_TOKEN_SECRET` (two different long random strings — the backend won't start without
+     both), `NODE_ENV=production`.
    - After the first deploy, run `npm run db:migrate` then `npm run db:seed` once (Railway's
      one-off command runner, under the service's "Deploy" tab).
    - Note its public URL (Settings → Networking → Generate Domain) — the frontend needs it.
