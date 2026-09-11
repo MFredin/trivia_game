@@ -20,11 +20,20 @@ export default function DifficultySlider({ value, onChange }) {
         aria-label="Difficulty"
       />
       <div className="difficulty-ticks">
-        {DIFFICULTY_TIERS.map((tier, i) => (
-          <span key={tier.value || 'any'} className={i === index ? 'is-active' : ''}>
-            {tier.label}
-          </span>
-        ))}
+        {DIFFICULTY_TIERS.map((tier, i) => {
+          const isFirst = i === 0;
+          const isLast = i === DIFFICULTY_TIERS.length - 1;
+          const edgeClass = isFirst ? 'is-first' : isLast ? 'is-last' : '';
+          return (
+            <span
+              key={tier.value || 'any'}
+              className={`${i === index ? 'is-active' : ''} ${edgeClass}`}
+              style={{ left: `calc(9px + ${i} * (100% - 18px) / ${DIFFICULTY_TIERS.length - 1})` }}
+            >
+              {tier.tickLabel ?? tier.label}
+            </span>
+          );
+        })}
       </div>
       <p className="difficulty-desc">{current.description}</p>
     </div>

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import Plate from './Plate.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
+const FLIP_OUT_MS = 220;
+const FLIP_IN_MS = 260;
 
 function CheckIcon() {
   return (
@@ -53,77 +55,104 @@ export default function QuestionCard({
     return () => clearInterval(interval);
   }, [question.question_id, anchor, timeLimitMs, onSubmit]);
 
+  // The visible "page" (catalog tabs + parchment card) lags one tick behind `question` so it can
+  // finish turning away from the old content before swapping in the new — see the page-turn
+  // animation below. Everything else (timer, streak, strikes) stays bound to the live props.
+  const [displayedQuestion, setDisplayedQuestion] = useState(question);
+  const [flipPhase, setFlipPhase] = useState('idle');
+
+  useEffect(() => {
+    if (question.question_id === displayedQuestion.question_id) return undefined;
+    setFlipPhase('out');
+    const outTimer = setTimeout(() => {
+      setDisplayedQuestion(question);
+      setFlipPhase('in');
+    }, FLIP_OUT_MS);
+    return () => clearTimeout(outTimer);
+  }, [question, displayedQuestion]);
+
+  useEffect(() => {
+    if (flipPhase !== 'in') return undefined;
+    const inTimer = setTimeout(() => setFlipPhase('idle'), FLIP_IN_MS);
+    return () => clearTimeout(inTimer);
+  }, [flipPhase]);
+
   const seconds = Math.ceil(remainingMs / 1000);
   const mm = Math.floor(seconds / 60);
   const ss = String(seconds % 60).padStart(2, '0');
 
+  const flipClass = flipPhase === 'out' ? 'is-turning-out' : flipPhase === 'in' ? 'is-turning-in' : '';
+  const inputLocked = Boolean(feedback) || flipPhase !== 'idle';
+
   return (
-    <div>
-      <div className="catalog-tabs">
-        <div className="catalog-tab">{question.obscurity_tier}</div>
-        <div className="catalog-tab">{question.category}</div>
-        {question.divergence && <div className="catalog-tab catalog-tab--divergence">Divergence</div>}
-      </div>
-      <Plate className="plate--tabbed" noGilt>
-        <p className="question-text">{question.question_text}</p>
-        <ul className="choice-list">
-          {question.choices.map((choice, index) => {
-            let className = 'choice-button';
-            let mark = null;
-            if (feedback) {
-              if (index === feedback.correctIndex) {
-                className += ' is-correct';
-                mark = <CheckIcon />;
-              } else if (index === feedback.chosenIndex) {
-                className += ' is-wrong';
-                mark = <CrossIcon />;
-              } else {
-                className += ' is-muted';
-              }
-            }
-            return (
-              <li key={choice}>
-                <button
-                  type="button"
-                  className={className}
-                  disabled={Boolean(feedback)}
-                  onClick={() => onSubmit(index)}
-                >
-                  <span className="choice-chip">{LETTERS[index]}</span>
-                  <span className="choice-text">{choice}</span>
-                  {mark}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-        <div className="hud-row">
-          <span>
-            <svg
-              className="hud-icon"
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              style={{ display: 'inline-block' }}
-            >
-              <circle cx="7" cy="7.5" r="5.6" stroke="currentColor" strokeWidth="1.2" />
-              <path d="M7 4.6V7.5L9.1 8.9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-            </svg>
-            {mm}:{ss}
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
-            <span className="streak">streak: {streak}</span>
-            {maxStrikes != null && (
-              <span className="strikes" aria-label={`${strikes} of ${maxStrikes} strikes`}>
-                {Array.from({ length: maxStrikes }, (_, i) => (
-                  <span key={i} className={`strike-dot ${i < strikes ? 'is-used' : ''}`} />
-                ))}
-              </span>
-            )}
-          </span>
+    <div className="page-flip-stage">
+      <div className={`page-flip ${flipClass}`}>
+        <div className="catalog-tabs">
+          <div className="catalog-tab">{displayedQuestion.obscurity_tier}</div>
+          <div className="catalog-tab">{displayedQuestion.category}</div>
+          {displayedQuestion.divergence && <div className="catalog-tab catalog-tab--divergence">Divergence</div>}
         </div>
-      </Plate>
+        <Plate className="plate--tabbed" noGilt>
+          <p className="question-text">{displayedQuestion.question_text}</p>
+          <ul className="choice-list">
+            {displayedQuestion.choices.map((choice, index) => {
+              let className = 'choice-button';
+              let mark = null;
+              if (feedback) {
+                if (index === feedback.correctIndex) {
+                  className += ' is-correct';
+                  mark = <CheckIcon />;
+                } else if (index === feedback.chosenIndex) {
+                  className += ' is-wrong';
+                  mark = <CrossIcon />;
+                } else {
+                  className += ' is-muted';
+                }
+              }
+              return (
+                <li key={choice}>
+                  <button
+                    type="button"
+                    className={className}
+                    disabled={inputLocked}
+                    onClick={() => onSubmit(index)}
+                  >
+                    <span className="choice-chip">{LETTERS[index]}</span>
+                    <span className="choice-text">{choice}</span>
+                    {mark}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="hud-row">
+            <span>
+              <svg
+                className="hud-icon"
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                style={{ display: 'inline-block' }}
+              >
+                <circle cx="7" cy="7.5" r="5.6" stroke="currentColor" strokeWidth="1.2" />
+                <path d="M7 4.6V7.5L9.1 8.9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+              </svg>
+              {mm}:{ss}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+              <span className="streak">streak: {streak}</span>
+              {maxStrikes != null && (
+                <span className="strikes" aria-label={`${strikes} of ${maxStrikes} strikes`}>
+                  {Array.from({ length: maxStrikes }, (_, i) => (
+                    <span key={i} className={`strike-dot ${i < strikes ? 'is-used' : ''}`} />
+                  ))}
+                </span>
+              )}
+            </span>
+          </div>
+        </Plate>
+      </div>
     </div>
   );
 }

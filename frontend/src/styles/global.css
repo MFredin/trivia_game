@@ -192,6 +192,54 @@ button {
 }
 
 /* --- catalog tabs (category/tier metadata, sitting on the plate's edge) --- */
+/* --- page-turn transition between questions --- */
+.page-flip-stage {
+  perspective: 1600px;
+}
+
+.page-flip {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform-origin: left center;
+}
+
+.page-flip.is-turning-out {
+  animation: page-turn-out 220ms cubic-bezier(0.4, 0, 0.7, 1) forwards;
+}
+
+.page-flip.is-turning-in {
+  animation: page-turn-in 260ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes page-turn-out {
+  0% {
+    transform: rotateY(0deg);
+    filter: brightness(1);
+  }
+  100% {
+    transform: rotateY(-94deg);
+    filter: brightness(0.75);
+  }
+}
+
+@keyframes page-turn-in {
+  0% {
+    transform: rotateY(94deg);
+    filter: brightness(0.75);
+  }
+  100% {
+    transform: rotateY(0deg);
+    filter: brightness(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-flip.is-turning-out,
+  .page-flip.is-turning-in {
+    animation: none;
+  }
+}
+
 .catalog-tabs {
   display: flex;
   gap: 6px;
@@ -556,8 +604,8 @@ button {
 }
 
 .difficulty-ticks {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 2.2rem;
   font-size: 0.68rem;
   letter-spacing: 0.03em;
   color: rgba(18, 21, 28, 0.5);
@@ -565,16 +613,28 @@ button {
   font-weight: 500;
 }
 
+/* Each tick is centered on the range thumb's actual travel position, which — because the
+   18px-wide thumb can't cross the track ends — sits inset by half its width (9px) at each
+   end. Equal-width flex segments used to put labels there instead, so only the middle tick
+   (O.W.L.) lined up with its dot and every other one was visibly off. */
 .difficulty-ticks span {
-  flex: 1;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 5.5rem;
   text-align: center;
 }
 
-.difficulty-ticks span:first-child {
+/* The two end ticks sit only 9px from the track edge, so centering their box there would
+   push wrapped text (e.g. "Order of the Phoenix") past the card boundary. Anchor them to
+   hug the edge instead, same as the dot's own travel limit. */
+.difficulty-ticks span.is-first {
+  transform: translateX(0);
   text-align: left;
 }
 
-.difficulty-ticks span:last-child {
+.difficulty-ticks span.is-last {
+  transform: translateX(-100%);
   text-align: right;
 }
 
