@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
+import AuthScreen from './components/AuthScreen.jsx';
 import StartScreen from './components/StartScreen.jsx';
 import QuestionCard from './components/QuestionCard.jsx';
 import ResultReveal from './components/ResultReveal.jsx';
 import SessionSummary from './components/SessionSummary.jsx';
-import { createSession, getCategories, getLeaderboard, submitAnswer } from './api/client.js';
+import { createSession, getCategories, getLeaderboard, getMe, submitAnswer } from './api/client.js';
+
+const TOKEN_STORAGE_KEY = 'trivia_auth_token';
 
 export default function App() {
+  const [authToken, setAuthToken] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
   const [categories, setCategories] = useState([]);
-  const [screen, setScreen] = useState('start');
+  const [screen, setScreen] = useState('auth');
   const [startError, setStartError] = useState(null);
 
   const [session, setSession] = useState(null);
@@ -20,6 +27,7 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
 
   const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardScope, setLeaderboardScope] = useState('global');
 
   useEffect(() => {
     getCategories()
@@ -27,11 +35,51 @@ export default function App() {
       .catch(() => setCategories([]));
   }, []);
 
-  const handleStart = async ({ username, mode, category, canonSource }) => {
+  useEffect(() => {
+    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!stored) {
+      setAuthChecked(true);
+      return;
+    }
+    getMe(stored)
+      .then((data) => {
+        setAuthToken(stored);
+        setCurrentUser(data.user);
+        setScreen('start');
+      })
+      .catch(() => localStorage.removeItem(TOKEN_STORAGE_KEY))
+      .finally(() => setAuthChecked(true));
+  }, []);
+
+  const handleAuthenticated = (newToken, user) => {
+    localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+    setAuthToken(newToken);
+    setCurrentUser(user);
+    setScreen('start');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    setAuthToken(null);
+    setCurrentUser(null);
+    setScreen('auth');
+  };
+
+  const handleStart = async ({ mode, category, canonSource, difficulty }) => {
     setStartError(null);
     try {
-      const data = await createSession({ username, mode, category, canonSource });
-      setSession({ id: data.session_id, mode: data.mode, timeLimitMs: data.time_limit_ms });
+      const data = await createSession({ mode, category, canonSource, difficulty }, authToken);
+      setSession({
+        id: data.session_id,
+        mode: data.mode,
+        category: data.category,
+        canonSource: data.canon_source,
+        difficulty: data.difficulty,
+        timeLimitMs: data.time_limit_ms,
+        timingMode: data.timing_mode,
+        endOnFirstMiss: data.end_on_first_miss,
+        createdAt: data.created_at,
+      });
       setQuestion(data.question);
       setToken(data.token);
       setIssuedAt(data.issued_at);
@@ -40,7 +88,9 @@ export default function App() {
       setFeedback(null);
       setScreen('question');
     } catch (err) {
-      if (err.code === 'daily_already_played') {
+      if (err.code === 'unauthorized') {
+        handleLogout();
+      } else if (err.code === 'daily_already_played') {
         setStartError("You've already played today's Daily Challenge — come back tomorrow.");
       } else if (err.code === 'no_eligible_questions') {
         setStartError('No questions match that combination yet — try a different category or canon source.');
@@ -80,10 +130,19 @@ export default function App() {
     }
   };
 
+  const fetchLeaderboard = async (scope) => {
+    const data = await getLeaderboard(
+      session.mode,
+      { category: session.category, canonSource: session.canonSource, difficulty: session.difficulty, scope },
+      authToken,
+    );
+    setLeaderboard(data.entries);
+    setLeaderboardScope(scope);
+  };
+
   const handleContinue = async () => {
     if (feedback.sessionComplete) {
-      const data = await getLeaderboard(session.mode);
-      setLeaderboard(data.entries);
+      await fetchLeaderboard('global');
       setScreen('summary');
       return;
     }
@@ -100,11 +159,23 @@ export default function App() {
     setScreen('start');
   };
 
+  if (!authChecked) {
+    return <div className="app-shell" />;
+  }
+
   return (
     <div className="app-shell">
       <div className="wordmark">The Restricted Section</div>
-      {screen === 'start' && (
-        <StartScreen categories={categories} onStart={handleStart} error={startError} />
+      {screen === 'auth' && <AuthScreen onAuthenticated={handleAuthenticated} />}
+      {screen === 'start' && currentUser && (
+        <StartScreen
+          categories={categories}
+          currentUser={currentUser}
+          token={authToken}
+          onStart={handleStart}
+          onLogout={handleLogout}
+          error={startError}
+        />
       )}
       {screen === 'question' && question && (
         <>
@@ -112,6 +183,8 @@ export default function App() {
             question={question}
             timeLimitMs={session.timeLimitMs}
             issuedAt={issuedAt}
+            timingMode={session.timingMode}
+            sessionCreatedAt={session.createdAt}
             streak={streak}
             feedback={feedback}
             onSubmit={handleSubmit}
@@ -133,7 +206,12 @@ export default function App() {
         <SessionSummary
           totalScore={totalScore}
           mode={session.mode}
+          category={session.category}
+          canonSource={session.canonSource}
+          difficulty={session.difficulty}
           entries={leaderboard}
+          scope={leaderboardScope}
+          onScopeChange={fetchLeaderboard}
           onPlayAgain={handlePlayAgain}
         />
       )}

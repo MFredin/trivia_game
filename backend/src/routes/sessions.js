@@ -2,43 +2,38 @@ import express from 'express';
 import { pool } from '../db/pool.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { MODES } from '../lib/modes.js';
+import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { dailyKeyFor } from '../lib/questionSelection.js';
 import { verifyQuestionToken } from '../lib/tokens.js';
 import { computeScore } from '../lib/scoring.js';
+import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
 import { pickNextQuestion, serveQuestion, getServedQuestionIds } from '../services/sessionQuestions.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-async function upsertUser(username) {
-  const { rows } = await pool.query(
-    `INSERT INTO users (username) VALUES ($1)
-     ON CONFLICT (username) DO UPDATE SET username = EXCLUDED.username
-     RETURNING id, username`,
-    [username],
-  );
-  return rows[0];
-}
-
 function sessionSummary(session) {
+  const modeConfig = MODES[session.mode];
   return {
     session_id: session.id,
     mode: session.mode,
     category: session.category,
     canon_source: session.canon_source,
+    difficulty: session.obscurity_filter,
     question_count: session.question_count,
     time_limit_ms: session.time_limit_ms,
+    timing_mode: modeConfig.timingMode,
+    end_on_first_miss: modeConfig.endOnFirstMiss,
+    created_at: session.created_at,
     status: session.status,
     streak: session.streak,
     total_score: session.total_score,
   };
 }
 
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   try {
-    const { username, mode, category, canon_source } = req.body ?? {};
-    if (!username || typeof username !== 'string' || username.trim().length === 0) {
-      return res.status(400).json({ error: 'username_required' });
-    }
+    const { mode, category, canon_source, difficulty } = req.body ?? {};
     if (!MODES[mode]) {
       return res.status(400).json({ error: 'invalid_mode' });
     }
@@ -46,8 +41,10 @@ router.post('/', async (req, res) => {
     if (!['books', 'movies', 'combined'].includes(canonSource)) {
       return res.status(400).json({ error: 'invalid_canon_source' });
     }
+    if (difficulty && !OBSCURITY_TIERS.includes(difficulty)) {
+      return res.status(400).json({ error: 'invalid_difficulty' });
+    }
 
-    const user = await upsertUser(username.trim());
     const modeConfig = MODES[mode];
     const questions = await getAllQuestions();
 
@@ -55,15 +52,25 @@ router.post('/', async (req, res) => {
     const dailyKey = isDaily ? dailyKeyFor() : null;
     const effectiveCategory = isDaily ? null : category ?? null;
     const effectiveCanonSource = isDaily ? 'combined' : canonSource;
+    const effectiveDifficulty = isDaily ? null : difficulty ?? null;
 
     let session;
     try {
       const { rows } = await pool.query(
         `INSERT INTO game_sessions
-          (user_id, mode, category, canon_source, question_count, time_limit_ms, daily_key)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+          (user_id, mode, category, canon_source, obscurity_filter, question_count, time_limit_ms, daily_key)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [user.id, mode, effectiveCategory, effectiveCanonSource, modeConfig.questionCount, modeConfig.timeLimitMs, dailyKey],
+        [
+          req.userId,
+          mode,
+          effectiveCategory,
+          effectiveCanonSource,
+          effectiveDifficulty,
+          modeConfig.questionCount,
+          modeConfig.timeLimitMs,
+          dailyKey,
+        ],
       );
       session = rows[0];
     } catch (err) {
@@ -117,7 +124,10 @@ router.post('/:id/answer', async (req, res) => {
     const valid = verifyQuestionToken({ sessionId: session.id, questionId: question_id, issuedAt, token });
     if (!valid) return res.status(400).json({ error: 'token_invalid' });
 
-    const elapsedMs = Date.now() - issuedAt.getTime();
+    const modeConfig = MODES[session.mode];
+    const timingReference =
+      modeConfig.timingMode === 'session_total' ? new Date(session.created_at) : issuedAt;
+    const elapsedMs = Date.now() - timingReference.getTime();
     const timedOut = elapsedMs > session.time_limit_ms;
     const correct = !timedOut && chosen_index === servedQuestion.correct_choice_index;
 
@@ -143,7 +153,10 @@ router.post('/:id/answer', async (req, res) => {
 
     const newTotalScore = session.total_score + points;
     const nextPosition = servedQuestion.position + 1;
-    const isLastQuestion = nextPosition >= session.question_count;
+    const reachedQuestionCap = nextPosition >= session.question_count;
+    const missedOnEndOnFirstMiss = modeConfig.endOnFirstMiss && !correct;
+    const sessionBudgetExhausted = modeConfig.timingMode === 'session_total' && timedOut;
+    const isLastQuestion = reachedQuestionCap || missedOnEndOnFirstMiss || sessionBudgetExhausted;
 
     let nextQuestionPayload = null;
     if (!isLastQuestion) {
@@ -171,6 +184,7 @@ router.post('/:id/answer', async (req, res) => {
       ],
     );
     const updatedSession = updatedRows[0];
+    if (sessionComplete) invalidateLeaderboardCache();
 
     return res.json({
       correct,

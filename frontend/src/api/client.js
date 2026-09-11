@@ -1,10 +1,10 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
-async function request(path, options) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+async function request(path, options = {}, token) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${path}`, { headers, ...options });
+  if (res.status === 204) return null;
   const data = await res.json();
   if (!res.ok) {
     const error = new Error(data.error || 'request_failed');
@@ -15,24 +15,54 @@ async function request(path, options) {
   return data;
 }
 
+export function register({ email, username, password }) {
+  return request('/auth/register', { method: 'POST', body: JSON.stringify({ email, username, password }) });
+}
+
+export function login({ email, password }) {
+  return request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+}
+
+export function getMe(token) {
+  return request('/auth/me', {}, token);
+}
+
+export function listFriends(token) {
+  return request('/friends', {}, token);
+}
+
+export function addFriend(username, token) {
+  return request('/friends', { method: 'POST', body: JSON.stringify({ username }) }, token);
+}
+
+export function removeFriend(username, token) {
+  return request(`/friends/${encodeURIComponent(username)}`, { method: 'DELETE' }, token);
+}
+
 export function getCategories() {
   return request('/categories');
 }
 
-export function getLeaderboard(mode = 'classic') {
-  return request(`/leaderboard?mode=${mode}`);
+export function getLeaderboard(mode = 'classic', { category, canonSource, difficulty, scope } = {}, token) {
+  const params = new URLSearchParams({ mode });
+  if (category) params.set('category', category);
+  if (canonSource) params.set('canon_source', canonSource);
+  if (difficulty) params.set('difficulty', difficulty);
+  if (scope) params.set('scope', scope);
+  return request(`/leaderboard?${params.toString()}`, {}, token);
 }
 
-export function createSession({ username, mode, category, canonSource }) {
-  return request('/sessions', {
-    method: 'POST',
-    body: JSON.stringify({ username, mode, category, canon_source: canonSource }),
-  });
+export function createSession({ mode, category, canonSource, difficulty }, token) {
+  return request(
+    '/sessions',
+    { method: 'POST', body: JSON.stringify({ mode, category, canon_source: canonSource, difficulty }) },
+    token,
+  );
 }
 
-export function submitAnswer(sessionId, { questionId, chosenIndex, token }) {
+export function submitAnswer(sessionId, { questionId, chosenIndex, token: questionToken }) {
   return request(`/sessions/${sessionId}/answer`, {
     method: 'POST',
-    body: JSON.stringify({ question_id: questionId, chosen_index: chosenIndex, token }),
+    body: JSON.stringify({ question_id: questionId, chosen_index: chosenIndex, token: questionToken }),
   });
 }

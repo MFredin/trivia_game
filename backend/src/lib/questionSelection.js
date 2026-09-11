@@ -26,8 +26,17 @@ function weightedPick(remaining, canonSource, rng) {
   return remaining.length - 1;
 }
 
-export function selectQuestionSet({ questions, category, canonSource, count, excludeIds = new Set(), rng }) {
+export function selectQuestionSet({
+  questions,
+  category,
+  canonSource,
+  obscurityTier,
+  count,
+  excludeIds = new Set(),
+  rng,
+}) {
   let pool = category ? questions.filter((q) => q.category === category) : questions.slice();
+  if (obscurityTier) pool = pool.filter((q) => q.obscurity_tier === obscurityTier);
   pool = filterByCanonSource(pool, canonSource).filter((q) => !excludeIds.has(q.id));
 
   const remaining = pool.slice();
