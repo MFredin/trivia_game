@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import Plate from './Plate.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
-const FLIP_OUT_MS = 220;
-const FLIP_IN_MS = 260;
+const FLIP_OUT_MS = 480;
+const FLIP_IN_MS = 560;
 
 function CheckIcon() {
   return (
@@ -58,24 +58,30 @@ export default function QuestionCard({
   // The visible "page" (catalog tabs + parchment card) lags one tick behind `question` so it can
   // finish turning away from the old content before swapping in the new — see the page-turn
   // animation below. Everything else (timer, streak, strikes) stays bound to the live props.
+  // Blitz races a single shared time budget (timingMode: 'session_total'), so the leisurely
+  // page-turn would tax the run itself — skip straight through there instead of playing it.
+  const isInstant = timingMode === 'session_total';
   const [displayedQuestion, setDisplayedQuestion] = useState(question);
   const [flipPhase, setFlipPhase] = useState('idle');
 
   useEffect(() => {
     if (question.question_id === displayedQuestion.question_id) return undefined;
     setFlipPhase('out');
-    const outTimer = setTimeout(() => {
-      setDisplayedQuestion(question);
-      setFlipPhase('in');
-    }, FLIP_OUT_MS);
+    const outTimer = setTimeout(
+      () => {
+        setDisplayedQuestion(question);
+        setFlipPhase('in');
+      },
+      isInstant ? 0 : FLIP_OUT_MS,
+    );
     return () => clearTimeout(outTimer);
-  }, [question, displayedQuestion]);
+  }, [question, displayedQuestion, isInstant]);
 
   useEffect(() => {
     if (flipPhase !== 'in') return undefined;
-    const inTimer = setTimeout(() => setFlipPhase('idle'), FLIP_IN_MS);
+    const inTimer = setTimeout(() => setFlipPhase('idle'), isInstant ? 0 : FLIP_IN_MS);
     return () => clearTimeout(inTimer);
-  }, [flipPhase]);
+  }, [flipPhase, isInstant]);
 
   const seconds = Math.ceil(remainingMs / 1000);
   const mm = Math.floor(seconds / 60);
@@ -85,7 +91,7 @@ export default function QuestionCard({
   const inputLocked = Boolean(feedback) || flipPhase !== 'idle';
 
   return (
-    <div className="page-flip-stage">
+    <div className={`page-flip-stage ${isInstant ? 'is-instant' : ''}`}>
       <div className={`page-flip ${flipClass}`}>
         <div className="catalog-tabs">
           <div className="catalog-tab">{displayedQuestion.obscurity_tier}</div>
