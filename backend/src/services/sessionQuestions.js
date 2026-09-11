@@ -2,27 +2,52 @@ import crypto from 'node:crypto';
 import { pool } from '../db/pool.js';
 import { signQuestionToken } from '../lib/tokens.js';
 import { selectQuestionSet, shuffle, mulberry32, seedFromString } from '../lib/questionSelection.js';
+import { tierFloorForPosition } from '../lib/tierFloor.js';
 
 function cryptoRng() {
   return () => crypto.randomInt(0, 1_000_000_000) / 1_000_000_000;
 }
 
 export function pickNextQuestion({ session, questions, position, excludeIds }) {
-  const rng =
-    session.mode === 'daily'
-      ? mulberry32(seedFromString(`${session.daily_key}:${position}`))
-      : cryptoRng();
+  // Daily Challenge and Duel both need every participant to see the identical question
+  // sequence — seed deterministically off the shared key (the day, or the duel) instead of
+  // off session.id, which would otherwise differ between the two duelists' own sessions.
+  const deterministicKey = session.mode === 'daily' ? session.daily_key : session.mode === 'duel' ? session.duel_id : null;
+  const rng = deterministicKey ? mulberry32(seedFromString(`${deterministicKey}:${position}`)) : cryptoRng();
+
+  // Classic mode with no explicit difficulty filter guarantees a tier for the first few
+  // positions so every run has a comparable point ceiling (see lib/tierFloor.js).
+  const floorTier =
+    session.mode === 'classic' && !session.obscurity_filter
+      ? tierFloorForPosition(position, session.question_count)
+      : null;
 
   const [picked] = selectQuestionSet({
     questions,
     category: session.category,
     canonSource: session.canon_source,
-    obscurityTier: session.obscurity_filter,
+    obscurityTier: floorTier ?? session.obscurity_filter,
     count: 1,
     excludeIds,
     rng,
   });
-  return picked ?? null;
+  if (picked) return picked;
+
+  // Fallback for a small category-filtered pool that's run out of the floor tier —
+  // fall back to the session's normal (unconstrained-by-floor) filter instead of a dead end.
+  if (floorTier) {
+    const [fallback] = selectQuestionSet({
+      questions,
+      category: session.category,
+      canonSource: session.canon_source,
+      obscurityTier: session.obscurity_filter,
+      count: 1,
+      excludeIds,
+      rng,
+    });
+    return fallback ?? null;
+  }
+  return null;
 }
 
 export function toClientQuestion(question, choiceOrder, position) {

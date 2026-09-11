@@ -7,7 +7,24 @@ import ResultReveal from './components/ResultReveal.jsx';
 import SessionSummary from './components/SessionSummary.jsx';
 import LeaderboardScreen from './components/LeaderboardScreen.jsx';
 import FriendsPanel from './components/FriendsPanel.jsx';
-import { createSession, getCategories, getLeaderboard, getMe, submitAnswer } from './api/client.js';
+import DuelLobbyScreen from './components/DuelLobbyScreen.jsx';
+import DuelOpponentStrip from './components/DuelOpponentStrip.jsx';
+import DuelSummaryScreen from './components/DuelSummaryScreen.jsx';
+import DuelInviteBanner from './components/DuelInviteBanner.jsx';
+import AchievementsScreen from './components/AchievementsScreen.jsx';
+import AchievementToast from './components/AchievementToast.jsx';
+import { useDuelSocket } from './hooks/useDuelSocket.js';
+import {
+  acceptDuel,
+  createDuel,
+  createSession,
+  declineDuel,
+  getCategories,
+  getLeaderboard,
+  getMe,
+  getPendingDuels,
+  submitAnswer,
+} from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
 
@@ -25,12 +42,27 @@ export default function App() {
   const [token, setToken] = useState(null);
   const [issuedAt, setIssuedAt] = useState(null);
   const [streak, setStreak] = useState(0);
+  const [strikes, setStrikes] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardScope, setLeaderboardScope] = useState('global');
+  const [leaderboardWindow, setLeaderboardWindow] = useState('current');
+
+  // --- duels ---
+  const [pendingDuels, setPendingDuels] = useState([]);
+  const [duelLobbyOpponent, setDuelLobbyOpponent] = useState(null);
+  const [outgoingDuel, setOutgoingDuel] = useState(null);
+  const [duelLobbyError, setDuelLobbyError] = useState(null);
+  const [duelOpponentUsername, setDuelOpponentUsername] = useState(null);
+  const [opponentLive, setOpponentLive] = useState(null);
+  const [duelResult, setDuelResult] = useState(null);
+  const [duelNotice, setDuelNotice] = useState(null);
+
+  // --- achievements ---
+  const [achievementQueue, setAchievementQueue] = useState([]);
 
   useEffect(() => {
     getCategories()
@@ -53,6 +85,89 @@ export default function App() {
       .catch(() => localStorage.removeItem(TOKEN_STORAGE_KEY))
       .finally(() => setAuthChecked(true));
   }, []);
+
+  useEffect(() => {
+    if (!authToken) return;
+    getPendingDuels(authToken)
+      .then((data) => setPendingDuels(data.pending))
+      .catch(() => {});
+  }, [authToken]);
+
+  const handleDuelEvent = (event) => {
+    switch (event.type) {
+      case 'duel:invited': {
+        setPendingDuels((prev) => [
+          ...prev.filter((d) => d.duel_id !== event.duel.duel_id),
+          { ...event.duel, direction: 'incoming' },
+        ]);
+        break;
+      }
+      case 'duel:declined': {
+        setPendingDuels((prev) => prev.filter((d) => d.duel_id !== event.duel_id));
+        if (outgoingDuel?.duel_id === event.duel_id) {
+          setDuelNotice(`${outgoingDuel.opponent_username} declined your challenge.`);
+          setOutgoingDuel(null);
+        }
+        break;
+      }
+      case 'duel:started': {
+        if (outgoingDuel?.duel_id === event.duel_id) {
+          setDuelOpponentUsername(outgoingDuel.opponent_username);
+          setSession({
+            id: event.session_id,
+            mode: 'duel',
+            category: outgoingDuel.category,
+            canonSource: outgoingDuel.canon_source,
+            difficulty: outgoingDuel.difficulty,
+            timeLimitMs: event.time_limit_ms,
+            timingMode: 'per_question',
+            maxStrikes: null,
+            createdAt: new Date().toISOString(),
+          });
+          setQuestion(event.question);
+          setToken(event.token);
+          setIssuedAt(event.issued_at);
+          setStreak(0);
+          setStrikes(0);
+          setTotalScore(0);
+          setFeedback(null);
+          setOpponentLive(null);
+          setDuelResult(null);
+          setOutgoingDuel(null);
+          setScreen('question');
+        }
+        break;
+      }
+      case 'duel:opponent_progress': {
+        setOpponentLive({
+          runningTotal: event.running_total,
+          streak: event.streak,
+          sessionComplete: event.session_complete,
+        });
+        break;
+      }
+      case 'duel:finished': {
+        const mine = event.results.find((r) => r.user_id === currentUser?.id);
+        const theirs = event.results.find((r) => r.user_id !== currentUser?.id);
+        setDuelResult({ yourScore: mine?.total_score ?? 0, opponentScore: theirs?.total_score ?? 0 });
+        break;
+      }
+      case 'achievement:unlocked': {
+        setAchievementQueue((prev) => [...prev, event.achievement]);
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+  useDuelSocket(authToken, handleDuelEvent);
+
+  useEffect(() => {
+    if (achievementQueue.length === 0) return undefined;
+    const timer = setTimeout(() => setAchievementQueue((prev) => prev.slice(1)), 5000);
+    return () => clearTimeout(timer);
+  }, [achievementQueue]);
 
   const handleAuthenticated = (newToken, user) => {
     localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
@@ -85,13 +200,14 @@ export default function App() {
         difficulty: data.difficulty,
         timeLimitMs: data.time_limit_ms,
         timingMode: data.timing_mode,
-        endOnFirstMiss: data.end_on_first_miss,
+        maxStrikes: data.max_strikes,
         createdAt: data.created_at,
       });
       setQuestion(data.question);
       setToken(data.token);
       setIssuedAt(data.issued_at);
       setStreak(0);
+      setStrikes(0);
       setTotalScore(0);
       setFeedback(null);
       setScreen('question');
@@ -130,6 +246,7 @@ export default function App() {
         next: result.next,
       });
       setStreak(result.streak);
+      setStrikes(result.strikes);
       setTotalScore(result.running_total);
     } catch (err) {
       setStartError('Lost connection to the server — your progress up to this point is saved.');
@@ -138,19 +255,24 @@ export default function App() {
     }
   };
 
-  const fetchLeaderboard = async (scope) => {
+  const fetchLeaderboard = async (scope, window) => {
     const data = await getLeaderboard(
       session.mode,
-      { category: session.category, canonSource: session.canonSource, difficulty: session.difficulty, scope },
+      { category: session.category, canonSource: session.canonSource, difficulty: session.difficulty, scope, window },
       authToken,
     );
     setLeaderboard(data.entries);
     setLeaderboardScope(scope);
+    setLeaderboardWindow(window);
   };
 
   const handleContinue = async () => {
     if (feedback.sessionComplete) {
-      await fetchLeaderboard('global');
+      if (session.mode === 'duel') {
+        setScreen('duel-summary');
+        return;
+      }
+      await fetchLeaderboard('global', 'current');
       setScreen('summary');
       return;
     }
@@ -167,23 +289,139 @@ export default function App() {
     setScreen('start');
   };
 
+  const handleChallenge = (username) => {
+    setDuelLobbyOpponent(username);
+    setOutgoingDuel(null);
+    setDuelLobbyError(null);
+    setScreen('duel-lobby');
+  };
+
+  const handleSendDuel = async ({ category, canonSource, difficulty }) => {
+    setDuelLobbyError(null);
+    try {
+      const data = await createDuel({ opponentUsername: duelLobbyOpponent, category, canonSource, difficulty }, authToken);
+      setOutgoingDuel({
+        duel_id: data.duel_id,
+        opponent_username: data.opponent_username,
+        category: data.category,
+        canon_source: data.canon_source,
+        difficulty: data.difficulty,
+      });
+    } catch (err) {
+      if (err.code === 'not_friends') setDuelLobbyError('You are no longer friends with that player.');
+      else if (err.code === 'user_not_found') setDuelLobbyError('That player could not be found.');
+      else setDuelLobbyError('Could not send that challenge.');
+    }
+  };
+
+  const handleLeaveDuelLobby = () => {
+    setScreen('friends');
+  };
+
+  const handleAcceptDuel = async (duelId) => {
+    const invite = pendingDuels.find((d) => d.duel_id === duelId);
+    try {
+      const data = await acceptDuel(duelId, authToken);
+      setDuelOpponentUsername(invite?.created_by_username ?? null);
+      setSession({
+        id: data.session_id,
+        mode: 'duel',
+        category: invite?.category ?? null,
+        canonSource: invite?.canon_source ?? 'combined',
+        difficulty: invite?.difficulty ?? null,
+        timeLimitMs: data.time_limit_ms,
+        timingMode: 'per_question',
+        maxStrikes: null,
+        createdAt: new Date().toISOString(),
+      });
+      setQuestion(data.question);
+      setToken(data.token);
+      setIssuedAt(data.issued_at);
+      setStreak(0);
+      setStrikes(0);
+      setTotalScore(0);
+      setFeedback(null);
+      setOpponentLive(null);
+      setDuelResult(null);
+      setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
+      setScreen('question');
+    } catch (err) {
+      setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
+      setStartError('Could not accept that duel — it may no longer be pending.');
+    }
+  };
+
+  const handleDeclineDuel = async (duelId) => {
+    setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
+    try {
+      await declineDuel(duelId, authToken);
+    } catch {
+      // already resolved server-side; local list is already updated
+    }
+  };
+
+  const handleDuelDone = () => {
+    setSession(null);
+    setQuestion(null);
+    setFeedback(null);
+    setDuelResult(null);
+    setOpponentLive(null);
+    setDuelOpponentUsername(null);
+    setScreen('friends');
+  };
+
   if (!authChecked) {
     return <div className="app-shell" />;
   }
 
+  const incomingDuelInvites = pendingDuels.filter((d) => d.direction === 'incoming');
+  const navActiveScreen = screen === 'duel-lobby' || screen === 'duel-summary' ? 'friends' : screen;
+
   return (
     <div className="app-shell">
       {screen !== 'auth' && (
-        <NavBar currentUser={currentUser} activeScreen={screen} onNavigate={handleNavigate} onLogout={handleLogout} />
+        <NavBar currentUser={currentUser} activeScreen={navActiveScreen} onNavigate={handleNavigate} onLogout={handleLogout} />
       )}
+      {screen !== 'auth' && screen !== 'question' && incomingDuelInvites.length > 0 && (
+        <DuelInviteBanner invite={incomingDuelInvites[0]} onAccept={handleAcceptDuel} onDecline={handleDeclineDuel} />
+      )}
+      {duelNotice && (
+        <div className="duel-notice-banner" onClick={() => setDuelNotice(null)}>
+          {duelNotice}
+        </div>
+      )}
+      <AchievementToast
+        achievement={achievementQueue[0]}
+        onDismiss={() => setAchievementQueue((prev) => prev.slice(1))}
+      />
       {screen === 'auth' && <AuthScreen onAuthenticated={handleAuthenticated} />}
       {screen === 'start' && currentUser && (
         <StartScreen categories={categories} currentUser={currentUser} onStart={handleStart} error={startError} />
       )}
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
-      {screen === 'friends' && <FriendsPanel token={authToken} />}
+      {screen === 'achievements' && <AchievementsScreen token={authToken} />}
+      {screen === 'friends' && (
+        <FriendsPanel
+          token={authToken}
+          pendingDuels={pendingDuels}
+          onAcceptDuel={handleAcceptDuel}
+          onDeclineDuel={handleDeclineDuel}
+          onChallenge={handleChallenge}
+        />
+      )}
+      {screen === 'duel-lobby' && (
+        <DuelLobbyScreen
+          opponentUsername={duelLobbyOpponent}
+          categories={categories}
+          outgoingDuel={outgoingDuel}
+          error={duelLobbyError}
+          onSend={handleSendDuel}
+          onLeave={handleLeaveDuelLobby}
+        />
+      )}
       {screen === 'question' && question && (
         <>
+          {session.mode === 'duel' && <DuelOpponentStrip opponentUsername={duelOpponentUsername} live={opponentLive} />}
           <QuestionCard
             question={question}
             timeLimitMs={session.timeLimitMs}
@@ -191,6 +429,8 @@ export default function App() {
             timingMode={session.timingMode}
             sessionCreatedAt={session.createdAt}
             streak={streak}
+            strikes={strikes}
+            maxStrikes={session.maxStrikes}
             feedback={feedback}
             onSubmit={handleSubmit}
           />
@@ -216,8 +456,18 @@ export default function App() {
           difficulty={session.difficulty}
           entries={leaderboard}
           scope={leaderboardScope}
-          onScopeChange={fetchLeaderboard}
+          window={leaderboardWindow}
+          onScopeChange={(scope) => fetchLeaderboard(scope, leaderboardWindow)}
+          onWindowChange={(window) => fetchLeaderboard(leaderboardScope, window)}
           onPlayAgain={handlePlayAgain}
+        />
+      )}
+      {screen === 'duel-summary' && (
+        <DuelSummaryScreen
+          yourScore={totalScore}
+          opponentUsername={duelOpponentUsername}
+          result={duelResult}
+          onDone={handleDuelDone}
         />
       )}
     </div>

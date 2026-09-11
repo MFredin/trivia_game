@@ -4,11 +4,15 @@ import { getAllQuestions } from '../repo/questions.js';
 import { MODES } from '../lib/modes.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { dailyKeyFor } from '../lib/questionSelection.js';
+import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { verifyQuestionToken } from '../lib/tokens.js';
 import { computeScore } from '../lib/scoring.js';
 import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
 import { pickNextQuestion, serveQuestion, getServedQuestionIds } from '../services/sessionQuestions.js';
 import { requireAuth } from '../middleware/auth.js';
+import { sendToUser } from '../lib/wsServer.js';
+import { getOpponentSession, maybeFinishDuel } from '../services/duels.js';
+import { evaluateAchievements } from '../services/achievements.js';
 
 const router = express.Router();
 
@@ -23,10 +27,11 @@ function sessionSummary(session) {
     question_count: session.question_count,
     time_limit_ms: session.time_limit_ms,
     timing_mode: modeConfig.timingMode,
-    end_on_first_miss: modeConfig.endOnFirstMiss,
+    max_strikes: modeConfig.maxStrikes,
     created_at: session.created_at,
     status: session.status,
     streak: session.streak,
+    strikes: session.strikes,
     total_score: session.total_score,
   };
 }
@@ -58,8 +63,8 @@ router.post('/', requireAuth, async (req, res) => {
     try {
       const { rows } = await pool.query(
         `INSERT INTO game_sessions
-          (user_id, mode, category, canon_source, obscurity_filter, question_count, time_limit_ms, daily_key)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          (user_id, mode, category, canon_source, obscurity_filter, question_count, time_limit_ms, daily_key, leaderboard_window)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
         [
           req.userId,
@@ -70,6 +75,7 @@ router.post('/', requireAuth, async (req, res) => {
           modeConfig.questionCount,
           modeConfig.timeLimitMs,
           dailyKey,
+          currentLeaderboardWindow(),
         ],
       );
       session = rows[0];
@@ -152,11 +158,12 @@ router.post('/:id/answer', async (req, res) => {
     );
 
     const newTotalScore = session.total_score + points;
+    const newStrikes = correct ? session.strikes : session.strikes + 1;
     const nextPosition = servedQuestion.position + 1;
     const reachedQuestionCap = nextPosition >= session.question_count;
-    const missedOnEndOnFirstMiss = modeConfig.endOnFirstMiss && !correct;
+    const reachedStrikeLimit = modeConfig.maxStrikes != null && newStrikes >= modeConfig.maxStrikes;
     const sessionBudgetExhausted = modeConfig.timingMode === 'session_total' && timedOut;
-    const isLastQuestion = reachedQuestionCap || missedOnEndOnFirstMiss || sessionBudgetExhausted;
+    const isLastQuestion = reachedQuestionCap || reachedStrikeLimit || sessionBudgetExhausted;
 
     let nextQuestionPayload = null;
     if (!isLastQuestion) {
@@ -169,22 +176,46 @@ router.post('/:id/answer', async (req, res) => {
     }
 
     const sessionComplete = isLastQuestion || !nextQuestionPayload;
+    const newBestStreak = Math.max(session.best_streak, streakAfter);
 
     const { rows: updatedRows } = await pool.query(
       `UPDATE game_sessions
-       SET streak = $1, total_score = $2, status = $3, completed_at = $4
-       WHERE id = $5
+       SET streak = $1, strikes = $2, total_score = $3, status = $4, completed_at = $5, best_streak = $6
+       WHERE id = $7
        RETURNING *`,
       [
         streakAfter,
+        newStrikes,
         newTotalScore,
         sessionComplete ? 'completed' : 'active',
         sessionComplete ? new Date() : null,
+        newBestStreak,
         session.id,
       ],
     );
     const updatedSession = updatedRows[0];
-    if (sessionComplete) invalidateLeaderboardCache();
+    if (sessionComplete) {
+      invalidateLeaderboardCache();
+      await evaluateAchievements(session.user_id);
+    }
+
+    if (session.duel_id) {
+      const opponentSession = await getOpponentSession(session.duel_id, session.user_id);
+      if (opponentSession) {
+        sendToUser(opponentSession.user_id, {
+          type: 'duel:opponent_progress',
+          duel_id: session.duel_id,
+          correct,
+          points,
+          running_total: newTotalScore,
+          streak: streakAfter,
+          session_complete: sessionComplete,
+        });
+      }
+      if (sessionComplete) {
+        await maybeFinishDuel(session.duel_id);
+      }
+    }
 
     return res.json({
       correct,
@@ -192,6 +223,7 @@ router.post('/:id/answer', async (req, res) => {
       points,
       running_total: newTotalScore,
       streak: streakAfter,
+      strikes: newStrikes,
       correct_answer: questionMeta.correct_answer,
       explanation: questionMeta.explanation,
       session_complete: sessionComplete,

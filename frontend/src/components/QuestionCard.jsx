@@ -26,6 +26,8 @@ export default function QuestionCard({
   timingMode,
   sessionCreatedAt,
   streak,
+  strikes,
+  maxStrikes,
   feedback,
   onSubmit,
 }) {
@@ -110,7 +112,16 @@ export default function QuestionCard({
             </svg>
             {mm}:{ss}
           </span>
-          <span className="streak">streak: {streak}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+            <span className="streak">streak: {streak}</span>
+            {maxStrikes != null && (
+              <span className="strikes" aria-label={`${strikes} of ${maxStrikes} strikes`}>
+                {Array.from({ length: maxStrikes }, (_, i) => (
+                  <span key={i} className={`strike-dot ${i < strikes ? 'is-used' : ''}`} />
+                ))}
+              </span>
+            )}
+          </span>
         </div>
       </Plate>
     </div>

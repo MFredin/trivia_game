@@ -9,6 +9,7 @@ const MODES = [
   { value: 'daily', label: 'Daily Challenge' },
   { value: 'blitz', label: 'Blitz' },
   { value: 'survival', label: 'Survival' },
+  { value: 'gauntlet', label: 'Gauntlet' },
 ];
 
 export default function LeaderboardScreen({ categories, token }) {
@@ -17,16 +18,23 @@ export default function LeaderboardScreen({ categories, token }) {
   const [canonSource, setCanonSource] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [scope, setScope] = useState('global');
+  const [window, setWindow] = useState('current');
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    getLeaderboard(mode, { category: category || null, canonSource: canonSource || null, difficulty: difficulty || null, scope }, token)
+    getLeaderboard(
+      mode,
+      { category: category || null, canonSource: canonSource || null, difficulty: difficulty || null, scope, window },
+      token,
+    )
       .then((data) => setEntries(data.entries))
       .catch(() => setEntries([]))
       .finally(() => setLoading(false));
-  }, [mode, category, canonSource, difficulty, scope, token]);
+  }, [mode, category, canonSource, difficulty, scope, window, token]);
+
+  const currentLabel = mode === 'daily' ? 'Today' : 'This Week';
 
   return (
     <div>
@@ -36,6 +44,21 @@ export default function LeaderboardScreen({ categories, token }) {
           <h2 className="screen-title">Leaderboard</h2>
         </div>
         <div className="nav-links">
+          <button
+            type="button"
+            className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
+            onClick={() => setWindow('current')}
+          >
+            {currentLabel}
+          </button>
+          <button
+            type="button"
+            className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
+            onClick={() => setWindow('all')}
+          >
+            All Time
+          </button>
+          <span style={{ width: '1px', background: 'rgba(237,230,214,0.16)', margin: '0 0.2rem' }} />
           <button
             type="button"
             className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}

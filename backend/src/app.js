@@ -5,6 +5,8 @@ import leaderboardRouter from './routes/leaderboard.js';
 import categoriesRouter from './routes/categories.js';
 import authRouter from './routes/auth.js';
 import friendsRouter from './routes/friends.js';
+import duelsRouter from './routes/duels.js';
+import achievementsRouter from './routes/achievements.js';
 
 export function createApp() {
   const app = express();
@@ -18,6 +20,8 @@ export function createApp() {
   app.use('/api/categories', categoriesRouter);
   app.use('/api/auth', authRouter);
   app.use('/api/friends', friendsRouter);
+  app.use('/api/duels', duelsRouter);
+  app.use('/api/achievements', achievementsRouter);
 
   return app;
 }

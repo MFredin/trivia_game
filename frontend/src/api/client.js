@@ -39,16 +39,56 @@ export function removeFriend(username, token) {
   return request(`/friends/${encodeURIComponent(username)}`, { method: 'DELETE' }, token);
 }
 
+export function getFriendRequests(token) {
+  return request('/friends/requests', {}, token);
+}
+
+export function acceptFriendRequest(username, token) {
+  return request(`/friends/requests/${encodeURIComponent(username)}/accept`, { method: 'POST' }, token);
+}
+
+export function declineFriendRequest(username, token) {
+  return request(`/friends/requests/${encodeURIComponent(username)}/decline`, { method: 'POST' }, token);
+}
+
+export function createDuel({ opponentUsername, category, canonSource, difficulty }, token) {
+  return request(
+    '/duels',
+    {
+      method: 'POST',
+      body: JSON.stringify({ opponent_username: opponentUsername, category, canon_source: canonSource, difficulty }),
+    },
+    token,
+  );
+}
+
+export function getPendingDuels(token) {
+  return request('/duels/pending', {}, token);
+}
+
+export function acceptDuel(duelId, token) {
+  return request(`/duels/${duelId}/accept`, { method: 'POST' }, token);
+}
+
+export function declineDuel(duelId, token) {
+  return request(`/duels/${duelId}/decline`, { method: 'POST' }, token);
+}
+
 export function getCategories() {
   return request('/categories');
 }
 
-export function getLeaderboard(mode = 'classic', { category, canonSource, difficulty, scope } = {}, token) {
+export function getAchievements(token) {
+  return request('/achievements', {}, token);
+}
+
+export function getLeaderboard(mode = 'classic', { category, canonSource, difficulty, scope, window } = {}, token) {
   const params = new URLSearchParams({ mode });
   if (category) params.set('category', category);
   if (canonSource) params.set('canon_source', canonSource);
   if (difficulty) params.set('difficulty', difficulty);
   if (scope) params.set('scope', scope);
+  if (window) params.set('window', window);
   return request(`/leaderboard?${params.toString()}`, {}, token);
 }
 

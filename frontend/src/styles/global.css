@@ -346,6 +346,23 @@ button {
   font-weight: 600;
 }
 
+.strikes {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.strike-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--oxblood-600);
+  background: transparent;
+}
+
+.strike-dot.is-used {
+  background: var(--oxblood-600);
+}
+
 .hud-icon {
   vertical-align: -2px;
   margin-right: 0.3rem;
@@ -648,4 +665,289 @@ button {
   color: var(--brass-300);
   text-align: center;
   margin: 1rem 0;
+}
+
+/* --- friends & duels --- */
+.friend-section {
+  margin-bottom: 1.25rem;
+}
+
+.plate-subhead {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.9rem;
+}
+
+.friend-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.friend-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.08);
+}
+
+.friend-row:last-child {
+  border-bottom: none;
+}
+
+.friend-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.friend-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.friend-add-form {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+}
+
+.friend-add-input {
+  flex: 1;
+  background: #f6f1e6;
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  border-radius: 3px;
+  padding: 0.75rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-on-surface);
+}
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ash-300);
+  flex: none;
+}
+
+.online-dot.is-online {
+  background: var(--success);
+  box-shadow: 0 0 0 2px rgba(78, 140, 124, 0.2);
+}
+
+.duel-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(184, 146, 61, 0.08);
+  border: 1px solid rgba(184, 146, 61, 0.3);
+  border-radius: 3px;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--parchment-100);
+}
+
+.duel-strip-name {
+  font-weight: 600;
+  color: var(--brass-300);
+}
+
+.duel-strip-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.duel-strip-done {
+  color: var(--success);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+.duel-result-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.duel-result-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  min-width: 8rem;
+}
+
+.duel-result-side.is-winner {
+  background: rgba(184, 146, 61, 0.1);
+  border: 1px solid rgba(184, 146, 61, 0.4);
+}
+
+.duel-result-name {
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+  font-weight: 600;
+}
+
+.duel-result-score {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.duel-result-vs {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted-on-surface);
+}
+
+.duel-invite-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: rgba(184, 146, 61, 0.12);
+  border: 1px solid rgba(184, 146, 61, 0.45);
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  color: var(--parchment-100);
+  font-size: 0.9rem;
+}
+
+.duel-invite-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.duel-notice-banner {
+  background: rgba(78, 140, 124, 0.1);
+  border: 1px solid rgba(78, 140, 124, 0.4);
+  border-radius: 3px;
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 1.5rem;
+  color: var(--parchment-100);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* --- achievements --- */
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.9rem;
+}
+
+.achievement-card {
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(18, 21, 28, 0.12);
+}
+
+.achievement-card.is-unlocked {
+  background: rgba(184, 146, 61, 0.08);
+  border-color: rgba(184, 146, 61, 0.4);
+}
+
+.achievement-card.is-locked {
+  opacity: 0.55;
+}
+
+.achievement-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.achievement-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.achievement-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
+}
+
+.achievement-date {
+  margin: 0.4rem 0 0;
+  font-size: 0.7rem;
+  color: var(--brass-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.achievement-toast {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: min(320px, calc(100vw - 2.5rem));
+  background: var(--parchment-100);
+  background-image: var(--paper-grain);
+  color: var(--text-on-surface);
+  border-radius: 4px;
+  padding: 0.9rem 1.1rem;
+  box-shadow:
+    0 10px 24px -10px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(184, 146, 61, 0.45);
+  cursor: pointer;
+  animation: toast-in 0.25s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.achievement-toast-eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass-500);
+  font-weight: 700;
+}
+
+.achievement-toast-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.achievement-toast-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
 }
