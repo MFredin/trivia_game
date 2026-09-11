@@ -78,6 +78,10 @@ export function getCategories() {
   return request('/categories');
 }
 
+export function getAchievements(token) {
+  return request('/achievements', {}, token);
+}
+
 export function getLeaderboard(mode = 'classic', { category, canonSource, difficulty, scope, window } = {}, token) {
   const params = new URLSearchParams({ mode });
   if (category) params.set('category', category);

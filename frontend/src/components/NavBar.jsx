@@ -2,6 +2,7 @@ const LINKS = [
   { screen: 'start', label: 'Home' },
   { screen: 'leaderboard', label: 'Leaderboard' },
   { screen: 'friends', label: 'Friends' },
+  { screen: 'achievements', label: 'Achievements' },
 ];
 
 export default function NavBar({ currentUser, activeScreen, onNavigate, onLogout }) {

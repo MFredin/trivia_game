@@ -11,6 +11,8 @@ import DuelLobbyScreen from './components/DuelLobbyScreen.jsx';
 import DuelOpponentStrip from './components/DuelOpponentStrip.jsx';
 import DuelSummaryScreen from './components/DuelSummaryScreen.jsx';
 import DuelInviteBanner from './components/DuelInviteBanner.jsx';
+import AchievementsScreen from './components/AchievementsScreen.jsx';
+import AchievementToast from './components/AchievementToast.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import {
   acceptDuel,
@@ -58,6 +60,9 @@ export default function App() {
   const [opponentLive, setOpponentLive] = useState(null);
   const [duelResult, setDuelResult] = useState(null);
   const [duelNotice, setDuelNotice] = useState(null);
+
+  // --- achievements ---
+  const [achievementQueue, setAchievementQueue] = useState([]);
 
   useEffect(() => {
     getCategories()
@@ -147,12 +152,22 @@ export default function App() {
         setDuelResult({ yourScore: mine?.total_score ?? 0, opponentScore: theirs?.total_score ?? 0 });
         break;
       }
+      case 'achievement:unlocked': {
+        setAchievementQueue((prev) => [...prev, event.achievement]);
+        break;
+      }
       default:
         break;
     }
   };
 
   useDuelSocket(authToken, handleDuelEvent);
+
+  useEffect(() => {
+    if (achievementQueue.length === 0) return undefined;
+    const timer = setTimeout(() => setAchievementQueue((prev) => prev.slice(1)), 5000);
+    return () => clearTimeout(timer);
+  }, [achievementQueue]);
 
   const handleAuthenticated = (newToken, user) => {
     localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
@@ -375,11 +390,16 @@ export default function App() {
           {duelNotice}
         </div>
       )}
+      <AchievementToast
+        achievement={achievementQueue[0]}
+        onDismiss={() => setAchievementQueue((prev) => prev.slice(1))}
+      />
       {screen === 'auth' && <AuthScreen onAuthenticated={handleAuthenticated} />}
       {screen === 'start' && currentUser && (
         <StartScreen categories={categories} currentUser={currentUser} onStart={handleStart} error={startError} />
       )}
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
+      {screen === 'achievements' && <AchievementsScreen token={authToken} />}
       {screen === 'friends' && (
         <FriendsPanel
           token={authToken}

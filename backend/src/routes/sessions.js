@@ -12,6 +12,7 @@ import { pickNextQuestion, serveQuestion, getServedQuestionIds } from '../servic
 import { requireAuth } from '../middleware/auth.js';
 import { sendToUser } from '../lib/wsServer.js';
 import { getOpponentSession, maybeFinishDuel } from '../services/duels.js';
+import { evaluateAchievements } from '../services/achievements.js';
 
 const router = express.Router();
 
@@ -175,11 +176,12 @@ router.post('/:id/answer', async (req, res) => {
     }
 
     const sessionComplete = isLastQuestion || !nextQuestionPayload;
+    const newBestStreak = Math.max(session.best_streak, streakAfter);
 
     const { rows: updatedRows } = await pool.query(
       `UPDATE game_sessions
-       SET streak = $1, strikes = $2, total_score = $3, status = $4, completed_at = $5
-       WHERE id = $6
+       SET streak = $1, strikes = $2, total_score = $3, status = $4, completed_at = $5, best_streak = $6
+       WHERE id = $7
        RETURNING *`,
       [
         streakAfter,
@@ -187,11 +189,15 @@ router.post('/:id/answer', async (req, res) => {
         newTotalScore,
         sessionComplete ? 'completed' : 'active',
         sessionComplete ? new Date() : null,
+        newBestStreak,
         session.id,
       ],
     );
     const updatedSession = updatedRows[0];
-    if (sessionComplete) invalidateLeaderboardCache();
+    if (sessionComplete) {
+      invalidateLeaderboardCache();
+      await evaluateAchievements(session.user_id);
+    }
 
     if (session.duel_id) {
       const opponentSession = await getOpponentSession(session.duel_id, session.user_id);

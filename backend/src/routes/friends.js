@@ -2,6 +2,7 @@ import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isOnline } from '../lib/presenceRegistry.js';
+import { evaluateAchievements } from '../services/achievements.js';
 
 const router = express.Router();
 
@@ -80,6 +81,8 @@ router.post('/', async (req, res) => {
        ON CONFLICT (user_id, friend_user_id) DO UPDATE SET status = 'accepted'`,
       [req.userId, target.id, target.id],
     );
+    await evaluateAchievements(req.userId);
+    await evaluateAchievements(target.id);
     return res.status(200).json({ friend: target, status: 'accepted' });
   }
 
@@ -123,6 +126,8 @@ router.post('/requests/:username/accept', async (req, res) => {
      ON CONFLICT (user_id, friend_user_id) DO UPDATE SET status = 'accepted'`,
     [req.userId, sender.id],
   );
+  await evaluateAchievements(req.userId);
+  await evaluateAchievements(sender.id);
   return res.status(200).json({ friend: sender });
 });
 

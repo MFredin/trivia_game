@@ -85,6 +85,10 @@ ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS duel_id UUID REFERENCES duels
 -- Count of wrong/timed-out answers so far, for strike-limited modes (Survival, Gauntlet).
 ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS strikes INTEGER NOT NULL DEFAULT 0;
 
+-- Peak streak reached during the run. Unlike `streak` (the streak AT THE MOMENT the run ended,
+-- which a final wrong answer resets to 0), this is what streak-based achievements check.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS best_streak INTEGER NOT NULL DEFAULT 0;
+
 CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard
   ON game_sessions (mode, status, total_score DESC);
 
@@ -94,6 +98,13 @@ CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard_window
 CREATE UNIQUE INDEX IF NOT EXISTS idx_one_daily_session_per_user
   ON game_sessions (user_id, daily_key)
   WHERE daily_key IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS user_achievements (
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  achievement_id TEXT NOT NULL,
+  unlocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, achievement_id)
+);
 
 CREATE TABLE IF NOT EXISTS session_questions (
   id SERIAL PRIMARY KEY,

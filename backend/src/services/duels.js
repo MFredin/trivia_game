@@ -1,5 +1,6 @@
 import { pool } from '../db/pool.js';
 import { sendToUser } from '../lib/wsServer.js';
+import { evaluateAchievements } from './achievements.js';
 
 export async function getOpponentSession(duelId, userId) {
   const { rows } = await pool.query(`SELECT * FROM game_sessions WHERE duel_id = $1 AND user_id != $2`, [
@@ -27,4 +28,5 @@ export async function maybeFinishDuel(duelId) {
     results: rows.map((s) => ({ user_id: s.user_id, total_score: s.total_score })),
   };
   for (const s of rows) sendToUser(s.user_id, payload);
+  for (const s of rows) await evaluateAchievements(s.user_id);
 }
