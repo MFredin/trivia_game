@@ -51,8 +51,15 @@ CREATE TABLE IF NOT EXISTS game_sessions (
 -- rather than by editing the CREATE TABLE above, which no-ops on a table that already exists.
 ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS obscurity_filter TEXT;
 
+-- ISO week key (e.g. "2026-W37") the session was PLAYED in, computed once at creation time —
+-- powers the rotating "This Week" leaderboard without any date math in queries later.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS leaderboard_window TEXT;
+
 CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard
   ON game_sessions (mode, status, total_score DESC);
+
+CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard_window
+  ON game_sessions (mode, status, leaderboard_window, total_score DESC);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_one_daily_session_per_user
   ON game_sessions (user_id, daily_key)

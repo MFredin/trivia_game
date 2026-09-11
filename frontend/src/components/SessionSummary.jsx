@@ -16,10 +16,13 @@ export default function SessionSummary({
   difficulty,
   entries,
   scope,
+  window,
   onScopeChange,
+  onWindowChange,
   onPlayAgain,
 }) {
   const segments = [MODE_LABELS[mode] ?? mode, category, difficulty].filter(Boolean);
+  const currentLabel = mode === 'daily' ? 'Today' : 'This Week';
   return (
     <div>
       <p className="screen-eyebrow" style={{ textAlign: 'center' }}>
@@ -35,6 +38,21 @@ export default function SessionSummary({
           Leaderboard — {segments.join(' · ')}
         </h3>
         <div className="nav-links">
+          <button
+            type="button"
+            className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
+            onClick={() => onWindowChange('current')}
+          >
+            {currentLabel}
+          </button>
+          <button
+            type="button"
+            className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
+            onClick={() => onWindowChange('all')}
+          >
+            All Time
+          </button>
+          <span style={{ width: '1px', background: 'rgba(18,21,28,0.16)', margin: '0 0.2rem' }} />
           <button
             type="button"
             className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}

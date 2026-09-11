@@ -31,6 +31,7 @@ export default function App() {
 
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardScope, setLeaderboardScope] = useState('global');
+  const [leaderboardWindow, setLeaderboardWindow] = useState('current');
 
   useEffect(() => {
     getCategories()
@@ -138,19 +139,20 @@ export default function App() {
     }
   };
 
-  const fetchLeaderboard = async (scope) => {
+  const fetchLeaderboard = async (scope, window) => {
     const data = await getLeaderboard(
       session.mode,
-      { category: session.category, canonSource: session.canonSource, difficulty: session.difficulty, scope },
+      { category: session.category, canonSource: session.canonSource, difficulty: session.difficulty, scope, window },
       authToken,
     );
     setLeaderboard(data.entries);
     setLeaderboardScope(scope);
+    setLeaderboardWindow(window);
   };
 
   const handleContinue = async () => {
     if (feedback.sessionComplete) {
-      await fetchLeaderboard('global');
+      await fetchLeaderboard('global', 'current');
       setScreen('summary');
       return;
     }
@@ -216,7 +218,9 @@ export default function App() {
           difficulty={session.difficulty}
           entries={leaderboard}
           scope={leaderboardScope}
-          onScopeChange={fetchLeaderboard}
+          window={leaderboardWindow}
+          onScopeChange={(scope) => fetchLeaderboard(scope, leaderboardWindow)}
+          onWindowChange={(window) => fetchLeaderboard(leaderboardScope, window)}
           onPlayAgain={handlePlayAgain}
         />
       )}

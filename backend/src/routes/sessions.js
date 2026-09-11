@@ -4,6 +4,7 @@ import { getAllQuestions } from '../repo/questions.js';
 import { MODES } from '../lib/modes.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { dailyKeyFor } from '../lib/questionSelection.js';
+import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { verifyQuestionToken } from '../lib/tokens.js';
 import { computeScore } from '../lib/scoring.js';
 import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
@@ -58,8 +59,8 @@ router.post('/', requireAuth, async (req, res) => {
     try {
       const { rows } = await pool.query(
         `INSERT INTO game_sessions
-          (user_id, mode, category, canon_source, obscurity_filter, question_count, time_limit_ms, daily_key)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          (user_id, mode, category, canon_source, obscurity_filter, question_count, time_limit_ms, daily_key, leaderboard_window)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
         [
           req.userId,
@@ -70,6 +71,7 @@ router.post('/', requireAuth, async (req, res) => {
           modeConfig.questionCount,
           modeConfig.timeLimitMs,
           dailyKey,
+          currentLeaderboardWindow(),
         ],
       );
       session = rows[0];
