@@ -1,3 +1,4 @@
+import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
 
 const MODE_LABELS = {
@@ -21,32 +22,42 @@ export default function SessionSummary({
   const segments = [MODE_LABELS[mode] ?? mode, category, difficulty].filter(Boolean);
   return (
     <div>
-      <h2>Run complete</h2>
+      <p className="screen-eyebrow" style={{ textAlign: 'center' }}>
+        Enquiry Concluded
+      </p>
+      <h2 className="screen-title" style={{ textAlign: 'center' }}>
+        Run Complete
+      </h2>
       <div className="summary-score">{totalScore}</div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.75rem' }}>
-        <h3>Leaderboard — {segments.join(' · ')}</h3>
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
+
+      <div className="screen-head">
+        <h3 className="screen-title" style={{ fontSize: '1.1rem' }}>
+          Leaderboard — {segments.join(' · ')}
+        </h3>
+        <div className="nav-links">
           <button
             type="button"
-            className="secondary-button"
-            style={scope === 'global' ? { borderColor: 'var(--brass-500)', color: 'var(--brass-500)' } : undefined}
+            className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}
             onClick={() => onScopeChange('global')}
           >
             Global
           </button>
           <button
             type="button"
-            className="secondary-button"
-            style={scope === 'friends' ? { borderColor: 'var(--brass-500)', color: 'var(--brass-500)' } : undefined}
+            className={`nav-btn ${scope === 'friends' ? 'is-active' : ''}`}
             onClick={() => onScopeChange('friends')}
           >
             Friends
           </button>
         </div>
       </div>
-      <Leaderboard entries={entries} />
-      <div style={{ marginTop: '1.5rem' }}>
-        <button type="button" className="secondary-button" onClick={onPlayAgain}>
+
+      <Plate>
+        <Leaderboard entries={entries} />
+      </Plate>
+
+      <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        <button type="button" className="primary-button" onClick={onPlayAgain}>
           Play again
         </button>
       </div>

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import NavBar from './components/NavBar.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import StartScreen from './components/StartScreen.jsx';
 import QuestionCard from './components/QuestionCard.jsx';
 import ResultReveal from './components/ResultReveal.jsx';
 import SessionSummary from './components/SessionSummary.jsx';
 import LeaderboardScreen from './components/LeaderboardScreen.jsx';
+import FriendsPanel from './components/FriendsPanel.jsx';
 import { createSession, getCategories, getLeaderboard, getMe, submitAnswer } from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
@@ -64,6 +66,11 @@ export default function App() {
     setAuthToken(null);
     setCurrentUser(null);
     setScreen('auth');
+  };
+
+  const handleNavigate = (target) => {
+    setStartError(null);
+    setScreen(target);
   };
 
   const handleStart = async ({ mode, category, canonSource, difficulty }) => {
@@ -166,22 +173,15 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="wordmark">The Restricted Section</div>
+      {screen !== 'auth' && (
+        <NavBar currentUser={currentUser} activeScreen={screen} onNavigate={handleNavigate} onLogout={handleLogout} />
+      )}
       {screen === 'auth' && <AuthScreen onAuthenticated={handleAuthenticated} />}
       {screen === 'start' && currentUser && (
-        <StartScreen
-          categories={categories}
-          currentUser={currentUser}
-          token={authToken}
-          onStart={handleStart}
-          onLogout={handleLogout}
-          onViewLeaderboard={() => setScreen('leaderboard')}
-          error={startError}
-        />
+        <StartScreen categories={categories} currentUser={currentUser} onStart={handleStart} error={startError} />
       )}
-      {screen === 'leaderboard' && (
-        <LeaderboardScreen categories={categories} token={authToken} onBack={() => setScreen('start')} />
-      )}
+      {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
+      {screen === 'friends' && <FriendsPanel token={authToken} />}
       {screen === 'question' && question && (
         <>
           <QuestionCard

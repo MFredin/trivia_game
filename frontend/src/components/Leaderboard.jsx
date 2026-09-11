@@ -16,10 +16,10 @@ export default function Leaderboard({ entries }) {
       <tbody>
         {entries.map((entry, index) => (
           <tr key={`${entry.username}-${entry.completed_at}`}>
-            <td>{index + 1}</td>
-            <td>{entry.username}</td>
-            <td>{entry.total_score}</td>
-            <td>{entry.category ?? 'All'}</td>
+            <td className="rank">{index + 1}</td>
+            <td className="player">{entry.username}</td>
+            <td className="score">{entry.total_score}</td>
+            <td className="category">{entry.category ?? 'All'}</td>
           </tr>
         ))}
       </tbody>

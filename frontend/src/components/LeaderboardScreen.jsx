@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
+import DifficultySlider from './DifficultySlider.jsx';
 import { getLeaderboard } from '../api/client.js';
 
 const MODES = [
@@ -9,7 +11,7 @@ const MODES = [
   { value: 'survival', label: 'Survival' },
 ];
 
-export default function LeaderboardScreen({ categories, token, onBack }) {
+export default function LeaderboardScreen({ categories, token }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
   const [canonSource, setCanonSource] = useState('');
@@ -28,67 +30,22 @@ export default function LeaderboardScreen({ categories, token, onBack }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2>Leaderboard</h2>
-        <button type="button" className="secondary-button" onClick={onBack}>
-          Back
-        </button>
-      </div>
-
-      <div className="start-form" style={{ marginBottom: '1.25rem' }}>
-        <label>
-          Mode
-          <select value={mode} onChange={(e) => setMode(e.target.value)}>
-            {MODES.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Category
-          <select value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="">All categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Canon source
-          <select value={canonSource} onChange={(e) => setCanonSource(e.target.value)}>
-            <option value="">Any</option>
-            <option value="combined">Combined</option>
-            <option value="books">Books</option>
-            <option value="movies">Movies</option>
-          </select>
-        </label>
-        <label>
-          Difficulty
-          <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-            <option value="">Any difficulty</option>
-            <option value="First Year">First Year</option>
-            <option value="O.W.L.">O.W.L.</option>
-            <option value="N.E.W.T.">N.E.W.T.</option>
-            <option value="Order of the Phoenix">Order of the Phoenix</option>
-          </select>
-        </label>
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
+      <div className="screen-head">
+        <div>
+          <p className="screen-eyebrow">The Ledger</p>
+          <h2 className="screen-title">Leaderboard</h2>
+        </div>
+        <div className="nav-links">
           <button
             type="button"
-            className="secondary-button"
-            style={scope === 'global' ? { borderColor: 'var(--brass-500)', color: 'var(--brass-500)' } : undefined}
+            className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}
             onClick={() => setScope('global')}
           >
             Global
           </button>
           <button
             type="button"
-            className="secondary-button"
-            style={scope === 'friends' ? { borderColor: 'var(--brass-500)', color: 'var(--brass-500)' } : undefined}
+            className={`nav-btn ${scope === 'friends' ? 'is-active' : ''}`}
             onClick={() => setScope('friends')}
           >
             Friends
@@ -96,7 +53,48 @@ export default function LeaderboardScreen({ categories, token, onBack }) {
         </div>
       </div>
 
-      {loading ? <p className="explanation">Loading…</p> : <Leaderboard entries={entries} />}
+      <Plate>
+        <div className="start-form leaderboard-filters">
+          <label>
+            Mode
+            <select value={mode} onChange={(e) => setMode(e.target.value)}>
+              {MODES.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Category
+            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">All categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Canon source
+            <select value={canonSource} onChange={(e) => setCanonSource(e.target.value)}>
+              <option value="">Any</option>
+              <option value="combined">Combined</option>
+              <option value="books">Books</option>
+              <option value="movies">Movies</option>
+            </select>
+          </label>
+          <div className="start-form-field">
+            <span className="field-label">Difficulty</span>
+            <DifficultySlider value={difficulty} onChange={setDifficulty} />
+          </div>
+        </div>
+
+        <div className="ledger-divider" />
+
+        {loading ? <p className="explanation">Loading…</p> : <Leaderboard entries={entries} />}
+      </Plate>
     </div>
   );
 }
