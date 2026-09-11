@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import FriendsPanel from './FriendsPanel.jsx';
 
-export default function StartScreen({ categories, currentUser, token, onStart, onLogout, error }) {
+export default function StartScreen({ categories, currentUser, token, onStart, onLogout, onViewLeaderboard, error }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
   const [canonSource, setCanonSource] = useState('combined');
@@ -22,6 +22,9 @@ export default function StartScreen({ categories, currentUser, token, onStart, o
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <span className="explanation">Playing as {currentUser.username}</span>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button type="button" className="secondary-button" onClick={onViewLeaderboard}>
+            Leaderboard
+          </button>
           <FriendsPanel token={token} />
           <button type="button" className="secondary-button" onClick={onLogout}>
             Log out

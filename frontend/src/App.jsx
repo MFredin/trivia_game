@@ -4,6 +4,7 @@ import StartScreen from './components/StartScreen.jsx';
 import QuestionCard from './components/QuestionCard.jsx';
 import ResultReveal from './components/ResultReveal.jsx';
 import SessionSummary from './components/SessionSummary.jsx';
+import LeaderboardScreen from './components/LeaderboardScreen.jsx';
 import { createSession, getCategories, getLeaderboard, getMe, submitAnswer } from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
@@ -174,8 +175,12 @@ export default function App() {
           token={authToken}
           onStart={handleStart}
           onLogout={handleLogout}
+          onViewLeaderboard={() => setScreen('leaderboard')}
           error={startError}
         />
+      )}
+      {screen === 'leaderboard' && (
+        <LeaderboardScreen categories={categories} token={authToken} onBack={() => setScreen('start')} />
       )}
       {screen === 'question' && question && (
         <>
