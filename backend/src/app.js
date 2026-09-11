@@ -6,7 +6,8 @@ import categoriesRouter from './routes/categories.js';
 
 export function createApp() {
   const app = express();
-  app.use(cors());
+  const allowedOrigin = process.env.ALLOWED_ORIGIN;
+  app.use(cors(allowedOrigin ? { origin: allowedOrigin.split(',') } : undefined));
   app.use(express.json());
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
