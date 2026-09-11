@@ -1,0 +1,20 @@
+:root {
+  --ink-900: #12151c;
+  --parchment-100: #ede6d6;
+  --brass-500: #b8923d;
+  --oxblood-600: #5c1a2b;
+  --verdigris-400: #4e8c7c;
+  --ash-300: #8a8d96;
+
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Inter', 'Public Sans', system-ui, sans-serif;
+
+  --bg: var(--ink-900);
+  --surface: var(--parchment-100);
+  --text-on-bg: var(--parchment-100);
+  --text-on-surface: var(--ink-900);
+  --text-muted: var(--ash-300);
+  --accent: var(--brass-500);
+  --danger: var(--oxblood-600);
+  --success: var(--verdigris-400);
+}
