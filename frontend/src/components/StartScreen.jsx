@@ -40,6 +40,7 @@ export default function StartScreen({ categories, currentUser, onStart, error })
               <option value="daily">Daily Challenge</option>
               <option value="blitz">Blitz (60s, race the clock)</option>
               <option value="survival">Survival (one miss ends the run)</option>
+              <option value="gauntlet">Gauntlet (three strikes)</option>
             </select>
           </label>
           {mode !== 'daily' && (

@@ -6,6 +6,8 @@ const MODE_LABELS = {
   daily: 'Daily Challenge',
   blitz: 'Blitz',
   survival: 'Survival',
+  gauntlet: 'Gauntlet',
+  duel: 'Duel',
 };
 
 export default function SessionSummary({

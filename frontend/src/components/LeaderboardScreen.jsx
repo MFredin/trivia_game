@@ -9,6 +9,7 @@ const MODES = [
   { value: 'daily', label: 'Daily Challenge' },
   { value: 'blitz', label: 'Blitz' },
   { value: 'survival', label: 'Survival' },
+  { value: 'gauntlet', label: 'Gauntlet' },
 ];
 
 export default function LeaderboardScreen({ categories, token }) {

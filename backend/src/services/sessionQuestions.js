@@ -9,10 +9,11 @@ function cryptoRng() {
 }
 
 export function pickNextQuestion({ session, questions, position, excludeIds }) {
-  const rng =
-    session.mode === 'daily'
-      ? mulberry32(seedFromString(`${session.daily_key}:${position}`))
-      : cryptoRng();
+  // Daily Challenge and Duel both need every participant to see the identical question
+  // sequence — seed deterministically off the shared key (the day, or the duel) instead of
+  // off session.id, which would otherwise differ between the two duelists' own sessions.
+  const deterministicKey = session.mode === 'daily' ? session.daily_key : session.mode === 'duel' ? session.duel_id : null;
+  const rng = deterministicKey ? mulberry32(seedFromString(`${deterministicKey}:${position}`)) : cryptoRng();
 
   // Classic mode with no explicit difficulty filter guarantees a tier for the first few
   // positions so every run has a comparable point ceiling (see lib/tierFloor.js).

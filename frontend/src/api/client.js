@@ -39,6 +39,41 @@ export function removeFriend(username, token) {
   return request(`/friends/${encodeURIComponent(username)}`, { method: 'DELETE' }, token);
 }
 
+export function getFriendRequests(token) {
+  return request('/friends/requests', {}, token);
+}
+
+export function acceptFriendRequest(username, token) {
+  return request(`/friends/requests/${encodeURIComponent(username)}/accept`, { method: 'POST' }, token);
+}
+
+export function declineFriendRequest(username, token) {
+  return request(`/friends/requests/${encodeURIComponent(username)}/decline`, { method: 'POST' }, token);
+}
+
+export function createDuel({ opponentUsername, category, canonSource, difficulty }, token) {
+  return request(
+    '/duels',
+    {
+      method: 'POST',
+      body: JSON.stringify({ opponent_username: opponentUsername, category, canon_source: canonSource, difficulty }),
+    },
+    token,
+  );
+}
+
+export function getPendingDuels(token) {
+  return request('/duels/pending', {}, token);
+}
+
+export function acceptDuel(duelId, token) {
+  return request(`/duels/${duelId}/accept`, { method: 'POST' }, token);
+}
+
+export function declineDuel(duelId, token) {
+  return request(`/duels/${duelId}/decline`, { method: 'POST' }, token);
+}
+
 export function getCategories() {
   return request('/categories');
 }

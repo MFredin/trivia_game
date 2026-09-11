@@ -15,6 +15,13 @@ CREATE TABLE IF NOT EXISTS friendships (
   UNIQUE (user_id, friend_user_id)
 );
 
+-- 'pending' (user_id sent a request to friend_user_id, not yet answered) or 'accepted'.
+-- A friendship counts as mutual once BOTH directional rows are 'accepted' (see routes/friends.js).
+-- NOT NULL DEFAULT 'accepted' both sets new rows correctly and grandfathers every friendship
+-- that existed before requests did, with no retroactive friction for existing users.
+ALTER TABLE friendships ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'accepted';
+ALTER TABLE friendships ADD COLUMN IF NOT EXISTS requested_by INTEGER REFERENCES users(id);
+
 CREATE TABLE IF NOT EXISTS questions (
   id TEXT PRIMARY KEY,
   category TEXT NOT NULL,
@@ -54,6 +61,29 @@ ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS obscurity_filter TEXT;
 -- ISO week key (e.g. "2026-W37") the session was PLAYED in, computed once at creation time —
 -- powers the rotating "This Week" leaderboard without any date math in queries later.
 ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS leaderboard_window TEXT;
+
+CREATE TABLE IF NOT EXISTS duels (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  opponent_id INTEGER NOT NULL REFERENCES users(id),
+  category TEXT,
+  canon_source TEXT NOT NULL DEFAULT 'combined',
+  obscurity_filter TEXT,
+  question_count INTEGER NOT NULL,
+  time_limit_ms INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  started_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ
+);
+
+-- A duel's two game_sessions (one per participant) share a duel_id and are seeded from it,
+-- so both players get the identical question sequence — the same mechanism Daily Challenge
+-- already uses for daily_key, just keyed by duel instead of by day.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS duel_id UUID REFERENCES duels(id);
+
+-- Count of wrong/timed-out answers so far, for strike-limited modes (Survival, Gauntlet).
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS strikes INTEGER NOT NULL DEFAULT 0;
 
 CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard
   ON game_sessions (mode, status, total_score DESC);
