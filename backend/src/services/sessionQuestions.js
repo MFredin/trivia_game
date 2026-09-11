@@ -17,6 +17,7 @@ export function pickNextQuestion({ session, questions, position, excludeIds }) {
     questions,
     category: session.category,
     canonSource: session.canon_source,
+    obscurityTier: session.obscurity_filter,
     count: 1,
     excludeIds,
     rng,

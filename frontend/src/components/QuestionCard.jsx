@@ -3,16 +3,26 @@ import Tag from './Tag.jsx';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
-export default function QuestionCard({ question, timeLimitMs, issuedAt, streak, feedback, onSubmit }) {
+export default function QuestionCard({
+  question,
+  timeLimitMs,
+  issuedAt,
+  timingMode,
+  sessionCreatedAt,
+  streak,
+  feedback,
+  onSubmit,
+}) {
   const [remainingMs, setRemainingMs] = useState(timeLimitMs);
   const hasTimedOutRef = useRef(false);
+  const anchor = timingMode === 'session_total' ? sessionCreatedAt : issuedAt;
 
   useEffect(() => {
     hasTimedOutRef.current = false;
-    const issuedMs = new Date(issuedAt).getTime();
+    const anchorMs = new Date(anchor).getTime();
 
     const tick = () => {
-      const remaining = Math.max(0, timeLimitMs - (Date.now() - issuedMs));
+      const remaining = Math.max(0, timeLimitMs - (Date.now() - anchorMs));
       setRemainingMs(remaining);
       if (remaining === 0 && !hasTimedOutRef.current) {
         hasTimedOutRef.current = true;
@@ -23,7 +33,7 @@ export default function QuestionCard({ question, timeLimitMs, issuedAt, streak, 
     tick();
     const interval = setInterval(tick, 100);
     return () => clearInterval(interval);
-  }, [question.question_id, issuedAt, timeLimitMs, onSubmit]);
+  }, [question.question_id, anchor, timeLimitMs, onSubmit]);
 
   const seconds = Math.ceil(remainingMs / 1000);
   const mm = Math.floor(seconds / 60);

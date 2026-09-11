@@ -4,6 +4,17 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+
+CREATE TABLE IF NOT EXISTS friendships (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  friend_user_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, friend_user_id)
+);
+
 CREATE TABLE IF NOT EXISTS questions (
   id TEXT PRIMARY KEY,
   category TEXT NOT NULL,
@@ -34,6 +45,11 @@ CREATE TABLE IF NOT EXISTS game_sessions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   completed_at TIMESTAMPTZ
 );
+
+-- Migration for pre-existing databases: schema.sql is re-run as a whole idempotent script
+-- (via `npm run db:migrate`), so new columns are added here with ALTER ... ADD COLUMN IF NOT EXISTS
+-- rather than by editing the CREATE TABLE above, which no-ops on a table that already exists.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS obscurity_filter TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard
   ON game_sessions (mode, status, total_score DESC);
