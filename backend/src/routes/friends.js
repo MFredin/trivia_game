@@ -1,7 +1,7 @@
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
-import { isOnline } from '../lib/presenceRegistry.js';
+import { getOnlineUserIds, isOnline } from '../lib/presenceRegistry.js';
 import { evaluateAchievements } from '../services/achievements.js';
 
 const router = express.Router();
@@ -72,6 +72,37 @@ router.get('/search', async (req, res) => {
     id: r.id,
     username: r.username,
     online: isOnline(r.id),
+    status:
+      r.outgoing_status === 'accepted' || r.incoming_status === 'accepted'
+        ? 'friends'
+        : r.outgoing_status === 'pending'
+          ? 'pending_sent'
+          : r.incoming_status === 'pending'
+            ? 'pending_received'
+            : 'none',
+  }));
+  return res.json({ results });
+});
+
+// Everyone currently connected (not just friends), so a player can see who's around to
+// challenge right now — distinct from the friends list's per-friend online dot, which only
+// covers people you've already added.
+router.get('/online', async (req, res) => {
+  const onlineIds = getOnlineUserIds().filter((id) => id !== req.userId);
+  if (onlineIds.length === 0) return res.json({ results: [] });
+
+  const { rows } = await pool.query(
+    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+     FROM users u
+     LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
+     LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
+     WHERE u.id = ANY($2::int[])
+     ORDER BY u.username`,
+    [req.userId, onlineIds],
+  );
+  const results = rows.map((r) => ({
+    id: r.id,
+    username: r.username,
     status:
       r.outgoing_status === 'accepted' || r.incoming_status === 'accepted'
         ? 'friends'

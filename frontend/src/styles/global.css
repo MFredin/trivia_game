@@ -26,7 +26,7 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -41,7 +41,11 @@ button {
   padding: 2rem 1.25rem 4rem;
 }
 
-/* --- persistent nav: a printed running header, not a web app bar --- */
+/* --- persistent nav: a printed running header, not a web app bar ---
+   Deliberately silver rather than house-brass: this is the app's own chrome (wordmark,
+   page links, filter pills), not the game surface, so it stays one consistent metal
+   regardless of which house binding is active — house color is reserved for plates,
+   buttons and corner brackets. */
 .running-header {
   display: flex;
   justify-content: space-between;
@@ -50,7 +54,7 @@ button {
   gap: 0.6rem 1.4rem;
   margin: -0.5rem -0.25rem 2.2rem;
   padding: 0 0.25rem 0.9rem;
-  border-bottom: 1px solid rgba(var(--brass-500-rgb), 0.4);
+  border-bottom: 1px solid rgba(var(--silver-400-rgb), 0.4);
 }
 
 .running-title {
@@ -58,10 +62,10 @@ button {
   border: none;
   padding: 0;
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 1.15rem;
+  font-weight: 600;
+  font-size: 1.2rem;
   letter-spacing: 0.02em;
-  color: var(--brass-300);
+  color: var(--silver-200);
   cursor: pointer;
 }
 
@@ -73,10 +77,10 @@ button {
 
 .running-nav button {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 500;
   font-size: 0.85rem;
   letter-spacing: 0.03em;
-  color: var(--ash-300);
+  color: var(--silver-400);
   background: none;
   border: none;
   padding: 0 0 0.65rem;
@@ -88,7 +92,7 @@ button {
 }
 
 .running-nav button.on {
-  color: var(--brass-300);
+  color: var(--silver-200);
 }
 
 .running-nav button.on::after {
@@ -98,7 +102,7 @@ button {
   right: 0;
   bottom: 0;
   height: 2px;
-  background: var(--brass-300);
+  background: var(--silver-200);
 }
 
 /* --- generic filter-toggle pills (leaderboard scope/window switches), sit on the dark page --- */
@@ -111,24 +115,24 @@ button {
 .nav-btn {
   font-family: var(--font-display);
   font-size: 0.82rem;
-  font-weight: 400;
-  color: var(--ash-300);
+  font-weight: 500;
+  color: var(--silver-400);
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(var(--brass-500-rgb), 0.3);
+  border: 1px solid rgba(var(--silver-400-rgb), 0.3);
   border-radius: 2px;
   padding: 0.5rem 0.9rem;
   letter-spacing: 0.02em;
 }
 
 .nav-btn:hover {
-  border-color: rgba(var(--brass-500-rgb), 0.55);
+  border-color: rgba(var(--silver-400-rgb), 0.55);
   color: var(--text-on-bg);
 }
 
 .nav-btn.is-active {
-  color: var(--brass-300);
-  border-color: var(--brass-300);
-  background: rgba(var(--brass-500-rgb), 0.1);
+  color: var(--silver-200);
+  border-color: var(--silver-200);
+  background: rgba(var(--silver-400-rgb), 0.12);
 }
 
 .screen-head {
@@ -150,7 +154,7 @@ button {
 .screen-title {
   font-family: var(--font-display);
   font-size: 1.35rem;
-  font-weight: 400;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -434,7 +438,7 @@ button {
 .question-text {
   font-family: var(--font-display);
   font-size: 1.45rem;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.32;
   letter-spacing: -0.005em;
   margin: 0.25rem 0 1.75rem;
@@ -498,7 +502,7 @@ button {
   justify-content: center;
   font-family: var(--font-display);
   font-size: 0.8rem;
-  font-weight: 400;
+  font-weight: 600;
   color: rgba(18, 21, 28, 0.6);
   background: rgba(255, 255, 255, 0.5);
 }
@@ -644,7 +648,7 @@ button {
 .result-reveal .points {
   font-family: var(--font-display);
   font-size: 2.75rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--brass-300);
   letter-spacing: -0.01em;
   margin: 0 0 0.75rem;
@@ -708,7 +712,7 @@ button {
   font-family: var(--font-display);
   font-size: 0.82rem;
   letter-spacing: 0.02em;
-  font-weight: 400;
+  font-weight: 600;
   color: rgba(36, 27, 16, 0.7);
 }
 
@@ -735,7 +739,7 @@ button {
   padding: 0.85rem 1.4rem;
   font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.03em;
   box-shadow: 0 6px 16px -6px rgba(var(--brass-500-rgb), 0.55);
 }
@@ -874,7 +878,7 @@ button {
 
 .leaderboard-table .rank {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 1rem;
   color: rgba(18, 21, 28, 0.55);
 }
@@ -910,7 +914,7 @@ button {
 .summary-score {
   font-family: var(--font-display);
   font-size: 3rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--brass-300);
   text-align: center;
   margin: 1rem 0;
@@ -924,7 +928,7 @@ button {
 .plate-subhead {
   font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 400;
+  font-weight: 600;
   margin: 0 0 0.9rem;
 }
 
@@ -1059,7 +1063,7 @@ button {
 .duel-result-score {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .duel-result-vs {
@@ -1193,7 +1197,7 @@ button {
 .achievement-toast-name {
   font-family: var(--font-display);
   font-size: 1.05rem;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .achievement-toast-desc {
