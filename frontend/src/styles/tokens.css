@@ -1,28 +1,69 @@
+/* Each house rebinds the same handful of tokens (cover, parchment, accent, ink) — every
+   component below is themed purely through these variables, never a house name directly. */
 :root {
-  --ink-900: #12151c;
-  --ink-800: #181c26;
-  --parchment-100: #ede6d6;
-  --parchment-200: #e4dbc6;
-  --brass-500: #b8923d;
-  --brass-300: #d9b877;
-  --oxblood-600: #5c1a2b;
-  --verdigris-400: #4e8c7c;
-  --ash-300: #8a8d96;
+  /* Gryffindor is the default binding. */
+  --ink-900: #3a1012;
+  --ink-800: #2a0d0d;
+  --parchment-100: #ddc48a;
+  --parchment-200: #d0b378;
+  --brass-500: #a9791f;
+  --brass-300: #dcae4c;
+  --brass-500-rgb: 169, 121, 31;
+  --oxblood-600: #7a2020;
+  --verdigris-400: #3f8f6c;
+  --ash-300: #b0a488;
+  --text-ink: #241b10;
 
-  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-  --font-body: 'Inter', 'Public Sans', system-ui, sans-serif;
+  --font-display: 'IM Fell English SC', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'EB Garamond', Georgia, serif;
 
   --bg: var(--ink-900);
   --surface: var(--parchment-100);
-  --text-on-bg: var(--parchment-100);
-  --text-on-surface: var(--ink-900);
+  --text-on-bg: #ecdfc0;
+  --text-on-surface: var(--text-ink);
   --text-muted: var(--ash-300);
   /* Secondary text on the parchment surface — bumped for AA contrast on a
      screen that's read against the clock (see design review). */
-  --text-muted-on-surface: rgba(18, 21, 28, 0.68);
+  --text-muted-on-surface: rgba(36, 27, 16, 0.68);
   --accent: var(--brass-500);
   --danger: var(--oxblood-600);
   --success: var(--verdigris-400);
 
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2  0 0 0 0 0.14  0 0 0 0 0.08  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:root[data-house='hufflepuff'] {
+  --ink-900: #2b2415;
+  --ink-800: #1c170c;
+  --brass-500: #b3862a;
+  --brass-300: #dba83d;
+  --brass-500-rgb: 179, 134, 42;
+}
+
+:root[data-house='slytherin'] {
+  --ink-900: #0e2320;
+  --ink-800: #081613;
+  --brass-500: #2f6b52;
+  --brass-300: #4fae82;
+  --brass-500-rgb: 47, 107, 82;
+}
+
+:root[data-house='ravenclaw'] {
+  --ink-900: #101a30;
+  --ink-800: #0a111f;
+  --brass-500: #2a4a80;
+  --brass-300: #5c85c4;
+  --brass-500-rgb: 42, 74, 128;
+}
+
+:root[data-house='monochrome'] {
+  --ink-900: #161616;
+  --ink-800: #0b0b0b;
+  --parchment-100: #e7e3d8;
+  --parchment-200: #dbd6c8;
+  --brass-500: #6b6b6b;
+  --brass-300: #a3a3a3;
+  --brass-500-rgb: 107, 107, 107;
+  --text-ink: #1c1c1c;
+  --text-on-bg: #e6e6e6;
 }

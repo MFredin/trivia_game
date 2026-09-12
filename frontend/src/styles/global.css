@@ -14,11 +14,11 @@ body {
   margin: 0;
   background:
     radial-gradient(ellipse 900px 500px at 50% -8%, var(--ink-800) 0%, transparent 60%),
-    radial-gradient(ellipse 1000px 700px at 50% 110%, #0c0e13 0%, transparent 55%),
-    linear-gradient(180deg, #14171f 0%, var(--ink-900) 40%, #0f1219 100%);
+    var(--ink-900);
   background-attachment: fixed;
   color: var(--text-on-bg);
   font-family: var(--font-body);
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -26,7 +26,7 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -41,38 +41,67 @@ button {
   padding: 2rem 1.25rem 4rem;
 }
 
-/* --- persistent nav --- */
-.nav-bar {
+/* --- persistent nav: a printed running header, not a web app bar --- */
+.running-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid rgba(237, 230, 214, 0.1);
+  gap: 0.6rem 1.4rem;
+  margin: -0.5rem -0.25rem 2.2rem;
+  padding: 0 0.25rem 0.9rem;
+  border-bottom: 1px solid rgba(var(--brass-500-rgb), 0.4);
 }
 
-.nav-wordmark {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.running-title {
   background: none;
   border: none;
   padding: 0;
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.4rem;
-  letter-spacing: 0.01em;
+  font-weight: 400;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  color: var(--brass-300);
+  cursor: pointer;
+}
+
+.running-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.3rem;
+}
+
+.running-nav button {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  color: var(--ash-300);
+  background: none;
+  border: none;
+  padding: 0 0 0.65rem;
+  position: relative;
+}
+
+.running-nav button:hover {
+  color: var(--text-on-bg);
+}
+
+.running-nav button.on {
   color: var(--brass-300);
 }
 
-.nav-wordmark-glyph {
-  width: 20px;
-  height: 20px;
-  flex: none;
+.running-nav button.on::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--brass-300);
 }
 
+/* --- generic filter-toggle pills (leaderboard scope/window switches), sit on the dark page --- */
 .nav-links {
   display: flex;
   gap: 0.5rem;
@@ -80,26 +109,26 @@ button {
 }
 
 .nav-btn {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 400;
   color: var(--ash-300);
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(237, 230, 214, 0.16);
-  border-radius: 3px;
-  padding: 0.55rem 1rem;
-  letter-spacing: 0.01em;
+  border: 1px solid rgba(var(--brass-500-rgb), 0.3);
+  border-radius: 2px;
+  padding: 0.5rem 0.9rem;
+  letter-spacing: 0.02em;
 }
 
 .nav-btn:hover {
-  border-color: rgba(184, 146, 61, 0.4);
-  color: var(--parchment-100);
+  border-color: rgba(var(--brass-500-rgb), 0.55);
+  color: var(--text-on-bg);
 }
 
 .nav-btn.is-active {
   color: var(--brass-300);
-  border-color: rgba(184, 146, 61, 0.5);
-  background: rgba(184, 146, 61, 0.08);
+  border-color: var(--brass-300);
+  background: rgba(var(--brass-500-rgb), 0.1);
 }
 
 .screen-head {
@@ -121,7 +150,7 @@ button {
 .screen-title {
   font-family: var(--font-display);
   font-size: 1.35rem;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -137,7 +166,7 @@ button {
     0 1px 1px rgba(0, 0, 0, 0.5),
     0 10px 24px -10px rgba(0, 0, 0, 0.6),
     0 28px 54px -30px rgba(0, 0, 0, 0.65),
-    inset 0 0 0 1px rgba(184, 146, 61, 0.35);
+    inset 0 0 0 1px rgba(var(--brass-500-rgb), 0.35);
 }
 
 .plate::before {
@@ -159,7 +188,7 @@ button {
   position: absolute;
   width: 15px;
   height: 15px;
-  border: 1px solid rgba(184, 146, 61, 0.55);
+  border: 1px solid rgba(var(--brass-500-rgb), 0.55);
   pointer-events: none;
 }
 
@@ -194,48 +223,103 @@ button {
 /* --- catalog tabs (category/tier metadata, sitting on the plate's edge) --- */
 /* --- page-turn transition between questions --- */
 .page-flip-stage {
-  perspective: 1600px;
+  perspective: 1100px;
 }
 
 .page-flip {
+  position: relative;
   transform-style: preserve-3d;
   backface-visibility: hidden;
   transform-origin: left center;
 }
 
+/* A shadow that sweeps across the page as it lifts and turns, like light catching a moving
+   sheet of paper — without this the rotation alone reads as a flat card tilting, not a page. */
+.page-flip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgba(0, 0, 0, 0.4) 0%, transparent 45%);
+  opacity: 0;
+}
+
 .page-flip.is-turning-out {
-  animation: page-turn-out 220ms cubic-bezier(0.4, 0, 0.7, 1) forwards;
+  animation: page-turn-out 480ms cubic-bezier(0.5, 0.05, 0.65, 0.3) forwards;
+}
+
+.page-flip.is-turning-out::after {
+  animation: page-shadow-sweep 480ms cubic-bezier(0.5, 0.05, 0.65, 0.3) forwards;
 }
 
 .page-flip.is-turning-in {
-  animation: page-turn-in 260ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  animation: page-turn-in 560ms cubic-bezier(0.2, 0.55, 0.35, 1) forwards;
+}
+
+.page-flip.is-turning-in::after {
+  animation: page-shadow-sweep 560ms cubic-bezier(0.2, 0.55, 0.35, 1) forwards;
 }
 
 @keyframes page-turn-out {
   0% {
-    transform: rotateY(0deg);
+    transform: rotateY(0deg) translateY(0);
     filter: brightness(1);
   }
+  65% {
+    transform: rotateY(-60deg) translateY(-10px);
+    filter: brightness(0.88);
+  }
   100% {
-    transform: rotateY(-94deg);
-    filter: brightness(0.75);
+    transform: rotateY(-96deg) translateY(0);
+    filter: brightness(0.65);
   }
 }
 
 @keyframes page-turn-in {
   0% {
-    transform: rotateY(94deg);
-    filter: brightness(0.75);
+    transform: rotateY(96deg) translateY(0);
+    filter: brightness(0.65);
+  }
+  40% {
+    transform: rotateY(45deg) translateY(-10px);
+    filter: brightness(0.85);
   }
   100% {
-    transform: rotateY(0deg);
+    transform: rotateY(0deg) translateY(0);
     filter: brightness(1);
   }
 }
 
+@keyframes page-shadow-sweep {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Blitz races the clock against a single shared budget, so a leisurely page-turn on every
+   question would eat real seconds out of the run — swap instantly there instead. */
+.page-flip-stage.is-instant .page-flip.is-turning-out,
+.page-flip-stage.is-instant .page-flip.is-turning-in {
+  animation-duration: 1ms;
+}
+
+.page-flip-stage.is-instant .page-flip.is-turning-out::after,
+.page-flip-stage.is-instant .page-flip.is-turning-in::after {
+  animation-duration: 1ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-flip.is-turning-out,
-  .page-flip.is-turning-in {
+  .page-flip.is-turning-in,
+  .page-flip.is-turning-out::after,
+  .page-flip.is-turning-in::after {
     animation: none;
   }
 }
@@ -279,7 +363,7 @@ button {
 .question-text {
   font-family: var(--font-display);
   font-size: 1.45rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.32;
   letter-spacing: -0.005em;
   margin: 0.25rem 0 1.75rem;
@@ -343,7 +427,7 @@ button {
   justify-content: center;
   font-family: var(--font-display);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 400;
   color: rgba(18, 21, 28, 0.6);
   background: rgba(255, 255, 255, 0.5);
 }
@@ -460,7 +544,7 @@ button {
 .result-reveal .points {
   font-family: var(--font-display);
   font-size: 2.75rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--brass-300);
   letter-spacing: -0.01em;
   margin: 0 0 0.75rem;
@@ -519,47 +603,50 @@ button {
 
 .start-form label,
 .field-label {
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: rgba(18, 21, 28, 0.55);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+  color: rgba(36, 27, 16, 0.7);
 }
 
 .start-form input,
 .start-form select {
-  background: #f6f1e6;
+  background: rgba(255, 255, 255, 0.22);
   color: var(--text-on-surface);
-  border: 1px solid rgba(18, 21, 28, 0.18);
-  border-radius: 3px;
-  padding: 0.75rem 0.85rem;
+  border: none;
+  border-bottom: 2px solid var(--brass-500);
+  border-radius: 0;
+  padding: 0.6rem 0.3rem;
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   text-transform: none;
   letter-spacing: normal;
   font-weight: 400;
 }
 
 .primary-button {
-  background: linear-gradient(180deg, var(--brass-300) 0%, var(--brass-500) 55%, #9c7830 100%);
-  color: #201405;
-  border: none;
-  border-radius: 3px;
-  padding: 0.9rem 1.25rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 6px 16px -6px rgba(184, 146, 61, 0.55);
+  background: var(--brass-300);
+  color: var(--ink-900);
+  border: 1.5px solid var(--brass-500);
+  border-radius: 2px;
+  padding: 0.85rem 1.4rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  box-shadow: 0 6px 16px -6px rgba(var(--brass-500-rgb), 0.55);
 }
 
-/* Sits on the parchment plate, unlike .nav-btn which sits on the dark page. */
+/* Sits on the parchment plate, unlike .running-nav buttons which sit on the dark page. */
 .secondary-button {
   background: rgba(255, 255, 255, 0.3);
   color: var(--text-on-surface);
   border: 1px solid rgba(18, 21, 28, 0.22);
-  border-radius: 3px;
+  border-radius: 2px;
   padding: 0.6rem 1rem;
-  font-size: 0.85rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
 }
 
 .secondary-button:hover {
@@ -680,12 +767,12 @@ button {
 }
 
 .leaderboard-table tbody tr:nth-child(odd) td {
-  background: rgba(184, 146, 61, 0.045);
+  background: rgba(var(--brass-500-rgb), 0.045);
 }
 
 .leaderboard-table .rank {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 400;
   font-size: 1rem;
   color: rgba(18, 21, 28, 0.55);
 }
@@ -721,7 +808,7 @@ button {
 .summary-score {
   font-family: var(--font-display);
   font-size: 3rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--brass-300);
   text-align: center;
   margin: 1rem 0;
@@ -735,7 +822,7 @@ button {
 .plate-subhead {
   font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0 0 0.9rem;
 }
 
@@ -809,8 +896,8 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(184, 146, 61, 0.08);
-  border: 1px solid rgba(184, 146, 61, 0.3);
+  background: rgba(var(--brass-500-rgb), 0.08);
+  border: 1px solid rgba(var(--brass-500-rgb), 0.3);
   border-radius: 3px;
   padding: 0.6rem 0.9rem;
   margin-bottom: 0.9rem;
@@ -857,8 +944,8 @@ button {
 }
 
 .duel-result-side.is-winner {
-  background: rgba(184, 146, 61, 0.1);
-  border: 1px solid rgba(184, 146, 61, 0.4);
+  background: rgba(var(--brass-500-rgb), 0.1);
+  border: 1px solid rgba(var(--brass-500-rgb), 0.4);
 }
 
 .duel-result-name {
@@ -870,7 +957,7 @@ button {
 .duel-result-score {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .duel-result-vs {
@@ -886,8 +973,8 @@ button {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
-  background: rgba(184, 146, 61, 0.12);
-  border: 1px solid rgba(184, 146, 61, 0.45);
+  background: rgba(var(--brass-500-rgb), 0.12);
+  border: 1px solid rgba(var(--brass-500-rgb), 0.45);
   border-radius: 3px;
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
@@ -926,8 +1013,8 @@ button {
 }
 
 .achievement-card.is-unlocked {
-  background: rgba(184, 146, 61, 0.08);
-  border-color: rgba(184, 146, 61, 0.4);
+  background: rgba(var(--brass-500-rgb), 0.08);
+  border-color: rgba(var(--brass-500-rgb), 0.4);
 }
 
 .achievement-card.is-locked {
@@ -977,7 +1064,7 @@ button {
   padding: 0.9rem 1.1rem;
   box-shadow:
     0 10px 24px -10px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(184, 146, 61, 0.45);
+    inset 0 0 0 1px rgba(var(--brass-500-rgb), 0.45);
   cursor: pointer;
   animation: toast-in 0.25s ease-out;
 }
@@ -1004,10 +1091,70 @@ button {
 .achievement-toast-name {
   font-family: var(--font-display);
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .achievement-toast-desc {
   font-size: 0.8rem;
   color: var(--text-muted-on-surface);
+}
+
+/* --- settings: the house-binding picker --- */
+.house-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.house-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem;
+  font-family: var(--font-display);
+  color: var(--text-muted-on-surface);
+  font-size: 0.85rem;
+}
+
+.house-swatch-chip {
+  width: 52px;
+  height: 68px;
+  border-radius: 3px 6px 6px 3px;
+  position: relative;
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.5), inset 2px 0 0 rgba(255, 255, 255, 0.08);
+  transition: transform 160ms ease;
+}
+
+.house-swatch-spine {
+  position: absolute;
+  inset: 6px auto 6px 8px;
+  width: 3px;
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+.house-swatch.is-active .house-swatch-chip {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.6);
+}
+
+.house-swatch.is-active {
+  color: var(--text-on-surface);
+  font-weight: 600;
+}
+
+.house-swatch:hover .house-swatch-chip {
+  transform: translateY(-2px);
+}
+
+/* --- the drop cap reserved for the Start screen's heading --- */
+.has-dropcap::first-letter {
+  font-size: 2rem;
+  line-height: 0.7;
+  color: var(--brass-500);
+  padding-right: 0.05em;
 }

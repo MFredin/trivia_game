@@ -13,7 +13,9 @@ import DuelSummaryScreen from './components/DuelSummaryScreen.jsx';
 import DuelInviteBanner from './components/DuelInviteBanner.jsx';
 import AchievementsScreen from './components/AchievementsScreen.jsx';
 import AchievementToast from './components/AchievementToast.jsx';
+import SettingsScreen from './components/SettingsScreen.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
+import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
   acceptDuel,
   createDuel,
@@ -24,6 +26,7 @@ import {
   getMe,
   getPendingDuels,
   submitAnswer,
+  updateTheme,
 } from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
@@ -69,6 +72,10 @@ export default function App() {
       .then((data) => setCategories(data.categories))
       .catch(() => setCategories([]));
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-house', currentUser?.theme ?? DEFAULT_HOUSE);
+  }, [currentUser?.theme]);
 
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -181,6 +188,15 @@ export default function App() {
     setAuthToken(null);
     setCurrentUser(null);
     setScreen('auth');
+  };
+
+  const handleSelectTheme = async (theme) => {
+    setCurrentUser((prev) => ({ ...prev, theme }));
+    try {
+      await updateTheme(theme, authToken);
+    } catch {
+      // the DOM already reflects the pick; a failed save just means it won't stick next login
+    }
   };
 
   const handleNavigate = (target) => {
@@ -400,6 +416,9 @@ export default function App() {
       )}
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
       {screen === 'achievements' && <AchievementsScreen token={authToken} />}
+      {screen === 'settings' && (
+        <SettingsScreen theme={currentUser?.theme ?? DEFAULT_HOUSE} onSelectTheme={handleSelectTheme} />
+      )}
       {screen === 'friends' && (
         <FriendsPanel
           token={authToken}

@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS users (
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
+-- Which house-bound color theme the player has chosen (see frontend/src/constants/houses.js).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'gryffindor';
+
 CREATE TABLE IF NOT EXISTS friendships (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id),
