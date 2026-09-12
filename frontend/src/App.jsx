@@ -488,6 +488,10 @@ export default function App() {
           onDone={handleDuelDone}
         />
       )}
+      <p className="colophon">
+        An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,
+        Pottermore, or J.K. Rowling.
+      </p>
     </div>
   );
 }

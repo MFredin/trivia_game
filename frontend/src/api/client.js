@@ -55,6 +55,10 @@ export function getOnlineMembers(token) {
   return request('/friends/online', {}, token);
 }
 
+export function getAllMembers({ limit = 30, offset = 0 } = {}, token) {
+  return request(`/friends/members?limit=${limit}&offset=${offset}`, {}, token);
+}
+
 export function acceptFriendRequest(username, token) {
   return request(`/friends/requests/${encodeURIComponent(username)}/accept`, { method: 'POST' }, token);
 }

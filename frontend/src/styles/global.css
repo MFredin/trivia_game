@@ -1264,3 +1264,15 @@ button {
   color: var(--brass-500);
   padding-right: 0.05em;
 }
+
+/* --- printer's colophon: the small-print notice a real book carries at the back --- */
+.colophon {
+  margin: 3rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(var(--silver-400-rgb), 0.2);
+  color: var(--ash-300);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  text-align: center;
+  opacity: 0.75;
+}

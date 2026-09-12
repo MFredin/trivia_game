@@ -52,6 +52,16 @@ async function findUserByUsername(username) {
   return rows[0] ?? null;
 }
 
+// Shared shape for every "list of other members, with my relationship to each" endpoint
+// (search, online, the full directory) — only how outgoing/incoming friendship rows resolve
+// to a single status the UI can switch on.
+function deriveStatus(row) {
+  if (row.outgoing_status === 'accepted' || row.incoming_status === 'accepted') return 'friends';
+  if (row.outgoing_status === 'pending') return 'pending_sent';
+  if (row.incoming_status === 'pending') return 'pending_received';
+  return 'none';
+}
+
 // Lets a player find members to befriend (or challenge) by partial username, without already
 // knowing their exact handle — separate from the exact-match lookup addFriend/createDuel use.
 router.get('/search', async (req, res) => {
@@ -68,19 +78,7 @@ router.get('/search', async (req, res) => {
      LIMIT 20`,
     [req.userId, `%${q}%`],
   );
-  const results = rows.map((r) => ({
-    id: r.id,
-    username: r.username,
-    online: isOnline(r.id),
-    status:
-      r.outgoing_status === 'accepted' || r.incoming_status === 'accepted'
-        ? 'friends'
-        : r.outgoing_status === 'pending'
-          ? 'pending_sent'
-          : r.incoming_status === 'pending'
-            ? 'pending_received'
-            : 'none',
-  }));
+  const results = rows.map((r) => ({ id: r.id, username: r.username, online: isOnline(r.id), status: deriveStatus(r) }));
   return res.json({ results });
 });
 
@@ -100,19 +98,31 @@ router.get('/online', async (req, res) => {
      ORDER BY u.username`,
     [req.userId, onlineIds],
   );
-  const results = rows.map((r) => ({
-    id: r.id,
-    username: r.username,
-    status:
-      r.outgoing_status === 'accepted' || r.incoming_status === 'accepted'
-        ? 'friends'
-        : r.outgoing_status === 'pending'
-          ? 'pending_sent'
-          : r.incoming_status === 'pending'
-            ? 'pending_received'
-            : 'none',
-  }));
+  const results = rows.map((r) => ({ id: r.id, username: r.username, status: deriveStatus(r) }));
   return res.json({ results });
+});
+
+// The full member directory, paginated — everyone who has ever registered, not just friends
+// or people currently online. Alphabetical so pages are stable as new members join.
+router.get('/members', async (req, res) => {
+  const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
+
+  const { rows: countRows } = await pool.query('SELECT count(*) AS total FROM users WHERE id != $1', [req.userId]);
+  const total = Number(countRows[0].total);
+
+  const { rows } = await pool.query(
+    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+     FROM users u
+     LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
+     LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
+     WHERE u.id != $1
+     ORDER BY u.username
+     LIMIT $2 OFFSET $3`,
+    [req.userId, limit, offset],
+  );
+  const results = rows.map((r) => ({ id: r.id, username: r.username, online: isOnline(r.id), status: deriveStatus(r) }));
+  return res.json({ results, total, offset, limit, has_more: offset + results.length < total });
 });
 
 router.post('/', async (req, res) => {
