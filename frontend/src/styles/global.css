@@ -176,8 +176,8 @@ button {
   left: 24px;
   right: 24px;
   height: 3px;
-  background: linear-gradient(90deg, transparent, var(--brass-500) 12%, var(--brass-300) 50%, var(--brass-500) 88%, transparent);
-  opacity: 0.85;
+  background: linear-gradient(90deg, transparent, var(--metal-500) 12%, var(--metal-300) 50%, var(--metal-500) 88%, transparent);
+  opacity: 0.9;
 }
 
 .plate--no-gilt::before {
@@ -188,7 +188,7 @@ button {
   position: absolute;
   width: 15px;
   height: 15px;
-  border: 1px solid rgba(var(--brass-500-rgb), 0.55);
+  border: 1px solid var(--metal-500);
   pointer-events: none;
 }
 
@@ -628,7 +628,7 @@ button {
 .primary-button {
   background: var(--brass-300);
   color: var(--ink-900);
-  border: 1.5px solid var(--brass-500);
+  border: 1.5px solid var(--metal-500);
   border-radius: 2px;
   padding: 0.85rem 1.4rem;
   font-family: var(--font-display);
@@ -674,7 +674,7 @@ button {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--brass-300), var(--brass-500));
+  background: linear-gradient(180deg, var(--metal-300), var(--metal-500));
   border: 1px solid rgba(18, 21, 28, 0.3);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   cursor: pointer;
@@ -684,7 +684,7 @@ button {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--brass-300), var(--brass-500));
+  background: linear-gradient(180deg, var(--metal-300), var(--metal-500));
   border: 1px solid rgba(18, 21, 28, 0.3);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   cursor: pointer;

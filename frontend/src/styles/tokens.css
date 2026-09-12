@@ -1,14 +1,20 @@
-/* Each house rebinds the same handful of tokens (cover, parchment, accent, ink) — every
-   component below is themed purely through these variables, never a house name directly. */
+/* Each house rebinds the same handful of tokens — every component is themed purely
+   through these variables, never a house name directly. Two accent channels per house:
+   --brass-* is the house's true color (used for text, borders, buttons); --metal-* is
+   its metal trim (used for the plate's corner brackets and gilt line) — canonically the
+   two are different (Slytherin's green + silver, Ravenclaw's blue + bronze), so a single
+   accent hue can't carry both. */
 :root {
-  /* Gryffindor is the default binding. */
+  /* Gryffindor is the default binding: scarlet & gold. */
   --ink-900: #3a1012;
-  --ink-800: #2a0d0d;
+  --ink-800: #260c0d;
   --parchment-100: #ddc48a;
   --parchment-200: #d0b378;
-  --brass-500: #a9791f;
-  --brass-300: #dcae4c;
-  --brass-500-rgb: 169, 121, 31;
+  --brass-500: #9c1f2e;
+  --brass-300: #c73a4a;
+  --brass-500-rgb: 156, 31, 46;
+  --metal-500: #a9791f;
+  --metal-300: #dcae4c;
   --oxblood-600: #7a2020;
   --verdigris-400: #3f8f6c;
   --ash-300: #b0a488;
@@ -32,38 +38,51 @@
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2  0 0 0 0 0.14  0 0 0 0 0.08  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* Hufflepuff: yellow & black. */
 :root[data-house='hufflepuff'] {
-  --ink-900: #2b2415;
-  --ink-800: #1c170c;
-  --brass-500: #b3862a;
-  --brass-300: #dba83d;
-  --brass-500-rgb: 179, 134, 42;
+  --ink-900: #262013;
+  --ink-800: #17130b;
+  --brass-500: #b9860a;
+  --brass-300: #e6b93d;
+  --brass-500-rgb: 185, 134, 10;
+  --metal-500: #3a3527;
+  --metal-300: #5c5540;
 }
 
+/* Slytherin: green & silver. */
 :root[data-house='slytherin'] {
   --ink-900: #0e2320;
-  --ink-800: #081613;
-  --brass-500: #2f6b52;
-  --brass-300: #4fae82;
-  --brass-500-rgb: 47, 107, 82;
+  --ink-800: #081514;
+  --brass-500: #1a6b4f;
+  --brass-300: #2f9670;
+  --brass-500-rgb: 26, 107, 79;
+  --metal-500: #8a9a96;
+  --metal-300: #c3d6cf;
 }
 
+/* Ravenclaw: blue & bronze. */
 :root[data-house='ravenclaw'] {
   --ink-900: #101a30;
   --ink-800: #0a111f;
-  --brass-500: #2a4a80;
-  --brass-300: #5c85c4;
-  --brass-500-rgb: 42, 74, 128;
+  --brass-500: #1e4a8a;
+  --brass-300: #3f6bb5;
+  --brass-500-rgb: 30, 74, 138;
+  --metal-500: #8a6a3a;
+  --metal-300: #b98d52;
 }
 
+/* Monochrome: no house color, just tone — the metal reads slightly lighter than the
+   "color" so the two-tone structure still holds even in black and white. */
 :root[data-house='monochrome'] {
   --ink-900: #161616;
   --ink-800: #0b0b0b;
   --parchment-100: #e7e3d8;
   --parchment-200: #dbd6c8;
-  --brass-500: #6b6b6b;
-  --brass-300: #a3a3a3;
-  --brass-500-rgb: 107, 107, 107;
+  --brass-500: #5a5a5a;
+  --brass-300: #8a8a8a;
+  --brass-500-rgb: 90, 90, 90;
+  --metal-500: #b8b8b8;
+  --metal-300: #e6e6e6;
   --text-ink: #1c1c1c;
   --text-on-bg: #e6e6e6;
 }
