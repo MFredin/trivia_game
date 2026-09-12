@@ -2,8 +2,9 @@
 
 A competitive HP trivia game with server-authoritative scoring, real-time head-to-head duels,
 friends and achievements, and a book/library-themed interface with five selectable house
-bindings. See `docs/` for the original design brief and anti-cheat architecture this build
-started from.
+bindings. An unofficial fan project — see `docs/ip-risk-notes.md` for the IP-exposure read
+that guides what does and doesn't go into this build. See `docs/` for the original design
+brief and anti-cheat architecture this build started from.
 
 ## Stack
 
@@ -25,9 +26,10 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 - **Blitz** — 60-second shared time budget, race through as many questions as possible
 - **Survival** — one wrong answer or timeout ends the run
 - **Gauntlet** — three strikes end the run (a middle ground between Classic and Survival)
-- **Live Duel** — real-time head-to-head against a friend over WebSockets: both players get the
-  identical seeded question set, see each other's live score/streak while playing, and land on a
-  synchronized result screen when both finish
+- **Live Duel** — real-time head-to-head against a friend (or anyone — duels don't require an
+  existing friendship) over WebSockets: both players get the identical seeded question set, see
+  each other's live score/streak while playing, and land on a synchronized result screen when
+  both finish
 
 **Difficulty, canon, and fairness**
 - Two independent filters: obscurity tier (First Year → Order of the Phoenix) and canon source
@@ -38,10 +40,17 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 - Leaderboards rotate on "This Week" / "Today" windows alongside an "All Time" Hall of Fame, so
   a high early score doesn't lock out everyone who plays later in the period; ties break on run
   duration
+- Each leaderboard view shows a player's own best run only — repeat attempts don't crowd out
+  other players' single entries
+- A dedicated **Duel leaderboard** ranks players by Wins / Losses / Win %, with the same
+  global/friends scope toggle as the score leaderboards
 
 **Accounts & social**
 - Email/password accounts (scrypt-hashed, signed auth tokens)
 - Mutual friend requests (send, accept, decline) with online-presence indicators
+- A member-discovery area on the Friends screen with three tabs: **Online Now** (everyone
+  currently active), **All Members** (the full paginated player directory), and **Search**
+  (find anyone by partial username) — each with inline Add / Accept / Challenge actions
 - Global and friends-scoped leaderboards, segmented by mode/category/canon/difficulty
 
 **Achievements**
@@ -54,9 +63,15 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
   running header instead of a web app nav bar, a two-page book-spread layout (with a real
   binding-groove shadow) on the Start and Question screens, and a page-turn transition between
   questions (skipped in Blitz, where it would eat into the run's time budget)
-- Five selectable house color bindings (Gryffindor, Hufflepuff, Slytherin, Ravenclaw, Monochrome)
-  via a Settings screen; the choice persists to the player's account. Monochrome is the default
-  for logged-out visitors and any account that hasn't picked a house yet
+- Typeset in Cormorant Garamond (display) and EB Garamond (body) — one Garamond lineage
+  throughout, instead of mismatched display/body faces
+- Five selectable house color bindings (Gryffindor, Hufflepuff, Slytherin, Ravenclaw, Monochrome),
+  calibrated against the canonical house-color reference rather than eyeballed, via a Settings
+  screen; the choice persists to the player's account. Monochrome is the default for logged-out
+  visitors and any account that hasn't picked a house yet
+- Navigation chrome (running header, page links, filter pills) stays a fixed silver across every
+  house binding — house color is reserved for the game surface itself (plates, buttons, corner
+  brackets), so the app's own UI never clashes with whichever house is active
 
 **Content**
 - 2,927 questions across 11 categories, with every (category × difficulty × canon-source)
@@ -67,13 +82,54 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 - Server-side scoring: obscurity tier + design-tier difficulty + divergence rarity + streak +
   time-remaining bonus
 
-## Not yet built
+## Roadmap
 
-- **Seasonal Events** — design not yet settled (what counts as a "season," what's actually
-  seasonal, who schedules them)
-- **User-submitted questions** — deferred, not dropped
+Ideas from a Phase 4 planning pass, grouped by theme and rough sequencing. Not commitments —
+a working plan, revised as priorities shift. "Category" marks the kind of value each item adds;
+"Phase" is when it's currently expected to land.
+
+| Phase | Theme | Focus |
+|---|---|---|
+| **Phase 4** | Growth & Quick Wins | Make it easy for people to hear about this and start playing |
+| **Phase 5** | Social & Retention Depth | Give players reasons to come back, and to come back together |
+| **Phase 6** | Bigger Swings | Larger gameplay and content investments |
+
+### Phase 4 — Growth & Quick Wins
+
+| Feature | Category | Why |
+|---|---|---|
+| Shareable result cards | Growth | A shareable summary after any run/duel is the cheapest, highest-leverage growth lever available — the same mechanic that made Wordle spread |
+| Invite-a-friend links | Growth | Turns the friend/member features already shipped into an actual growth engine instead of a closed loop |
+| Guest preview mode | Growth | Let a visitor play a few sample questions before hitting the signup wall — every bit of signup friction costs casual traffic |
+| House Cup leaderboard | Gameplay | Aggregate every player's scores by chosen house into a standing inter-house board — nearly free to build on existing house data, and very on-theme |
+| Auth rate limiting | Technical | `/auth/login` and `/auth/register` have no throttling yet — cheap hardening before real traffic arrives |
+
+### Phase 5 — Social & Retention Depth
+
+| Feature | Category | Why |
+|---|---|---|
+| Private challenge links | Gameplay | Assemble a custom quiz (category/difficulty) and share a code so a group all plays the identical set and compares scores, without the Daily Challenge's fixed daily seed |
+| Activity feed | Social | "Alice just beat her high score in Potions" — makes the app feel alive with few concurrent users, built from events already emitted on session completion |
+| Player profile page | Retention | Lifetime stats — accuracy, favorite category, total questions answered — from data already stored per session |
+| Daily login/play streaks | Retention | A Duolingo-style day-streak, distinct from the existing in-run answer streak |
+| Achievement expansion | Retention | New achievements building on what's shipped — duel win-streaks, "added 10 friends," directory-browsing milestones |
+
+### Phase 6 — Bigger Swings
+
+| Feature | Category | Why |
+|---|---|---|
+| Tournament brackets | Gameplay | Multi-round elimination duels among a friend group, run over a few days |
+| Lifelines (50-50, skip) | Gameplay | Adds strategic depth to Classic mode; needs server-side handling to keep the anti-cheat model intact |
+| Canned duel reactions | Social | Lightweight reactions during a live duel, without the moderation burden of free-text chat |
+| User-submitted questions | Content | Previously deferred pending a trust/moderation model — the social features now shipped make that more realistic |
+| Seasonal content bundles | Content | Timed to real-world anniversaries (book/film release dates) — a good scheduled-retention hook |
+| Mobile & accessibility pass | Technical | Most casual trivia traffic is mobile; testing so far has been desktop-only |
+
+### Carried over, not yet scheduled
+
 - **Discord bot tie-in** — dropped for now, needs bot credentials to revisit
-- Anomaly-detection shadow-flagging for bot-speed-but-legitimate answers
+- **Anomaly-detection shadow-flagging** — for bot-speed-but-legitimate answers slipping past the
+  token-based anti-cheat
 
 ## Running locally
 
@@ -144,4 +200,5 @@ objects under a `questions` key). Each question carries a `needs_factcheck` flag
 whoever drafted it whenever they weren't fully confident in a fact rather than guessing — so a
 human reviewer can filter for it later without re-checking everything. New batches are
 generated, validated (schema, duplicate IDs, duplicate `question_text`), and merged into that
-file before being seeded; see recent commit history for the process.
+file before being seeded; see recent commit history for the process. See `docs/ip-risk-notes.md`
+for what's in and out of bounds when drafting new questions.
