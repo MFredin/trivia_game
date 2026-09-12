@@ -2,6 +2,31 @@ import { useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
 
+const MODE_INFO = {
+  classic: {
+    label: 'Classic Quiz',
+    description: 'Ten questions, no clock pressure beyond the norm — one clean measure of what you know.',
+  },
+  daily: {
+    label: 'Daily Challenge',
+    description:
+      'One shared set of ten questions for everyone today, refreshed at midnight. Everyone who plays sees the exact same run.',
+  },
+  blitz: {
+    label: 'Blitz',
+    description:
+      'Sixty seconds, as many questions as you can answer. The clock never resets between questions — speed is the whole game.',
+  },
+  survival: {
+    label: 'Survival',
+    description: 'One wrong answer, or one timeout, ends the run. How far can you get before a single mistake stops you?',
+  },
+  gauntlet: {
+    label: 'Gauntlet',
+    description: "Three strikes and you're out — a little more forgiving than Survival, a lot more than Classic.",
+  },
+};
+
 export default function StartScreen({ categories, currentUser, onStart, error }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
@@ -30,7 +55,20 @@ export default function StartScreen({ categories, currentUser, onStart, error })
         </span>
       </div>
 
-      <Plate>
+      <Plate
+        secondary={
+          <div className="qcard-margin">
+            <p className="qcard-margin-stat-label">Mode</p>
+            <p className="qcard-margin-stat-value" style={{ fontSize: '1.15rem' }}>
+              {MODE_INFO[mode].label}
+            </p>
+            <div className="qcard-margin-divider" style={{ marginTop: '0.8rem' }} />
+            <p className="explanation" style={{ margin: 0 }}>
+              {MODE_INFO[mode].description}
+            </p>
+          </div>
+        }
+      >
         <form className="start-form" onSubmit={handleSubmit}>
           {error && <div className="error-banner">{error}</div>}
           <label>

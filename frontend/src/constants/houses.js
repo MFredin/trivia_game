@@ -9,4 +9,5 @@ export const HOUSES = [
   { id: 'monochrome', label: 'Monochrome', cover: '#161616', coverDeep: '#0b0b0b', accent: '#a3a3a3' },
 ];
 
-export const DEFAULT_HOUSE = 'gryffindor';
+// Logged-out visitors, and any account that hasn't picked a binding yet, see Monochrome.
+export const DEFAULT_HOUSE = 'monochrome';

@@ -8,7 +8,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
 -- Which house-bound color theme the player has chosen (see frontend/src/constants/houses.js).
-ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'gryffindor';
+-- New accounts default to Monochrome until they pick a house in Settings.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'monochrome';
+ALTER TABLE users ALTER COLUMN theme SET DEFAULT 'monochrome';
 
 CREATE TABLE IF NOT EXISTS friendships (
   id SERIAL PRIMARY KEY,
