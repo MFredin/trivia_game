@@ -47,6 +47,10 @@ export function getFriendRequests(token) {
   return request('/friends/requests', {}, token);
 }
 
+export function searchMembers(query, token) {
+  return request(`/friends/search?q=${encodeURIComponent(query)}`, {}, token);
+}
+
 export function acceptFriendRequest(username, token) {
   return request(`/friends/requests/${encodeURIComponent(username)}/accept`, { method: 'POST' }, token);
 }
@@ -76,6 +80,10 @@ export function acceptDuel(duelId, token) {
 
 export function declineDuel(duelId, token) {
   return request(`/duels/${duelId}/decline`, { method: 'POST' }, token);
+}
+
+export function getDuelLeaderboard(scope = 'global', token) {
+  return request(`/duels/leaderboard?scope=${scope}`, {}, token);
 }
 
 export function getCategories() {
