@@ -220,6 +220,69 @@ button {
   border-top: none;
 }
 
+/* --- the book spread: two facing leaves of the same sheet, not two separate cards --- */
+.book-spread {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(150px, 0.62fr) 1fr;
+  background: var(--parchment-100);
+  background-image: var(--paper-grain);
+  border-radius: 3px;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.5),
+    0 10px 24px -10px rgba(0, 0, 0, 0.6),
+    0 28px 54px -30px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(var(--brass-500-rgb), 0.35);
+}
+
+.book-spread-leaf {
+  position: relative;
+  padding: 1.75rem;
+  color: var(--text-on-surface);
+}
+
+.book-spread-leaf.left {
+  background: linear-gradient(to right, transparent 0%, transparent 84%, rgba(20, 12, 4, 0.14) 100%);
+}
+
+.book-spread-leaf.right {
+  background: linear-gradient(to left, transparent 0%, transparent 84%, rgba(20, 12, 4, 0.14) 100%);
+}
+
+.book-spread-leaf.right::before {
+  /* the binding groove: a narrow, crisp shadow right at the fold, anchored to the right
+     leaf's own edge so it sits exactly on the grid boundary regardless of column widths. */
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: -2.5px;
+  width: 5px;
+  background: rgba(20, 12, 4, 0.35);
+  box-shadow: 0 0 10px 3px rgba(20, 12, 4, 0.2);
+  pointer-events: none;
+  z-index: 2;
+}
+
+@media (max-width: 720px) {
+  .book-spread {
+    grid-template-columns: 1fr;
+  }
+
+  .book-spread-leaf.right::before {
+    display: none;
+  }
+
+  .book-spread-leaf.left {
+    background: none;
+    border-bottom: 1px solid rgba(var(--brass-500-rgb), 0.25);
+  }
+
+  .book-spread-leaf.right {
+    background: none;
+  }
+}
+
 /* --- catalog tabs (category/tier metadata, sitting on the plate's edge) --- */
 /* --- page-turn transition between questions --- */
 .page-flip-stage {
@@ -360,6 +423,14 @@ button {
   display: none;
 }
 
+.book-spread--tabbed {
+  border-top-left-radius: 0;
+}
+
+.book-spread--tabbed .book-spread-leaf.left .plate-corner.tl {
+  display: none;
+}
+
 .question-text {
   font-family: var(--font-display);
   font-size: 1.45rem;
@@ -461,21 +532,55 @@ button {
   color: var(--oxblood-600);
 }
 
-.hud-row {
+/* --- the question card's margin panel: the left leaf of its book-spread --- */
+.qcard-margin {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid rgba(18, 21, 28, 0.14);
-  margin-top: 0.5rem;
-  padding-top: 1rem;
-  font-size: 0.85rem;
-  color: var(--text-muted-on-surface);
+  flex-direction: column;
+  height: 100%;
   font-variant-numeric: tabular-nums;
 }
 
-.hud-row .streak {
+.qcard-margin-timer {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--text-on-surface);
+}
+
+.qcard-margin-label {
+  margin: 0.1rem 0 1.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}
+
+.qcard-margin-divider {
+  height: 1px;
+  background: rgba(var(--brass-500-rgb), 0.3);
+  margin-bottom: 1.2rem;
+}
+
+.qcard-margin-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1.1rem;
+}
+
+.qcard-margin-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}
+
+.qcard-margin-stat-value {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
   color: var(--brass-500);
-  font-weight: 600;
 }
 
 .strikes {
@@ -493,11 +598,6 @@ button {
 
 .strike-dot.is-used {
   background: var(--oxblood-600);
-}
-
-.hud-icon {
-  vertical-align: -2px;
-  margin-right: 0.3rem;
 }
 
 /* --- verdict panel (answer reveal) --- */
@@ -563,15 +663,17 @@ button {
   font-weight: 600;
 }
 
-/* Text sitting on the parchment plate needs the darker muted tone, not the
-   ash tone tuned for the dark page background. */
-.plate .explanation {
+/* Text sitting on the parchment plate (or a book-spread leaf, same parchment surface)
+   needs the darker muted tone, not the ash tone tuned for the dark page background. */
+.plate .explanation,
+.book-spread-leaf .explanation {
   color: var(--text-muted-on-surface);
   margin: 0 0 1rem;
   max-width: none;
 }
 
-.plate .explanation b {
+.plate .explanation b,
+.book-spread-leaf .explanation b {
   color: var(--text-on-surface);
 }
 

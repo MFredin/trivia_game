@@ -21,6 +21,15 @@ function CrossIcon() {
   );
 }
 
+function ClockIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 14 14" fill="none" style={{ display: 'inline-block' }}>
+      <circle cx="7" cy="7.5" r="5.6" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M7 4.6V7.5L9.1 8.9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function QuestionCard({
   question,
   timeLimitMs,
@@ -55,7 +64,7 @@ export default function QuestionCard({
     return () => clearInterval(interval);
   }, [question.question_id, anchor, timeLimitMs, onSubmit]);
 
-  // The visible "page" (catalog tabs + parchment card) lags one tick behind `question` so it can
+  // The visible "page" (catalog tabs + spread) lags one tick behind `question` so it can
   // finish turning away from the old content before swapping in the new — see the page-turn
   // animation below. Everything else (timer, streak, strikes) stays bound to the live props.
   // Blitz races a single shared time budget (timingMode: 'session_total'), so the leisurely
@@ -98,7 +107,33 @@ export default function QuestionCard({
           <div className="catalog-tab">{displayedQuestion.category}</div>
           {displayedQuestion.divergence && <div className="catalog-tab catalog-tab--divergence">Divergence</div>}
         </div>
-        <Plate className="plate--tabbed" noGilt>
+        <Plate
+          className="book-spread--tabbed"
+          secondary={
+            <div className="qcard-margin">
+              <div className="qcard-margin-timer">
+                <ClockIcon />
+                {mm}:{ss}
+              </div>
+              <p className="qcard-margin-label">remaining</p>
+              <div className="qcard-margin-divider" />
+              <div className="qcard-margin-stat">
+                <span className="qcard-margin-stat-label">Streak</span>
+                <span className="qcard-margin-stat-value">{streak}</span>
+              </div>
+              {maxStrikes != null && (
+                <div className="qcard-margin-stat">
+                  <span className="qcard-margin-stat-label">Strikes</span>
+                  <span className="strikes" aria-label={`${strikes} of ${maxStrikes} strikes`}>
+                    {Array.from({ length: maxStrikes }, (_, i) => (
+                      <span key={i} className={`strike-dot ${i < strikes ? 'is-used' : ''}`} />
+                    ))}
+                  </span>
+                </div>
+              )}
+            </div>
+          }
+        >
           <p className="question-text">{displayedQuestion.question_text}</p>
           <ul className="choice-list">
             {displayedQuestion.choices.map((choice, index) => {
@@ -131,32 +166,6 @@ export default function QuestionCard({
               );
             })}
           </ul>
-          <div className="hud-row">
-            <span>
-              <svg
-                className="hud-icon"
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                style={{ display: 'inline-block' }}
-              >
-                <circle cx="7" cy="7.5" r="5.6" stroke="currentColor" strokeWidth="1.2" />
-                <path d="M7 4.6V7.5L9.1 8.9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-              </svg>
-              {mm}:{ss}
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
-              <span className="streak">streak: {streak}</span>
-              {maxStrikes != null && (
-                <span className="strikes" aria-label={`${strikes} of ${maxStrikes} strikes`}>
-                  {Array.from({ length: maxStrikes }, (_, i) => (
-                    <span key={i} className={`strike-dot ${i < strikes ? 'is-used' : ''}`} />
-                  ))}
-                </span>
-              )}
-            </span>
-          </div>
         </Plate>
       </div>
     </div>
