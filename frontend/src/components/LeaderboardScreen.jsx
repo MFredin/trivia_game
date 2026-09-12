@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
+import DuelLeaderboard from './DuelLeaderboard.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
-import { getLeaderboard } from '../api/client.js';
+import { getDuelLeaderboard, getLeaderboard } from '../api/client.js';
 
 const MODES = [
   { value: 'classic', label: 'Classic Quiz' },
@@ -10,6 +11,7 @@ const MODES = [
   { value: 'blitz', label: 'Blitz' },
   { value: 'survival', label: 'Survival' },
   { value: 'gauntlet', label: 'Gauntlet' },
+  { value: 'duel', label: 'Duels' },
 ];
 
 export default function LeaderboardScreen({ categories, token }) {
@@ -21,9 +23,17 @@ export default function LeaderboardScreen({ categories, token }) {
   const [window, setWindow] = useState('current');
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isDuelBoard = mode === 'duel';
 
   useEffect(() => {
     setLoading(true);
+    if (isDuelBoard) {
+      getDuelLeaderboard(scope, token)
+        .then((data) => setEntries(data.entries))
+        .catch(() => setEntries([]))
+        .finally(() => setLoading(false));
+      return;
+    }
     getLeaderboard(
       mode,
       { category: category || null, canonSource: canonSource || null, difficulty: difficulty || null, scope, window },
@@ -32,7 +42,7 @@ export default function LeaderboardScreen({ categories, token }) {
       .then((data) => setEntries(data.entries))
       .catch(() => setEntries([]))
       .finally(() => setLoading(false));
-  }, [mode, category, canonSource, difficulty, scope, window, token]);
+  }, [mode, category, canonSource, difficulty, scope, window, token, isDuelBoard]);
 
   const currentLabel = mode === 'daily' ? 'Today' : 'This Week';
 
@@ -44,21 +54,25 @@ export default function LeaderboardScreen({ categories, token }) {
           <h2 className="screen-title">Leaderboard</h2>
         </div>
         <div className="nav-links">
-          <button
-            type="button"
-            className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
-            onClick={() => setWindow('current')}
-          >
-            {currentLabel}
-          </button>
-          <button
-            type="button"
-            className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
-            onClick={() => setWindow('all')}
-          >
-            All Time
-          </button>
-          <span style={{ width: '1px', background: 'rgba(237,230,214,0.16)', margin: '0 0.2rem' }} />
+          {!isDuelBoard && (
+            <>
+              <button
+                type="button"
+                className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
+                onClick={() => setWindow('current')}
+              >
+                {currentLabel}
+              </button>
+              <button
+                type="button"
+                className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
+                onClick={() => setWindow('all')}
+              >
+                All Time
+              </button>
+              <span style={{ width: '1px', background: 'rgba(237,230,214,0.16)', margin: '0 0.2rem' }} />
+            </>
+          )}
           <button
             type="button"
             className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}
@@ -88,35 +102,45 @@ export default function LeaderboardScreen({ categories, token }) {
               ))}
             </select>
           </label>
-          <label>
-            Category
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
-              <option value="">All categories</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Canon source
-            <select value={canonSource} onChange={(e) => setCanonSource(e.target.value)}>
-              <option value="">Any</option>
-              <option value="combined">Combined</option>
-              <option value="books">Books</option>
-              <option value="movies">Movies</option>
-            </select>
-          </label>
-          <div className="start-form-field">
-            <span className="field-label">Difficulty</span>
-            <DifficultySlider value={difficulty} onChange={setDifficulty} />
-          </div>
+          {!isDuelBoard && (
+            <>
+              <label>
+                Category
+                <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                  <option value="">All categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Canon source
+                <select value={canonSource} onChange={(e) => setCanonSource(e.target.value)}>
+                  <option value="">Any</option>
+                  <option value="combined">Combined</option>
+                  <option value="books">Books</option>
+                  <option value="movies">Movies</option>
+                </select>
+              </label>
+              <div className="start-form-field">
+                <span className="field-label">Difficulty</span>
+                <DifficultySlider value={difficulty} onChange={setDifficulty} />
+              </div>
+            </>
+          )}
         </div>
 
         <div className="ledger-divider" />
 
-        {loading ? <p className="explanation">Loading…</p> : <Leaderboard entries={entries} />}
+        {loading ? (
+          <p className="explanation">Loading…</p>
+        ) : isDuelBoard ? (
+          <DuelLeaderboard entries={entries} />
+        ) : (
+          <Leaderboard entries={entries} />
+        )}
       </Plate>
     </div>
   );

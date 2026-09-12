@@ -324,8 +324,7 @@ export default function App() {
         difficulty: data.difficulty,
       });
     } catch (err) {
-      if (err.code === 'not_friends') setDuelLobbyError('You are no longer friends with that player.');
-      else if (err.code === 'user_not_found') setDuelLobbyError('That player could not be found.');
+      if (err.code === 'user_not_found') setDuelLobbyError('That player could not be found.');
       else setDuelLobbyError('Could not send that challenge.');
     }
   };

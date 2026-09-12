@@ -52,6 +52,38 @@ async function findUserByUsername(username) {
   return rows[0] ?? null;
 }
 
+// Lets a player find members to befriend (or challenge) by partial username, without already
+// knowing their exact handle — separate from the exact-match lookup addFriend/createDuel use.
+router.get('/search', async (req, res) => {
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  if (q.length < 2) return res.json({ results: [] });
+
+  const { rows } = await pool.query(
+    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+     FROM users u
+     LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
+     LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
+     WHERE u.id != $1 AND u.username ILIKE $2
+     ORDER BY u.username
+     LIMIT 20`,
+    [req.userId, `%${q}%`],
+  );
+  const results = rows.map((r) => ({
+    id: r.id,
+    username: r.username,
+    online: isOnline(r.id),
+    status:
+      r.outgoing_status === 'accepted' || r.incoming_status === 'accepted'
+        ? 'friends'
+        : r.outgoing_status === 'pending'
+          ? 'pending_sent'
+          : r.incoming_status === 'pending'
+            ? 'pending_received'
+            : 'none',
+  }));
+  return res.json({ results });
+});
+
 router.post('/', async (req, res) => {
   const { username } = req.body ?? {};
   if (typeof username !== 'string' || username.trim().length === 0) {
