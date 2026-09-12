@@ -5,10 +5,46 @@ import {
   addFriend,
   declineFriendRequest,
   getFriendRequests,
+  getOnlineMembers,
   listFriends,
   removeFriend,
   searchMembers,
 } from '../api/client.js';
+
+const ONLINE_POLL_MS = 15000;
+
+function MemberRow({ member, onAdd, onAccept, onDecline, onChallenge }) {
+  return (
+    <li className="friend-row">
+      <span className="friend-name">
+        <span className={`online-dot ${member.online ? 'is-online' : ''}`} aria-hidden="true" />
+        {member.username}
+      </span>
+      <span className="friend-actions">
+        {member.status === 'friends' && <span className="explanation">Friends</span>}
+        {member.status === 'pending_sent' && <span className="explanation">Request sent</span>}
+        {member.status === 'pending_received' && (
+          <>
+            <button type="button" className="primary-button" onClick={onAccept}>
+              Accept
+            </button>
+            <button type="button" className="secondary-button" onClick={onDecline}>
+              Decline
+            </button>
+          </>
+        )}
+        {member.status === 'none' && (
+          <button type="button" className="secondary-button" onClick={onAdd}>
+            Add Friend
+          </button>
+        )}
+        <button type="button" className="primary-button" onClick={onChallenge}>
+          Challenge
+        </button>
+      </span>
+    </li>
+  );
+}
 
 export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge }) {
   const [friends, setFriends] = useState([]);
@@ -20,6 +56,8 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
 
+  const [onlineMembers, setOnlineMembers] = useState([]);
+
   const refresh = () => {
     listFriends(token)
       .then((data) => setFriends(data.friends))
@@ -30,6 +68,17 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
   };
 
   useEffect(refresh, [token]);
+
+  useEffect(() => {
+    const refreshOnline = () => {
+      getOnlineMembers(token)
+        .then((data) => setOnlineMembers(data.results))
+        .catch(() => {});
+    };
+    refreshOnline();
+    const interval = setInterval(refreshOnline, ONLINE_POLL_MS);
+    return () => clearInterval(interval);
+  }, [token]);
 
   useEffect(() => {
     const q = searchQuery.trim();
@@ -77,29 +126,31 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
     setFriends((prev) => prev.filter((f) => f.username !== username));
   };
 
-  const setSearchStatus = (username, status) => {
-    setSearchResults((prev) => prev.map((r) => (r.username === username ? { ...r, status } : r)));
+  // Search results and the online-now list are both lists of {username, status} members —
+  // these three actions work the same way against either one, given that list's setter.
+  const setMemberStatus = (setList, username, status) => {
+    setList((prev) => prev.map((r) => (r.username === username ? { ...r, status } : r)));
   };
 
-  const handleSearchAdd = async (username) => {
+  const handleMemberAdd = async (setList, username) => {
     try {
       await addFriend(username, token);
-      setSearchStatus(username, 'pending_sent');
+      setMemberStatus(setList, username, 'pending_sent');
       refresh();
     } catch {
       // leave the row as-is — the request likely already exists in some form
     }
   };
 
-  const handleSearchAccept = async (username) => {
+  const handleMemberAccept = async (setList, username) => {
     await acceptFriendRequest(username, token);
-    setSearchStatus(username, 'friends');
+    setMemberStatus(setList, username, 'friends');
     refresh();
   };
 
-  const handleSearchDecline = async (username) => {
+  const handleMemberDecline = async (setList, username) => {
     await declineFriendRequest(username, token);
-    setSearchStatus(username, 'none');
+    setMemberStatus(setList, username, 'none');
   };
 
   const incomingDuels = pendingDuels.filter((d) => d.direction === 'incoming');
@@ -131,38 +182,34 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
         {searchResults.length > 0 && (
           <ul className="friend-list">
             {searchResults.map((r) => (
-              <li key={r.id} className="friend-row">
-                <span className="friend-name">
-                  <span className={`online-dot ${r.online ? 'is-online' : ''}`} aria-hidden="true" />
-                  {r.username}
-                </span>
-                <span className="friend-actions">
-                  {r.status === 'friends' && <span className="explanation">Friends</span>}
-                  {r.status === 'pending_sent' && <span className="explanation">Request sent</span>}
-                  {r.status === 'pending_received' && (
-                    <>
-                      <button type="button" className="primary-button" onClick={() => handleSearchAccept(r.username)}>
-                        Accept
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary-button"
-                        onClick={() => handleSearchDecline(r.username)}
-                      >
-                        Decline
-                      </button>
-                    </>
-                  )}
-                  {r.status === 'none' && (
-                    <button type="button" className="secondary-button" onClick={() => handleSearchAdd(r.username)}>
-                      Add Friend
-                    </button>
-                  )}
-                  <button type="button" className="primary-button" onClick={() => onChallenge(r.username)}>
-                    Challenge
-                  </button>
-                </span>
-              </li>
+              <MemberRow
+                key={r.id}
+                member={r}
+                onAdd={() => handleMemberAdd(setSearchResults, r.username)}
+                onAccept={() => handleMemberAccept(setSearchResults, r.username)}
+                onDecline={() => handleMemberDecline(setSearchResults, r.username)}
+                onChallenge={() => onChallenge(r.username)}
+              />
+            ))}
+          </ul>
+        )}
+      </Plate>
+
+      <Plate className="friend-section">
+        <h3 className="plate-subhead">Online Now</h3>
+        {onlineMembers.length === 0 ? (
+          <p className="explanation">No one else is online right now.</p>
+        ) : (
+          <ul className="friend-list">
+            {onlineMembers.map((r) => (
+              <MemberRow
+                key={r.id}
+                member={{ ...r, online: true }}
+                onAdd={() => handleMemberAdd(setOnlineMembers, r.username)}
+                onAccept={() => handleMemberAccept(setOnlineMembers, r.username)}
+                onDecline={() => handleMemberDecline(setOnlineMembers, r.username)}
+                onChallenge={() => onChallenge(r.username)}
+              />
             ))}
           </ul>
         )}

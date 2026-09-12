@@ -51,6 +51,10 @@ export function searchMembers(query, token) {
   return request(`/friends/search?q=${encodeURIComponent(query)}`, {}, token);
 }
 
+export function getOnlineMembers(token) {
+  return request('/friends/online', {}, token);
+}
+
 export function acceptFriendRequest(username, token) {
   return request(`/friends/requests/${encodeURIComponent(username)}/accept`, { method: 'POST' }, token);
 }

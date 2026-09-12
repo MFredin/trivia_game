@@ -3,24 +3,38 @@
    --brass-* is the house's true color (used for text, borders, buttons); --metal-* is
    its metal trim (used for the plate's corner brackets and gilt line) — canonically the
    two are different (Slytherin's green + silver, Ravenclaw's blue + bronze), so a single
-   accent hue can't carry both. */
+   accent hue can't carry both.
+
+   House hexes are calibrated against the canonical house-color reference chart
+   (crest wiki hex/RGB values) supplied in design review, not eyeballed. Where the
+   reference's darkest tone is too low-contrast to use as text on the dark page, the
+   reference's own brighter tone becomes --brass-500 and the darkest becomes --ink-900
+   instead — the hue stays authentic, only the tier it's assigned to shifts. */
 :root {
   /* Gryffindor is the default binding: scarlet & gold. */
-  --ink-900: #3a1012;
-  --ink-800: #260c0d;
+  --ink-900: #2b0607;
+  --ink-800: #190304;
   --parchment-100: #ddc48a;
   --parchment-200: #d0b378;
-  --brass-500: #9c1f2e;
-  --brass-300: #c73a4a;
-  --brass-500-rgb: 156, 31, 46;
-  --metal-500: #a9791f;
-  --metal-300: #dcae4c;
+  --brass-500: #ae0001;
+  --brass-300: #d1454f;
+  --brass-500-rgb: 174, 0, 1;
+  --metal-500: #d3a625;
+  --metal-300: #ecb939;
   --oxblood-600: #7a2020;
   --verdigris-400: #3f8f6c;
   --ash-300: #b0a488;
   --text-ink: #241b10;
 
-  --font-display: 'IM Fell English SC', 'Iowan Old Style', Georgia, serif;
+  /* A fixed metallic accent that does NOT get rebound per house — used only for the
+     running-header/nav "chrome" (wordmark, page links, filter pills), so navigation
+     reads as one consistent silver fitting regardless of which house is bound. House
+     color stays exclusive to the game surface itself (plates, buttons, corner brackets). */
+  --silver-200: #e4e7ea;
+  --silver-400: #9aa1a8;
+  --silver-400-rgb: 154, 161, 168;
+
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
   --font-body: 'EB Garamond', Georgia, serif;
 
   --bg: var(--ink-900);
@@ -38,36 +52,36 @@
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2  0 0 0 0 0.14  0 0 0 0 0.08  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Hufflepuff: yellow & black. */
+/* Hufflepuff: gold & black. */
 :root[data-house='hufflepuff'] {
-  --ink-900: #262013;
-  --ink-800: #17130b;
-  --brass-500: #b9860a;
-  --brass-300: #e6b93d;
-  --brass-500-rgb: 185, 134, 10;
-  --metal-500: #3a3527;
-  --metal-300: #5c5540;
+  --ink-900: #1c1712;
+  --ink-800: #100d0a;
+  --brass-500: #ecb939;
+  --brass-300: #f0c75e;
+  --brass-500-rgb: 236, 185, 57;
+  --metal-500: #372e29;
+  --metal-300: #726255;
 }
 
 /* Slytherin: green & silver. */
 :root[data-house='slytherin'] {
-  --ink-900: #0e2320;
-  --ink-800: #081514;
-  --brass-500: #1a6b4f;
-  --brass-300: #2f9670;
-  --brass-500-rgb: 26, 107, 79;
-  --metal-500: #8a9a96;
-  --metal-300: #c3d6cf;
+  --ink-900: #0a1a13;
+  --ink-800: #050d0a;
+  --brass-500: #2a623d;
+  --brass-300: #3f8a5c;
+  --brass-500-rgb: 42, 98, 61;
+  --metal-500: #5d5d5d;
+  --metal-300: #aaaaaa;
 }
 
-/* Ravenclaw: blue & bronze. */
+/* Ravenclaw: navy & bronze. */
 :root[data-house='ravenclaw'] {
-  --ink-900: #101a30;
-  --ink-800: #0a111f;
-  --brass-500: #1e4a8a;
-  --brass-300: #3f6bb5;
-  --brass-500-rgb: 30, 74, 138;
-  --metal-500: #8a6a3a;
+  --ink-900: #0a1330;
+  --ink-800: #060a1e;
+  --brass-500: #2a4a8a;
+  --brass-300: #4468b8;
+  --brass-500-rgb: 42, 74, 138;
+  --metal-500: #946b2d;
   --metal-300: #b98d52;
 }
 
