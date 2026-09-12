@@ -1,12 +1,13 @@
-# Harry Potter Trivia — Phase 1
+# The Restricted Section — Harry Potter Trivia
 
-A competitive HP trivia game with canon-source (books/movies/combined) filtering, two-axis
-difficulty, and server-authoritative scoring. See `docs/` for the design brief and anti-cheat
-architecture this build follows.
+A competitive HP trivia game with server-authoritative scoring, real-time head-to-head duels,
+friends and achievements, and a book/library-themed interface with five selectable house
+bindings. See `docs/` for the original design brief and anti-cheat architecture this build
+started from.
 
 ## Stack
 
-- **Backend**: Node/Express + Postgres (`backend/`)
+- **Backend**: Node/Express + Postgres + WebSockets (`backend/`)
 - **Frontend**: React + Vite (`frontend/`)
 
 ## Score integrity
@@ -14,6 +15,65 @@ architecture this build follows.
 The client never computes a score — it only submits an answer. The server issues a signed,
 single-use, session/question-bound token with every question and validates elapsed time against
 its own clock before scoring. See `docs/anti-cheat-architecture.md`.
+
+## What's implemented
+
+**Game modes**
+- **Classic Quiz** — 10 questions, per-question timer, category/canon/difficulty filters
+- **Daily Challenge** — one shared 10-question set per day (same seed for every player), one
+  attempt per player per day
+- **Blitz** — 60-second shared time budget, race through as many questions as possible
+- **Survival** — one wrong answer or timeout ends the run
+- **Gauntlet** — three strikes end the run (a middle ground between Classic and Survival)
+- **Live Duel** — real-time head-to-head against a friend over WebSockets: both players get the
+  identical seeded question set, see each other's live score/streak while playing, and land on a
+  synchronized result screen when both finish
+
+**Difficulty, canon, and fairness**
+- Two independent filters: obscurity tier (First Year → Order of the Phoenix) and canon source
+  (books / movies / combined), plus a "Books vs. Movies" category dedicated to genuine
+  book/film adaptation differences
+- Classic mode forces an obscurity-tier floor on a run's first few questions to reduce
+  leaderboard variance from random easy/hard draws
+- Leaderboards rotate on "This Week" / "Today" windows alongside an "All Time" Hall of Fame, so
+  a high early score doesn't lock out everyone who plays later in the period; ties break on run
+  duration
+
+**Accounts & social**
+- Email/password accounts (scrypt-hashed, signed auth tokens)
+- Mutual friend requests (send, accept, decline) with online-presence indicators
+- Global and friends-scoped leaderboards, segmented by mode/category/canon/difficulty
+
+**Achievements**
+- 25 achievements across 8 categories (Milestones, Mastery, Streak, Endurance, Speed, Explorer,
+  Dedication, Social), evaluated after each session/friend-request/duel event and pushed live as
+  an in-app toast the moment one unlocks
+
+**Design**
+- A book/library-themed interface — parchment "leaf" cards with gilt corner brackets, a printed
+  running header instead of a web app nav bar, a two-page book-spread layout (with a real
+  binding-groove shadow) on the Start and Question screens, and a page-turn transition between
+  questions (skipped in Blitz, where it would eat into the run's time budget)
+- Five selectable house color bindings (Gryffindor, Hufflepuff, Slytherin, Ravenclaw, Monochrome)
+  via a Settings screen; the choice persists to the player's account. Monochrome is the default
+  for logged-out visitors and any account that hasn't picked a house yet
+
+**Content**
+- 2,927 questions across 11 categories, with every (category × difficulty × canon-source)
+  combination holding 60+ questions in both the books-pool and movies-pool
+
+**Anti-cheat**
+- Server-issued HMAC question tokens; single-use, session/question-bound, server-clock timing
+- Server-side scoring: obscurity tier + design-tier difficulty + divergence rarity + streak +
+  time-remaining bonus
+
+## Not yet built
+
+- **Seasonal Events** — design not yet settled (what counts as a "season," what's actually
+  seasonal, who schedules them)
+- **User-submitted questions** — deferred, not dropped
+- **Discord bot tie-in** — dropped for now, needs bot credentials to revisit
+- Anomaly-detection shadow-flagging for bot-speed-but-legitimate answers
 
 ## Running locally
 
@@ -28,34 +88,43 @@ npm run db:seed
 npm run dev             # http://localhost:4000
 ```
 
-`db:seed` loads `src/data/question-bank-starter.json` (the reviewed 40-question Phase 1 set) by
-default. To seed a different file — e.g. a larger draft pending review — set `SEED_FILE`:
+`db:seed` loads `src/data/question-bank-starter.json` (a small 40-question sample) by default.
+To seed the full 2,927-question bank, set `SEED_FILE`:
 
 ```bash
 SEED_FILE=question-bank-full-draft.json npm run db:seed
 ```
+
+`db:seed` upserts by question `id`, so it's safe to re-run after pulling in new content — it
+won't duplicate existing questions.
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev             # http://localhost:5173, proxies /api to the backend
+npm run dev             # http://localhost:5173, proxies /api and /ws to the backend
 ```
 
 ## Deploying to Railway
 
-This repo is a two-service monorepo: `backend/` runs the API, `frontend/` runs a static build
-served by `serve`. Each service ships its own `railway.toml`. Create two Railway services from
-the same GitHub repo, pointing each at a different root directory:
+This repo is a two-service monorepo: `backend/` runs the API (including the WebSocket server,
+on the same port — no extra Railway config needed since it's a persistent Node process, not
+serverless), `frontend/` runs a static build served by `serve`. Each service ships its own
+`railway.toml`. Create two Railway services from the same GitHub repo, pointing each at a
+different root directory:
 
 1. **Postgres**: in your Railway project, add a Postgres plugin — it provides `DATABASE_URL`.
 2. **Backend service** — root directory `backend`:
    - Variables: `DATABASE_URL` (reference the Postgres plugin), `QUESTION_TOKEN_SECRET` and
      `AUTH_TOKEN_SECRET` (two different long random strings — the backend won't start without
      both), `NODE_ENV=production`.
-   - After the first deploy, run `npm run db:migrate` then `npm run db:seed` once (Railway's
-     one-off command runner, under the service's "Deploy" tab).
+   - After a deploy that changes the schema or question bank, run `npm run db:migrate` and/or
+     `SEED_FILE=question-bank-full-draft.json npm run db:seed` once (Railway's one-off command
+     runner, under the service's "Deploy" tab, or from a Codespace with `DATABASE_URL` and
+     `NODE_ENV=production` exported).
+   - The backend caches the question list in memory per process, so after seeding new
+     questions, restart (or redeploy) the service for it to pick them up.
    - Note its public URL (Settings → Networking → Generate Domain) — the frontend needs it.
    - Once you know the frontend's domain, set `ALLOWED_ORIGIN` on this service to that URL to
      lock CORS down (comma-separate if you have more than one).
@@ -68,18 +137,11 @@ the same GitHub repo, pointing each at a different root directory:
 Both `railway.toml` files set `builder = "NIXPACKS"`, which auto-detects the Node app in each
 root directory and runs its `package.json` scripts (`build` then `start`) with no extra config.
 
-## What's implemented (Phase 1 pilot slice)
+## Content pipeline
 
-- Classic Quiz and Daily Challenge modes, category + canon-source filtering
-- Combined canon-source mode up-weights books-vs-movies divergence questions
-- Server-issued HMAC question tokens; single-use, session/question-bound, server-clock timing
-- Server-side scoring: obscurity tier + design-tier difficulty + divergence rarity + streak +
-  time-remaining bonus
-- Global leaderboard per mode; one Daily Challenge attempt per player per day
-- 40-question starter bank across the 4 pilot categories
-
-## Not yet built
-
-- Real accounts (Discord OAuth / email) — currently just a display name, no auth
-- Anomaly-detection shadow-flagging for bot-speed-but-legitimate answers
-- Blitz/Survival modes, per-category/per-difficulty leaderboard segmentation (Phase 2)
+Question content lives in `backend/src/data/question-bank-full-draft.json` (an array of question
+objects under a `questions` key). Each question carries a `needs_factcheck` flag — set by
+whoever drafted it whenever they weren't fully confident in a fact rather than guessing — so a
+human reviewer can filter for it later without re-checking everything. New batches are
+generated, validated (schema, duplicate IDs, duplicate `question_text`), and merged into that
+file before being seeded; see recent commit history for the process.
