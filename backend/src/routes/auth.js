@@ -7,9 +7,10 @@ import { requireAuth } from '../middleware/auth.js';
 const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const VALID_THEMES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'monochrome'];
 
 function userView(row) {
-  return { id: row.id, username: row.username, email: row.email };
+  return { id: row.id, username: row.username, email: row.email, theme: row.theme };
 }
 
 router.post('/register', async (req, res) => {
@@ -29,7 +30,7 @@ router.post('/register', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)
-       RETURNING id, username, email`,
+       RETURNING id, username, email, theme`,
       [username.trim(), email.toLowerCase().trim(), passwordHash],
     );
     const user = rows[0];
@@ -50,7 +51,7 @@ router.post('/login', async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    'SELECT id, username, email, password_hash FROM users WHERE email = $1',
+    'SELECT id, username, email, password_hash, theme FROM users WHERE email = $1',
     [email.toLowerCase().trim()],
   );
   const user = rows[0];
@@ -62,8 +63,20 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/me', requireAuth, async (req, res) => {
-  const { rows } = await pool.query('SELECT id, username, email FROM users WHERE id = $1', [req.userId]);
+  const { rows } = await pool.query('SELECT id, username, email, theme FROM users WHERE id = $1', [req.userId]);
   if (rows.length === 0) return res.status(404).json({ error: 'user_not_found' });
+  return res.json({ user: userView(rows[0]) });
+});
+
+router.patch('/theme', requireAuth, async (req, res) => {
+  const { theme } = req.body ?? {};
+  if (!VALID_THEMES.includes(theme)) {
+    return res.status(400).json({ error: 'invalid_theme' });
+  }
+  const { rows } = await pool.query('UPDATE users SET theme = $1 WHERE id = $2 RETURNING id, username, email, theme', [
+    theme,
+    req.userId,
+  ]);
   return res.json({ user: userView(rows[0]) });
 });
 

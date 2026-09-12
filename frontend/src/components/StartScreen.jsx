@@ -23,7 +23,7 @@ export default function StartScreen({ categories, currentUser, onStart, error })
       <div className="screen-head">
         <div>
           <p className="screen-eyebrow">New Enquiry</p>
-          <h2 className="screen-title">Begin an Enquiry</h2>
+          <h2 className="screen-title has-dropcap">Begin an Enquiry</h2>
         </div>
         <span className="explanation" style={{ margin: 0 }}>
           Playing as <b>{currentUser.username}</b>

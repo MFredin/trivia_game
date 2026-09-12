@@ -27,6 +27,10 @@ export function getMe(token) {
   return request('/auth/me', {}, token);
 }
 
+export function updateTheme(theme, token) {
+  return request('/auth/theme', { method: 'PATCH', body: JSON.stringify({ theme }) }, token);
+}
+
 export function listFriends(token) {
   return request('/friends', {}, token);
 }
