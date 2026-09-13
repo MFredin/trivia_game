@@ -7,6 +7,7 @@ import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { sendToUser } from '../lib/wsServer.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
+import { getCached, setCached } from '../lib/leaderboardCache.js';
 
 const router = express.Router();
 
@@ -34,14 +35,6 @@ async function findUserByUsername(username) {
   return rows[0] ?? null;
 }
 
-async function areFriends(userId, otherId) {
-  const { rows } = await pool.query(
-    `SELECT 1 FROM friendships WHERE user_id = $1 AND friend_user_id = $2 AND status = 'accepted'`,
-    [userId, otherId],
-  );
-  return rows.length > 0;
-}
-
 router.post('/', async (req, res) => {
   const { opponent_username, category, canon_source, difficulty } = req.body ?? {};
   if (typeof opponent_username !== 'string' || opponent_username.trim().length === 0) {
@@ -58,9 +51,6 @@ router.post('/', async (req, res) => {
   const opponent = await findUserByUsername(opponent_username.trim());
   if (!opponent) return res.status(404).json({ error: 'user_not_found' });
   if (opponent.id === req.userId) return res.status(400).json({ error: 'cannot_duel_yourself' });
-  if (!(await areFriends(req.userId, opponent.id))) {
-    return res.status(403).json({ error: 'not_friends' });
-  }
 
   const modeConfig = MODES.duel;
   const { rows } = await pool.query(
@@ -96,6 +86,64 @@ router.get('/pending', async (req, res) => {
     direction: d.created_by === req.userId ? 'outgoing' : 'incoming',
   }));
   return res.json({ pending });
+});
+
+router.get('/leaderboard', async (req, res) => {
+  const scope = req.query.scope === 'friends' ? 'friends' : 'global';
+  const limit = Math.min(Number(req.query.limit) || 20, 100);
+
+  const cacheKey = JSON.stringify({ kind: 'duel-leaderboard', scope, limit, userId: req.userId });
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  const conditions = [];
+  const params = [];
+  if (scope === 'friends') {
+    params.push(req.userId);
+    conditions.push(
+      `p.user_id = $${params.length} OR p.user_id IN (SELECT friend_user_id FROM friendships WHERE user_id = $${params.length} AND status = 'accepted')`,
+    );
+  }
+  params.push(limit);
+
+  const { rows } = await pool.query(
+    `WITH duel_results AS (
+       SELECT gs.user_id, gs.total_score,
+         (SELECT total_score FROM game_sessions WHERE duel_id = d.id AND user_id != gs.user_id) AS opponent_score
+       FROM duels d
+       JOIN game_sessions gs ON gs.duel_id = d.id
+       WHERE d.status = 'completed'
+     ),
+     per_user AS (
+       SELECT user_id,
+         count(*) FILTER (WHERE total_score > opponent_score) AS wins,
+         count(*) FILTER (WHERE total_score < opponent_score) AS losses,
+         count(*) FILTER (WHERE total_score = opponent_score) AS ties,
+         count(*) AS total
+       FROM duel_results
+       GROUP BY user_id
+     )
+     SELECT u.username, p.wins, p.losses, p.ties, p.total,
+       CASE WHEN p.total > 0 THEN round((p.wins::numeric / p.total) * 100, 1) ELSE 0 END AS win_pct
+     FROM per_user p
+     JOIN users u ON u.id = p.user_id
+     ${conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''}
+     ORDER BY win_pct DESC, p.wins DESC, p.total DESC
+     LIMIT $${params.length}`,
+    params,
+  );
+
+  const entries = rows.map((r) => ({
+    username: r.username,
+    wins: Number(r.wins),
+    losses: Number(r.losses),
+    ties: Number(r.ties),
+    total: Number(r.total),
+    win_pct: Number(r.win_pct),
+  }));
+  const result = { scope, entries };
+  setCached(cacheKey, result);
+  return res.json(result);
 });
 
 router.get('/:id', async (req, res) => {

@@ -1,28 +1,102 @@
-:root {
-  --ink-900: #12151c;
-  --ink-800: #181c26;
-  --parchment-100: #ede6d6;
-  --parchment-200: #e4dbc6;
-  --brass-500: #b8923d;
-  --brass-300: #d9b877;
-  --oxblood-600: #5c1a2b;
-  --verdigris-400: #4e8c7c;
-  --ash-300: #8a8d96;
+/* Each house rebinds the same handful of tokens — every component is themed purely
+   through these variables, never a house name directly. Two accent channels per house:
+   --brass-* is the house's true color (used for text, borders, buttons); --metal-* is
+   its metal trim (used for the plate's corner brackets and gilt line) — canonically the
+   two are different (Slytherin's green + silver, Ravenclaw's blue + bronze), so a single
+   accent hue can't carry both.
 
-  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-  --font-body: 'Inter', 'Public Sans', system-ui, sans-serif;
+   House hexes are calibrated against the canonical house-color reference chart
+   (crest wiki hex/RGB values) supplied in design review, not eyeballed. Where the
+   reference's darkest tone is too low-contrast to use as text on the dark page, the
+   reference's own brighter tone becomes --brass-500 and the darkest becomes --ink-900
+   instead — the hue stays authentic, only the tier it's assigned to shifts. */
+:root {
+  /* Gryffindor is the default binding: scarlet & gold. */
+  --ink-900: #2b0607;
+  --ink-800: #190304;
+  --parchment-100: #ddc48a;
+  --parchment-200: #d0b378;
+  --brass-500: #ae0001;
+  --brass-300: #d1454f;
+  --brass-500-rgb: 174, 0, 1;
+  --metal-500: #d3a625;
+  --metal-300: #ecb939;
+  --oxblood-600: #7a2020;
+  --verdigris-400: #3f8f6c;
+  --ash-300: #b0a488;
+  --text-ink: #241b10;
+
+  /* A fixed metallic accent that does NOT get rebound per house — used only for the
+     running-header/nav "chrome" (wordmark, page links, filter pills), so navigation
+     reads as one consistent silver fitting regardless of which house is bound. House
+     color stays exclusive to the game surface itself (plates, buttons, corner brackets). */
+  --silver-200: #e4e7ea;
+  --silver-400: #9aa1a8;
+  --silver-400-rgb: 154, 161, 168;
+
+  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'EB Garamond', Georgia, serif;
 
   --bg: var(--ink-900);
   --surface: var(--parchment-100);
-  --text-on-bg: var(--parchment-100);
-  --text-on-surface: var(--ink-900);
+  --text-on-bg: #ecdfc0;
+  --text-on-surface: var(--text-ink);
   --text-muted: var(--ash-300);
   /* Secondary text on the parchment surface — bumped for AA contrast on a
      screen that's read against the clock (see design review). */
-  --text-muted-on-surface: rgba(18, 21, 28, 0.68);
+  --text-muted-on-surface: rgba(36, 27, 16, 0.68);
   --accent: var(--brass-500);
   --danger: var(--oxblood-600);
   --success: var(--verdigris-400);
 
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2  0 0 0 0 0.14  0 0 0 0 0.08  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Hufflepuff: gold & black. */
+:root[data-house='hufflepuff'] {
+  --ink-900: #1c1712;
+  --ink-800: #100d0a;
+  --brass-500: #ecb939;
+  --brass-300: #f0c75e;
+  --brass-500-rgb: 236, 185, 57;
+  --metal-500: #372e29;
+  --metal-300: #726255;
+}
+
+/* Slytherin: green & silver. */
+:root[data-house='slytherin'] {
+  --ink-900: #0a1a13;
+  --ink-800: #050d0a;
+  --brass-500: #2a623d;
+  --brass-300: #3f8a5c;
+  --brass-500-rgb: 42, 98, 61;
+  --metal-500: #5d5d5d;
+  --metal-300: #aaaaaa;
+}
+
+/* Ravenclaw: navy & bronze. */
+:root[data-house='ravenclaw'] {
+  --ink-900: #0a1330;
+  --ink-800: #060a1e;
+  --brass-500: #2a4a8a;
+  --brass-300: #4468b8;
+  --brass-500-rgb: 42, 74, 138;
+  --metal-500: #946b2d;
+  --metal-300: #b98d52;
+}
+
+/* Monochrome: no house color, just tone — the metal reads slightly lighter than the
+   "color" so the two-tone structure still holds even in black and white. */
+:root[data-house='monochrome'] {
+  --ink-900: #161616;
+  --ink-800: #0b0b0b;
+  --parchment-100: #e7e3d8;
+  --parchment-200: #dbd6c8;
+  --brass-500: #5a5a5a;
+  --brass-300: #8a8a8a;
+  --brass-500-rgb: 90, 90, 90;
+  --metal-500: #b8b8b8;
+  --metal-300: #e6e6e6;
+  --text-ink: #1c1c1c;
+  --text-on-bg: #e6e6e6;
 }

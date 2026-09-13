@@ -62,12 +62,25 @@ router.get('/', optionalAuth, async (req, res) => {
   }
   params.push(limit);
 
+  // A user can rack up many completed runs matching the same filters — rank them by their own
+  // best run first (score, then speed), and keep only that top row so the board shows each
+  // player once instead of letting one prolific player fill it with their own past attempts.
   const { rows } = await pool.query(
-    `SELECT u.username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty, gs.completed_at
-     FROM game_sessions gs
-     JOIN users u ON u.id = gs.user_id
-     WHERE ${conditions.join(' AND ')}
-     ORDER BY gs.total_score DESC, (gs.completed_at - gs.created_at) ASC
+    `WITH ranked AS (
+       SELECT u.username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
+              gs.completed_at, (gs.completed_at - gs.created_at) AS duration,
+              ROW_NUMBER() OVER (
+                PARTITION BY gs.user_id
+                ORDER BY gs.total_score DESC, (gs.completed_at - gs.created_at) ASC
+              ) AS rn
+       FROM game_sessions gs
+       JOIN users u ON u.id = gs.user_id
+       WHERE ${conditions.join(' AND ')}
+     )
+     SELECT username, total_score, category, canon_source, difficulty, completed_at
+     FROM ranked
+     WHERE rn = 1
+     ORDER BY total_score DESC, duration ASC
      LIMIT $${params.length}`,
     params,
   );

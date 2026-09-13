@@ -13,7 +13,9 @@ import DuelSummaryScreen from './components/DuelSummaryScreen.jsx';
 import DuelInviteBanner from './components/DuelInviteBanner.jsx';
 import AchievementsScreen from './components/AchievementsScreen.jsx';
 import AchievementToast from './components/AchievementToast.jsx';
+import SettingsScreen from './components/SettingsScreen.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
+import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
   acceptDuel,
   createDuel,
@@ -24,6 +26,7 @@ import {
   getMe,
   getPendingDuels,
   submitAnswer,
+  updateTheme,
 } from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
@@ -69,6 +72,10 @@ export default function App() {
       .then((data) => setCategories(data.categories))
       .catch(() => setCategories([]));
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-house', currentUser?.theme ?? DEFAULT_HOUSE);
+  }, [currentUser?.theme]);
 
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -181,6 +188,15 @@ export default function App() {
     setAuthToken(null);
     setCurrentUser(null);
     setScreen('auth');
+  };
+
+  const handleSelectTheme = async (theme) => {
+    setCurrentUser((prev) => ({ ...prev, theme }));
+    try {
+      await updateTheme(theme, authToken);
+    } catch {
+      // the DOM already reflects the pick; a failed save just means it won't stick next login
+    }
   };
 
   const handleNavigate = (target) => {
@@ -308,8 +324,7 @@ export default function App() {
         difficulty: data.difficulty,
       });
     } catch (err) {
-      if (err.code === 'not_friends') setDuelLobbyError('You are no longer friends with that player.');
-      else if (err.code === 'user_not_found') setDuelLobbyError('That player could not be found.');
+      if (err.code === 'user_not_found') setDuelLobbyError('That player could not be found.');
       else setDuelLobbyError('Could not send that challenge.');
     }
   };
@@ -400,6 +415,9 @@ export default function App() {
       )}
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
       {screen === 'achievements' && <AchievementsScreen token={authToken} />}
+      {screen === 'settings' && (
+        <SettingsScreen theme={currentUser?.theme ?? DEFAULT_HOUSE} onSelectTheme={handleSelectTheme} />
+      )}
       {screen === 'friends' && (
         <FriendsPanel
           token={authToken}
@@ -470,6 +488,10 @@ export default function App() {
           onDone={handleDuelDone}
         />
       )}
+      <p className="colophon">
+        An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,
+        Pottermore, or J.K. Rowling.
+      </p>
     </div>
   );
 }

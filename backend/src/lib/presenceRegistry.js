@@ -21,3 +21,7 @@ export function isOnline(userId) {
 export function getSockets(userId) {
   return onlineSockets.get(userId) ?? new Set();
 }
+
+export function getOnlineUserIds() {
+  return [...onlineSockets.keys()];
+}
