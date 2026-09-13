@@ -12,6 +12,11 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'monochrome';
 ALTER TABLE users ALTER COLUMN theme SET DEFAULT 'monochrome';
 
+-- Gates the question-suggestion review screen and its approve/reject actions. No self-serve
+-- promotion flow by design — the first admin (and any others) is granted by running
+-- `UPDATE users SET is_admin = true WHERE email = '...';` directly against the database.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS friendships (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id),
@@ -110,6 +115,33 @@ CREATE TABLE IF NOT EXISTS user_achievements (
   unlocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, achievement_id)
 );
+
+-- Player-submitted question drafts, reviewed by an admin before ever becoming a live question.
+-- obscurity_tier/design_tier are nullable here — a submitter can't be expected to calibrate
+-- those against the existing bank, so an admin sets them at approval time, not the submitter.
+CREATE TABLE IF NOT EXISTS suggested_questions (
+  id SERIAL PRIMARY KEY,
+  suggested_by INTEGER NOT NULL REFERENCES users(id),
+  status TEXT NOT NULL DEFAULT 'pending',
+  category TEXT NOT NULL,
+  canon_tags TEXT[] NOT NULL DEFAULT '{}',
+  divergence BOOLEAN NOT NULL DEFAULT false,
+  question_text TEXT NOT NULL,
+  correct_answer TEXT NOT NULL,
+  distractors TEXT[] NOT NULL,
+  explanation TEXT,
+  source_ref TEXT,
+  obscurity_tier TEXT,
+  design_tier TEXT,
+  reviewed_by INTEGER REFERENCES users(id),
+  reviewed_at TIMESTAMPTZ,
+  review_note TEXT,
+  approved_question_id TEXT REFERENCES questions(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_suggested_questions_status
+  ON suggested_questions (status, created_at);
 
 CREATE TABLE IF NOT EXISTS session_questions (
   id SERIAL PRIMARY KEY,

@@ -7,6 +7,7 @@ import authRouter from './routes/auth.js';
 import friendsRouter from './routes/friends.js';
 import duelsRouter from './routes/duels.js';
 import achievementsRouter from './routes/achievements.js';
+import suggestionsRouter from './routes/suggestions.js';
 
 export function createApp() {
   const app = express();
@@ -22,6 +23,7 @@ export function createApp() {
   app.use('/api/friends', friendsRouter);
   app.use('/api/duels', duelsRouter);
   app.use('/api/achievements', achievementsRouter);
+  app.use('/api/suggestions', suggestionsRouter);
 
   return app;
 }

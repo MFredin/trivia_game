@@ -74,8 +74,16 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
   brackets), so the app's own UI never clashes with whichever house is active
 
 **Content**
-- 2,927 questions across 11 categories, with every (category × difficulty × canon-source)
+- 2,927+ questions across 11 categories, with every (category × difficulty × canon-source)
   combination holding 60+ questions in both the books-pool and movies-pool
+- **Community submissions**: a hidden easter egg (type "I solemnly swear that I am up to no
+  good" anywhere on the Home screen, or tap the "The Restricted Section" wordmark 7 times —
+  the mobile-friendly equivalent) reveals a "Suggest a Question" form any logged-in player can
+  use. Every submission is reviewed by an admin — who sets the two fields a submitter can't be
+  expected to calibrate (difficulty tier, design tier) and can edit anything else — before it's
+  ever inserted into the live question bank. Rejected submissions stay on record with a note;
+  approved ones go live immediately (no restart needed). See "Content pipeline" below for how
+  to grant admin access.
 
 **Anti-cheat**
 - Server-issued HMAC question tokens; single-use, session/question-bound, server-clock timing
@@ -86,7 +94,8 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 
 Ideas from a Phase 4 planning pass, grouped by theme and rough sequencing. Not commitments —
 a working plan, revised as priorities shift. "Category" marks the kind of value each item adds;
-"Phase" is when it's currently expected to land.
+"Phase" is when it's currently expected to land. See `docs/phase4-scaffold.md` for
+implementation-ready specs on everything still open in Phase 4.
 
 | Phase | Theme | Focus |
 |---|---|---|
@@ -121,7 +130,6 @@ a working plan, revised as priorities shift. "Category" marks the kind of value 
 | Tournament brackets | Gameplay | Multi-round elimination duels among a friend group, run over a few days |
 | Lifelines (50-50, skip) | Gameplay | Adds strategic depth to Classic mode; needs server-side handling to keep the anti-cheat model intact |
 | Canned duel reactions | Social | Lightweight reactions during a live duel, without the moderation burden of free-text chat |
-| User-submitted questions | Content | Previously deferred pending a trust/moderation model — the social features now shipped make that more realistic |
 | Seasonal content bundles | Content | Timed to real-world anniversaries (book/film release dates) — a good scheduled-retention hook |
 | Mobile & accessibility pass | Technical | Most casual trivia traffic is mobile; testing so far has been desktop-only |
 
@@ -195,10 +203,22 @@ root directory and runs its `package.json` scripts (`build` then `start`) with n
 
 ## Content pipeline
 
-Question content lives in `backend/src/data/question-bank-full-draft.json` (an array of question
-objects under a `questions` key). Each question carries a `needs_factcheck` flag — set by
-whoever drafted it whenever they weren't fully confident in a fact rather than guessing — so a
-human reviewer can filter for it later without re-checking everything. New batches are
-generated, validated (schema, duplicate IDs, duplicate `question_text`), and merged into that
-file before being seeded; see recent commit history for the process. See `docs/ip-risk-notes.md`
-for what's in and out of bounds when drafting new questions.
+Two ways new questions reach the bank:
+
+1. **Batch generation** — `backend/src/data/question-bank-full-draft.json` (an array of question
+   objects under a `questions` key). Each question carries a `needs_factcheck` flag — set by
+   whoever drafted it whenever they weren't fully confident in a fact rather than guessing — so
+   a human reviewer can filter for it later without re-checking everything. New batches are
+   generated, validated (schema, duplicate IDs, duplicate `question_text`), and merged into that
+   file before being seeded; see recent commit history for the process.
+2. **Community submissions** — any player can submit one via the "Suggest a Question" easter egg
+   (see "What's implemented" above); an admin reviews it and, on approval, it's inserted straight
+   into the live `questions` table (no reseed or restart needed — the in-memory question cache
+   is invalidated immediately). To make an account an admin, there's no self-serve flow by
+   design — run this directly against the database:
+   ```sql
+   UPDATE users SET is_admin = true WHERE email = 'you@example.com';
+   ```
+
+See `docs/ip-risk-notes.md` for what's in and out of bounds when drafting new questions,
+however they arrive.

@@ -717,7 +717,8 @@ button {
 }
 
 .start-form input,
-.start-form select {
+.start-form select,
+.start-form textarea {
   background: rgba(255, 255, 255, 0.22);
   color: var(--text-on-surface);
   border: none;
@@ -729,6 +730,11 @@ button {
   text-transform: none;
   letter-spacing: normal;
   font-weight: 400;
+}
+
+.start-form textarea {
+  resize: vertical;
+  width: 100%;
 }
 
 .primary-button {
@@ -1275,4 +1281,57 @@ button {
   letter-spacing: 0.02em;
   text-align: center;
   opacity: 0.75;
+}
+
+/* --- the Marauder's Map easter egg reveal --- */
+.mischief-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 6, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 50;
+  animation: mischief-fade-in 220ms ease-out;
+}
+
+@keyframes mischief-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mischief-plate {
+  position: relative;
+  max-width: 440px;
+  background: var(--parchment-100);
+  background-image: var(--paper-grain);
+  border-radius: 3px;
+  padding: 2rem;
+  color: var(--text-on-surface);
+  text-align: center;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.5),
+    0 20px 50px -12px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(var(--brass-500-rgb), 0.35);
+}
+
+.mischief-plate .screen-eyebrow,
+.mischief-plate .screen-title {
+  text-align: center;
+}
+
+.mischief-plate .explanation {
+  margin: 0 0 1.5rem;
+  max-width: none;
+}
+
+.mischief-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
