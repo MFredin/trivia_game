@@ -167,6 +167,18 @@ CREATE TABLE IF NOT EXISTS challenges (
 -- picking an easy category/tier to inflate scores can't pollute the real Classic leaderboard.
 ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS challenge_id INTEGER REFERENCES challenges(id);
 
+-- "Alice just beat her personal best" — a small, friends-scoped activity feed. Never pushed
+-- (no toast, no badge); it's a tab a player opens when they're curious, on the Friends screen.
+CREATE TABLE IF NOT EXISTS activity_events (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  payload JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_events_created_at ON activity_events (created_at DESC);
+
 CREATE TABLE IF NOT EXISTS session_questions (
   id SERIAL PRIMARY KEY,
   session_id UUID NOT NULL REFERENCES game_sessions(id),
