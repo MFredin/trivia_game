@@ -2,10 +2,12 @@ export default function ResultReveal({ correct, timedOut, points, correctAnswer,
   return (
     <div className={`result-reveal ${correct ? '' : 'is-wrong'}`}>
       <h2>{timedOut ? "Time's up" : correct ? 'Correct' : 'Incorrect'}</h2>
-      <div className="points">
-        {correct ? '+' : ''}
-        {points}
-      </div>
+      {points != null && (
+        <div className="points">
+          {correct ? '+' : ''}
+          {points}
+        </div>
+      )}
       {!correct && (
         <p className="explanation">
           The answer was <b>{correctAnswer}</b>

@@ -8,6 +8,7 @@ import friendsRouter from './routes/friends.js';
 import duelsRouter from './routes/duels.js';
 import achievementsRouter from './routes/achievements.js';
 import suggestionsRouter from './routes/suggestions.js';
+import previewRouter from './routes/preview.js';
 
 export function createApp() {
   const app = express();
@@ -28,6 +29,7 @@ export function createApp() {
   app.use('/api/duels', duelsRouter);
   app.use('/api/achievements', achievementsRouter);
   app.use('/api/suggestions', suggestionsRouter);
+  app.use('/api/preview', previewRouter);
 
   return app;
 }

@@ -8,9 +8,9 @@ function readInviteCodeFromUrl() {
   return new URLSearchParams(window.location.search).get('invite') || null;
 }
 
-export default function AuthScreen({ onAuthenticated }) {
+export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode }) {
   const [inviteCode] = useState(readInviteCodeFromUrl);
-  const [mode, setMode] = useState(() => (readInviteCodeFromUrl() ? 'register' : 'login'));
+  const [mode, setMode] = useState(() => startInMode ?? (readInviteCodeFromUrl() ? 'register' : 'login'));
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -85,6 +85,11 @@ export default function AuthScreen({ onAuthenticated }) {
           >
             {mode === 'login' ? "Need an account? Register" : 'Already have an account? Log in'}
           </button>
+          {onTryPreview && (
+            <button type="button" className="secondary-button" onClick={onTryPreview}>
+              Try it now — no account needed
+            </button>
+          )}
         </form>
       </Plate>
     </div>
