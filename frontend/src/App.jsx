@@ -18,6 +18,7 @@ import MischiefModal from './components/MischiefModal.jsx';
 import SuggestQuestionScreen from './components/SuggestQuestionScreen.jsx';
 import AdminSuggestionsScreen from './components/AdminSuggestionsScreen.jsx';
 import PreviewScreen from './components/PreviewScreen.jsx';
+import ProfileScreen from './components/ProfileScreen.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -44,6 +45,8 @@ export default function App() {
   const [categories, setCategories] = useState([]);
   const [screen, setScreen] = useState('auth');
   const [cameFromPreview, setCameFromPreview] = useState(false);
+  const [viewingProfile, setViewingProfile] = useState(null);
+  const [profileReturnScreen, setProfileReturnScreen] = useState('friends');
   const [startError, setStartError] = useState(null);
 
   const [session, setSession] = useState(null);
@@ -343,6 +346,12 @@ export default function App() {
     setScreen('duel-lobby');
   };
 
+  const handleViewProfile = (username) => {
+    setProfileReturnScreen(screen);
+    setViewingProfile(username);
+    setScreen('profile');
+  };
+
   const handleSendDuel = async ({ category, canonSource, difficulty }) => {
     setDuelLobbyError(null);
     try {
@@ -422,7 +431,12 @@ export default function App() {
   }
 
   const incomingDuelInvites = pendingDuels.filter((d) => d.direction === 'incoming');
-  const navActiveScreen = screen === 'duel-lobby' || screen === 'duel-summary' ? 'friends' : screen;
+  const navActiveScreen =
+    screen === 'duel-lobby' || screen === 'duel-summary'
+      ? 'friends'
+      : screen === 'profile'
+        ? profileReturnScreen
+        : screen;
 
   return (
     <div className="app-shell">
@@ -472,12 +486,30 @@ export default function App() {
         />
       )}
       {screen === 'start' && currentUser && (
-        <StartScreen categories={categories} currentUser={currentUser} onStart={handleStart} error={startError} />
+        <StartScreen
+          categories={categories}
+          currentUser={currentUser}
+          onStart={handleStart}
+          error={startError}
+          token={authToken}
+        />
       )}
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
       {screen === 'achievements' && <AchievementsScreen token={authToken} />}
       {screen === 'settings' && (
-        <SettingsScreen theme={currentUser?.theme ?? DEFAULT_HOUSE} onSelectTheme={handleSelectTheme} token={authToken} />
+        <SettingsScreen
+          theme={currentUser?.theme ?? DEFAULT_HOUSE}
+          onSelectTheme={handleSelectTheme}
+          token={authToken}
+          onViewOwnProfile={() => handleViewProfile(currentUser.username)}
+        />
+      )}
+      {screen === 'profile' && viewingProfile && (
+        <ProfileScreen
+          username={viewingProfile}
+          token={authToken}
+          onBack={() => setScreen(profileReturnScreen)}
+        />
       )}
       {screen === 'suggest' && <SuggestQuestionScreen categories={categories} token={authToken} />}
       {screen === 'admin-suggestions' && currentUser?.is_admin && (
@@ -490,6 +522,7 @@ export default function App() {
           onAcceptDuel={handleAcceptDuel}
           onDeclineDuel={handleDeclineDuel}
           onChallenge={handleChallenge}
+          onViewProfile={handleViewProfile}
         />
       )}
       {screen === 'duel-lobby' && (

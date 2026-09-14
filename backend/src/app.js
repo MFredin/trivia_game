@@ -9,6 +9,7 @@ import duelsRouter from './routes/duels.js';
 import achievementsRouter from './routes/achievements.js';
 import suggestionsRouter from './routes/suggestions.js';
 import previewRouter from './routes/preview.js';
+import profileRouter from './routes/profile.js';
 
 export function createApp() {
   const app = express();
@@ -30,6 +31,7 @@ export function createApp() {
   app.use('/api/achievements', achievementsRouter);
   app.use('/api/suggestions', suggestionsRouter);
   app.use('/api/preview', previewRouter);
+  app.use('/api/profile', profileRouter);
 
   return app;
 }
