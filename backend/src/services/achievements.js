@@ -168,13 +168,21 @@ export const CONDITIONS = {
 // recompute the relevant aggregates from scratch rather than maintain incremental counters.
 export async function evaluateAchievements(userId) {
   const stats = await computeStats(userId);
-  const newlyUnlocked = ACHIEVEMENTS.filter((def) => !stats.unlocked.has(def.id) && CONDITIONS[def.id]?.(stats));
+  const candidates = ACHIEVEMENTS.filter((def) => !stats.unlocked.has(def.id) && CONDITIONS[def.id]?.(stats));
 
-  for (const def of newlyUnlocked) {
-    await pool.query(
-      `INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+  const newlyUnlocked = [];
+  for (const def of candidates) {
+    // Two calls for the same user can race (e.g. two tabs finishing a session moments apart)
+    // and both read "not yet unlocked" before either INSERT lands. RETURNING id — rather than
+    // just checking rowCount — is what lets us tell "I was the one that actually inserted this
+    // row" apart from "someone else's concurrent call already did," so only the former toasts
+    // and feeds the activity log; the DB row itself was already conflict-safe either way.
+    const { rows } = await pool.query(
+      `INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING user_id`,
       [userId, def.id],
     );
+    if (rows.length === 0) continue;
+    newlyUnlocked.push(def);
     sendToUser(userId, { type: 'achievement:unlocked', achievement: def });
     await recordActivity(userId, 'achievement_unlocked', { achievement_id: def.id, name: def.name });
   }

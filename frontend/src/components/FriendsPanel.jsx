@@ -126,11 +126,15 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
 
   useEffect(refresh, [token]);
 
+  // The plain Friends list's online-dot used to only refresh on mount/actions while Online
+  // Now polled every 15s — inconsistent, and a friend's dot could sit stale until something
+  // else happened to trigger a refetch. Both now ride the same interval.
   useEffect(() => {
     const refreshOnline = () => {
       getOnlineMembers(token)
         .then((data) => setOnlineMembers(data.results))
         .catch(() => {});
+      refresh();
     };
     refreshOnline();
     const interval = setInterval(refreshOnline, ONLINE_POLL_MS);
