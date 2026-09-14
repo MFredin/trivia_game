@@ -2,6 +2,7 @@ import { pool } from '../db/pool.js';
 import { ACHIEVEMENTS } from '../lib/achievements.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { sendToUser } from '../lib/wsServer.js';
+import { computeStreaks } from '../lib/streaks.js';
 
 async function computeStats(userId) {
   const { rows: unlockedRows } = await pool.query(
@@ -75,6 +76,14 @@ async function computeStats(userId) {
     }
   }
 
+  const { rows: dateRows } = await pool.query(
+    `SELECT DISTINCT DATE(completed_at)::text AS d FROM game_sessions
+     WHERE user_id = $1 AND status = 'completed'
+     ORDER BY d DESC`,
+    [userId],
+  );
+  const { longest: longestDayStreak } = computeStreaks(dateRows.map((r) => r.d));
+
   const questions = await getAllQuestions();
   const totalCategories = new Set(questions.map((q) => q.category)).size;
 
@@ -96,6 +105,7 @@ async function computeStats(userId) {
     duelsCompleted,
     duelsWon,
     duelWinStreak,
+    longestDayStreak,
   };
 }
 
@@ -128,6 +138,8 @@ export const CONDITIONS = {
   social_friends_10: (s) => s.friendCount >= 10,
   duel_win_streak_3: (s) => s.duelWinStreak >= 3,
   duel_win_streak_5: (s) => s.duelWinStreak >= 5,
+  consistency_streak_7: (s) => s.longestDayStreak >= 7,
+  consistency_streak_30: (s) => s.longestDayStreak >= 30,
 };
 
 // Called after any event that could newly satisfy an achievement (a session completes, a

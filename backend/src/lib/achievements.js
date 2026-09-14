@@ -132,4 +132,20 @@ export const ACHIEVEMENTS = [
     name: 'Reigning Champion',
     description: 'Win 5 duels in a row.',
   },
+
+  // Distinct from dedication_7/30 (distinct *Daily Challenge* days played) — these track a
+  // day-streak across ANY mode, so reusing the dedication_* name would conflate two different
+  // stats under one badge.
+  {
+    id: 'consistency_streak_7',
+    category: 'Dedication',
+    name: 'Habit Forming',
+    description: 'Play on 7 consecutive days.',
+  },
+  {
+    id: 'consistency_streak_30',
+    category: 'Dedication',
+    name: 'Creature of Habit',
+    description: 'Play on 30 consecutive days.',
+  },
 ];
