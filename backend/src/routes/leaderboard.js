@@ -33,9 +33,16 @@ router.get('/', optionalAuth, async (req, res) => {
   const conditions = [`gs.mode = $1`, `gs.status = 'completed'`];
   const params = [mode];
 
+  // category and difficulty are the two run attributes that can be genuinely NULL (a player
+  // left the selector on "All categories"/"Any"). A missing filter here must mean "only show
+  // runs that were ALSO left unfiltered" — not "match anything" — otherwise a run played with
+  // a specific category ends up on the board for every other category too. canon_source never
+  // has this ambiguity: it defaults to 'combined' at session creation, never NULL.
   if (category) {
     params.push(category);
     conditions.push(`gs.category = $${params.length}`);
+  } else {
+    conditions.push(`gs.category IS NULL`);
   }
   if (canonSource) {
     params.push(canonSource);
@@ -44,6 +51,8 @@ router.get('/', optionalAuth, async (req, res) => {
   if (difficulty) {
     params.push(difficulty);
     conditions.push(`gs.obscurity_filter = $${params.length}`);
+  } else {
+    conditions.push(`gs.obscurity_filter IS NULL`);
   }
   if (scope === 'friends') {
     params.push(req.userId);
