@@ -3,7 +3,7 @@ import Plate from './Plate.jsx';
 import { HOUSES } from '../constants/houses.js';
 import { getInviteCode } from '../api/client.js';
 
-export default function SettingsScreen({ theme, onSelectTheme, token }) {
+export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnProfile }) {
   const [inviteCode, setInviteCode] = useState(null);
   const [copyLabel, setCopyLabel] = useState('Copy link');
 
@@ -81,6 +81,19 @@ export default function SettingsScreen({ theme, onSelectTheme, token }) {
           </button>
         </div>
       </Plate>
+      {onViewOwnProfile && (
+        <Plate>
+          <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
+            Your Player File
+          </p>
+          <p className="explanation" style={{ margin: '0 0 1rem' }}>
+            Lifetime stats — accuracy, favorite category, duel record, and your day streak.
+          </p>
+          <button type="button" className="secondary-button" onClick={onViewOwnProfile}>
+            View my profile
+          </button>
+        </Plate>
+      )}
     </div>
   );
 }

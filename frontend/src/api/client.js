@@ -123,6 +123,10 @@ export function answerPreview({ previewId, questionId, chosenIndex, token, issue
   });
 }
 
+export function getProfile(username, token) {
+  return request(`/profile/${encodeURIComponent(username)}`, {}, token);
+}
+
 export function getCategories() {
   return request('/categories');
 }

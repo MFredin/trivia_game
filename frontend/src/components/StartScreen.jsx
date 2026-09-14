@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
+import { getProfile } from '../api/client.js';
 
 const MODE_INFO = {
   classic: {
@@ -27,11 +28,18 @@ const MODE_INFO = {
   },
 };
 
-export default function StartScreen({ categories, currentUser, onStart, error }) {
+export default function StartScreen({ categories, currentUser, onStart, error, token }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
   const [canonSource, setCanonSource] = useState('combined');
   const [difficulty, setDifficulty] = useState('');
+  const [dayStreak, setDayStreak] = useState(0);
+
+  useEffect(() => {
+    getProfile(currentUser.username, token)
+      .then((data) => setDayStreak(data.current_day_streak))
+      .catch(() => {});
+  }, [currentUser.username, token]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -52,6 +60,7 @@ export default function StartScreen({ categories, currentUser, onStart, error })
         </div>
         <span className="explanation" style={{ margin: 0 }}>
           Playing as <b>{currentUser.username}</b>
+          {dayStreak >= 2 && <> &middot; 🔥 {dayStreak}-day streak</>}
         </span>
       </div>
 

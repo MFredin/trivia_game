@@ -15,13 +15,13 @@ import {
 const ONLINE_POLL_MS = 15000;
 const MEMBERS_PAGE_SIZE = 30;
 
-function MemberRow({ member, onAdd, onAccept, onDecline, onChallenge }) {
+function MemberRow({ member, onAdd, onAccept, onDecline, onChallenge, onViewProfile }) {
   return (
     <li className="friend-row">
-      <span className="friend-name">
+      <button type="button" className="friend-name friend-name-link" onClick={onViewProfile}>
         <span className={`online-dot ${member.online ? 'is-online' : ''}`} aria-hidden="true" />
         {member.username}
-      </span>
+      </button>
       <span className="friend-actions">
         {member.status === 'friends' && <span className="explanation">Friends</span>}
         {member.status === 'pending_sent' && <span className="explanation">Request sent</span>}
@@ -48,7 +48,7 @@ function MemberRow({ member, onAdd, onAccept, onDecline, onChallenge }) {
   );
 }
 
-export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge }) {
+export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge, onViewProfile }) {
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
   const [newFriend, setNewFriend] = useState('');
@@ -241,6 +241,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                     onAccept={() => handleMemberAccept(setSearchResults, r.username)}
                     onDecline={() => handleMemberDecline(setSearchResults, r.username)}
                     onChallenge={() => onChallenge(r.username)}
+                    onViewProfile={() => onViewProfile(r.username)}
                   />
                 ))}
               </ul>
@@ -261,6 +262,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                   onAccept={() => handleMemberAccept(setOnlineMembers, r.username)}
                   onDecline={() => handleMemberDecline(setOnlineMembers, r.username)}
                   onChallenge={() => onChallenge(r.username)}
+                    onViewProfile={() => onViewProfile(r.username)}
                 />
               ))}
             </ul>
@@ -287,6 +289,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                     onAccept={() => handleMemberAccept(setAllMembers, r.username)}
                     onDecline={() => handleMemberDecline(setAllMembers, r.username)}
                     onChallenge={() => onChallenge(r.username)}
+                    onViewProfile={() => onViewProfile(r.username)}
                   />
                 ))}
               </ul>
@@ -372,10 +375,10 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <ul className="friend-list">
             {friends.map((f) => (
               <li key={f.id} className="friend-row">
-                <span className="friend-name">
+                <button type="button" className="friend-name friend-name-link" onClick={() => onViewProfile(f.username)}>
                   <span className={`online-dot ${f.online ? 'is-online' : ''}`} aria-hidden="true" />
                   {f.username}
-                </span>
+                </button>
                 <span className="friend-actions">
                   <button type="button" className="primary-button" onClick={() => onChallenge(f.username)}>
                     Challenge

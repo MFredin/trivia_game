@@ -92,18 +92,18 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 
 ## Roadmap
 
-Ideas from a Phase 4 planning pass, grouped by theme and rough sequencing. Not commitments —
-a working plan, revised as priorities shift. "Category" marks the kind of value each item adds;
-"Phase" is when it's currently expected to land. See `docs/phase4-scaffold.md` for
-implementation-ready specs on everything still open in Phase 4.
+Grouped by theme and rough sequencing. Not commitments — a working plan, revised as priorities
+shift. "Category" marks the kind of value each item adds; "Phase" is when it's currently
+expected to land. See `docs/phase4-scaffold.md` (shipped) and `docs/phase5-scaffold.md`
+(in progress) for implementation-ready specs.
 
 | Phase | Theme | Focus |
 |---|---|---|
-| **Phase 4** | Growth & Quick Wins | Make it easy for people to hear about this and start playing |
+| **Phase 4** | Growth & Quick Wins | Make it easy for people to hear about this and start playing — ✅ shipped |
 | **Phase 5** | Social & Retention Depth | Give players reasons to come back, and to come back together |
 | **Phase 6** | Bigger Swings | Larger gameplay and content investments |
 
-### Phase 4 — Growth & Quick Wins
+### Phase 4 — Growth & Quick Wins ✅ shipped
 
 | Feature | Category | Why |
 |---|---|---|
