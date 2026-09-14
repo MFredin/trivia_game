@@ -51,21 +51,29 @@ async function computeStats(userId) {
     userId,
   ]);
 
-  const {
-    rows: [duelRow],
-  } = await pool.query(
+  const { rows: duelRows } = await pool.query(
     `SELECT
-       count(*) AS duels_completed,
-       count(*) FILTER (WHERE mine > theirs) AS duels_won
-     FROM (
-       SELECT d.id,
-         (SELECT total_score FROM game_sessions WHERE duel_id = d.id AND user_id = $1) AS mine,
-         (SELECT total_score FROM game_sessions WHERE duel_id = d.id AND user_id != $1) AS theirs
-       FROM duels d
-       WHERE d.status = 'completed' AND (d.created_by = $1 OR d.opponent_id = $1)
-     ) t`,
+       (SELECT total_score FROM game_sessions WHERE duel_id = d.id AND user_id = $1) AS mine,
+       (SELECT total_score FROM game_sessions WHERE duel_id = d.id AND user_id != $1) AS theirs
+     FROM duels d
+     WHERE d.status = 'completed' AND (d.created_by = $1 OR d.opponent_id = $1)
+     ORDER BY d.completed_at ASC`,
     [userId],
   );
+  const duelsCompleted = duelRows.length;
+  const duelsWon = duelRows.filter((r) => Number(r.mine) > Number(r.theirs)).length;
+  // Longest historical run of consecutive wins, in play order — distinct from duelsWon
+  // (total wins), which social_duel_wins_5 already covers.
+  let duelWinStreak = 0;
+  let currentRun = 0;
+  for (const row of duelRows) {
+    if (Number(row.mine) > Number(row.theirs)) {
+      currentRun++;
+      duelWinStreak = Math.max(duelWinStreak, currentRun);
+    } else {
+      currentRun = 0;
+    }
+  }
 
   const questions = await getAllQuestions();
   const totalCategories = new Set(questions.map((q) => q.category)).size;
@@ -85,8 +93,9 @@ async function computeStats(userId) {
     dailyDays: Number(counts.daily_days),
     maxEndurancePosition: Number(enduranceRow.max_position ?? 0),
     friendCount: Number(friendRow.friend_count),
-    duelsCompleted: Number(duelRow.duels_completed),
-    duelsWon: Number(duelRow.duels_won),
+    duelsCompleted,
+    duelsWon,
+    duelWinStreak,
   };
 }
 
@@ -116,6 +125,9 @@ export const CONDITIONS = {
   social_friend: (s) => s.friendCount >= 1,
   social_duel: (s) => s.duelsCompleted >= 1,
   social_duel_wins_5: (s) => s.duelsWon >= 5,
+  social_friends_10: (s) => s.friendCount >= 10,
+  duel_win_streak_3: (s) => s.duelWinStreak >= 3,
+  duel_win_streak_5: (s) => s.duelWinStreak >= 5,
 };
 
 // Called after any event that could newly satisfy an achievement (a session completes, a
