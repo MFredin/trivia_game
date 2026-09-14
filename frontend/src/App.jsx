@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import NavBar from './components/NavBar.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import StartScreen from './components/StartScreen.jsx';
@@ -14,6 +14,9 @@ import DuelInviteBanner from './components/DuelInviteBanner.jsx';
 import AchievementsScreen from './components/AchievementsScreen.jsx';
 import AchievementToast from './components/AchievementToast.jsx';
 import SettingsScreen from './components/SettingsScreen.jsx';
+import MischiefModal from './components/MischiefModal.jsx';
+import SuggestQuestionScreen from './components/SuggestQuestionScreen.jsx';
+import AdminSuggestionsScreen from './components/AdminSuggestionsScreen.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -30,6 +33,7 @@ import {
 } from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
+const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
 
 export default function App() {
   const [authToken, setAuthToken] = useState(null);
@@ -67,6 +71,10 @@ export default function App() {
   // --- achievements ---
   const [achievementQueue, setAchievementQueue] = useState([]);
 
+  // --- Marauder's Map easter egg ---
+  const [showMischief, setShowMischief] = useState(false);
+  const secretBufferRef = useRef('');
+
   useEffect(() => {
     getCategories()
       .then((data) => setCategories(data.categories))
@@ -76,6 +84,23 @@ export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-house', currentUser?.theme ?? DEFAULT_HOUSE);
   }, [currentUser?.theme]);
+
+  // The desktop half of the easter egg — a passive listener (no preventDefault, so it never
+  // interferes with typing anywhere else on the page) watching for the phrase typed anywhere.
+  // The mobile-friendly half (tap the wordmark 7 times) lives in NavBar and calls the same
+  // setShowMischief handler.
+  useEffect(() => {
+    const handleKeydown = (event) => {
+      if (event.key.length !== 1) return;
+      secretBufferRef.current = (secretBufferRef.current + event.key).slice(-SECRET_PHRASE.length);
+      if (secretBufferRef.current.toLowerCase() === SECRET_PHRASE) {
+        secretBufferRef.current = '';
+        setShowMischief(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -395,7 +420,22 @@ export default function App() {
   return (
     <div className="app-shell">
       {screen !== 'auth' && (
-        <NavBar currentUser={currentUser} activeScreen={navActiveScreen} onNavigate={handleNavigate} onLogout={handleLogout} />
+        <NavBar
+          currentUser={currentUser}
+          activeScreen={navActiveScreen}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+          onSecretFound={() => setShowMischief(true)}
+        />
+      )}
+      {showMischief && (
+        <MischiefModal
+          onClose={() => setShowMischief(false)}
+          onSuggest={() => {
+            setShowMischief(false);
+            setScreen('suggest');
+          }}
+        />
       )}
       {screen !== 'auth' && screen !== 'question' && incomingDuelInvites.length > 0 && (
         <DuelInviteBanner invite={incomingDuelInvites[0]} onAccept={handleAcceptDuel} onDecline={handleDeclineDuel} />
@@ -417,6 +457,10 @@ export default function App() {
       {screen === 'achievements' && <AchievementsScreen token={authToken} />}
       {screen === 'settings' && (
         <SettingsScreen theme={currentUser?.theme ?? DEFAULT_HOUSE} onSelectTheme={handleSelectTheme} />
+      )}
+      {screen === 'suggest' && <SuggestQuestionScreen categories={categories} token={authToken} />}
+      {screen === 'admin-suggestions' && currentUser?.is_admin && (
+        <AdminSuggestionsScreen categories={categories} token={authToken} />
       )}
       {screen === 'friends' && (
         <FriendsPanel
