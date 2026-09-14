@@ -84,6 +84,22 @@ async function computeStats(userId) {
   );
   const { longest: longestDayStreak } = computeStreaks(dateRows.map((r) => r.d));
 
+  const {
+    rows: [challengeRow],
+  } = await pool.query(
+    `SELECT
+       count(*) AS challenges_created,
+       (SELECT max(player_count) FROM (
+          SELECT c.id, count(DISTINCT gs.user_id) AS player_count
+          FROM challenges c
+          JOIN game_sessions gs ON gs.challenge_id = c.id AND gs.status = 'completed'
+          WHERE c.created_by = $1
+          GROUP BY c.id
+        ) t) AS max_challenge_group_size
+     FROM challenges WHERE created_by = $1`,
+    [userId],
+  );
+
   const questions = await getAllQuestions();
   const totalCategories = new Set(questions.map((q) => q.category)).size;
 
@@ -106,6 +122,8 @@ async function computeStats(userId) {
     duelsWon,
     duelWinStreak,
     longestDayStreak,
+    challengesCreated: Number(challengeRow.challenges_created),
+    maxChallengeGroupSize: Number(challengeRow.max_challenge_group_size ?? 0),
   };
 }
 
@@ -140,6 +158,8 @@ export const CONDITIONS = {
   duel_win_streak_5: (s) => s.duelWinStreak >= 5,
   consistency_streak_7: (s) => s.longestDayStreak >= 7,
   consistency_streak_30: (s) => s.longestDayStreak >= 30,
+  social_challenge_creator: (s) => s.challengesCreated >= 1,
+  social_challenge_group: (s) => s.maxChallengeGroupSize >= 3,
 };
 
 // Called after any event that could newly satisfy an achievement (a session completes, a

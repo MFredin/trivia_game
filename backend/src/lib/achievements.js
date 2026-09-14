@@ -148,4 +148,17 @@ export const ACHIEVEMENTS = [
     name: 'Creature of Habit',
     description: 'Play on 30 consecutive days.',
   },
+
+  {
+    id: 'social_challenge_creator',
+    category: 'Social',
+    name: 'Setting the Test',
+    description: 'Create a private challenge link.',
+  },
+  {
+    id: 'social_challenge_group',
+    category: 'Social',
+    name: 'Study Group',
+    description: '3 or more players complete one of your challenge links.',
+  },
 ];

@@ -7,6 +7,7 @@ import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
+import { evaluateAchievements } from '../services/achievements.js';
 
 const router = express.Router();
 
@@ -31,6 +32,7 @@ router.post('/', requireAuth, async (req, res) => {
          RETURNING code`,
         [code, req.userId, category ?? null, canonSource, difficulty ?? null],
       );
+      await evaluateAchievements(req.userId);
       return res.status(201).json({ code: rows[0].code });
     } catch (err) {
       if (err.code !== '23505') throw err;

@@ -198,6 +198,17 @@ router.post('/:id/answer', async (req, res) => {
     if (sessionComplete) {
       invalidateLeaderboardCache();
       await evaluateAchievements(session.user_id);
+      // social_challenge_group checks the challenge CREATOR's stats, not the player who just
+      // finished it — so a completion by anyone else needs to re-evaluate the creator too.
+      if (session.challenge_id) {
+        const { rows: challengeRows } = await pool.query('SELECT created_by FROM challenges WHERE id = $1', [
+          session.challenge_id,
+        ]);
+        const creatorId = challengeRows[0]?.created_by;
+        if (creatorId && creatorId !== session.user_id) {
+          await evaluateAchievements(creatorId);
+        }
+      }
     }
 
     if (session.duel_id) {
