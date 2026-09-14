@@ -49,6 +49,7 @@ export default function App() {
   const [token, setToken] = useState(null);
   const [issuedAt, setIssuedAt] = useState(null);
   const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
   const [strikes, setStrikes] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [feedback, setFeedback] = useState(null);
@@ -160,6 +161,7 @@ export default function App() {
           setToken(event.token);
           setIssuedAt(event.issued_at);
           setStreak(0);
+          setBestStreak(0);
           setStrikes(0);
           setTotalScore(0);
           setFeedback(null);
@@ -248,6 +250,7 @@ export default function App() {
       setToken(data.token);
       setIssuedAt(data.issued_at);
       setStreak(0);
+      setBestStreak(0);
       setStrikes(0);
       setTotalScore(0);
       setFeedback(null);
@@ -287,6 +290,7 @@ export default function App() {
         next: result.next,
       });
       setStreak(result.streak);
+      setBestStreak(result.session.best_streak);
       setStrikes(result.strikes);
       setTotalScore(result.running_total);
     } catch (err) {
@@ -378,6 +382,7 @@ export default function App() {
       setToken(data.token);
       setIssuedAt(data.issued_at);
       setStreak(0);
+      setBestStreak(0);
       setStrikes(0);
       setTotalScore(0);
       setFeedback(null);
@@ -516,6 +521,7 @@ export default function App() {
           category={session.category}
           canonSource={session.canonSource}
           difficulty={session.difficulty}
+          bestStreak={bestStreak}
           entries={leaderboard}
           scope={leaderboardScope}
           window={leaderboardWindow}
