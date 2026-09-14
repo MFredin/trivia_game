@@ -17,6 +17,10 @@ ALTER TABLE users ALTER COLUMN theme SET DEFAULT 'monochrome';
 -- `UPDATE users SET is_admin = true WHERE email = '...';` directly against the database.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
 
+-- A player's own invite link is /?invite=<code> — generated lazily on first request
+-- (see routes/auth.js) rather than at registration, so existing accounts get one too.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS invite_code TEXT UNIQUE;
+
 CREATE TABLE IF NOT EXISTS friendships (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id),
