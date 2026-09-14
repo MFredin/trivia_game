@@ -143,6 +143,10 @@ export function startChallenge(code, token) {
   return request(`/challenges/${encodeURIComponent(code)}/start`, { method: 'POST' }, token);
 }
 
+export function getActivity({ scope = 'friends', limit = 20 } = {}, token) {
+  return request(`/activity?scope=${scope}&limit=${limit}`, {}, token);
+}
+
 export function getCategories() {
   return request('/categories');
 }

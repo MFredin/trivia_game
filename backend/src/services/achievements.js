@@ -3,6 +3,7 @@ import { ACHIEVEMENTS } from '../lib/achievements.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { sendToUser } from '../lib/wsServer.js';
 import { computeStreaks } from '../lib/streaks.js';
+import { recordActivity } from './activity.js';
 
 async function computeStats(userId) {
   const { rows: unlockedRows } = await pool.query(
@@ -175,6 +176,7 @@ export async function evaluateAchievements(userId) {
       [userId, def.id],
     );
     sendToUser(userId, { type: 'achievement:unlocked', achievement: def });
+    await recordActivity(userId, 'achievement_unlocked', { achievement_id: def.id, name: def.name });
   }
 
   return newlyUnlocked;

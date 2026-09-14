@@ -4,6 +4,7 @@ import {
   acceptFriendRequest,
   addFriend,
   declineFriendRequest,
+  getActivity,
   getAllMembers,
   getFriendRequests,
   getOnlineMembers,
@@ -14,6 +15,49 @@ import {
 
 const ONLINE_POLL_MS = 15000;
 const MEMBERS_PAGE_SIZE = 30;
+
+const ACTIVITY_MODE_LABELS = {
+  classic: 'Classic Quiz',
+  daily: 'Daily Challenge',
+  blitz: 'Blitz',
+  survival: 'Survival',
+  gauntlet: 'Gauntlet',
+  duel: 'a Duel',
+  challenge: 'a Challenge',
+};
+
+function ActivityRow({ event }) {
+  if (event.type === 'personal_best') {
+    const modeLabel = ACTIVITY_MODE_LABELS[event.payload.mode] ?? event.payload.mode;
+    return (
+      <li className="friend-row">
+        <span className="friend-name">
+          🏆 {event.username} beat their personal best: {event.payload.total_score} in {modeLabel}
+        </span>
+      </li>
+    );
+  }
+  if (event.type === 'achievement_unlocked') {
+    return (
+      <li className="friend-row">
+        <span className="friend-name">
+          🎖️ {event.username} unlocked &ldquo;{event.payload.name}&rdquo;
+        </span>
+      </li>
+    );
+  }
+  if (event.type === 'duel_win') {
+    return (
+      <li className="friend-row">
+        <span className="friend-name">
+          ⚔️ {event.username} won a duel against {event.payload.opponent_username}, {event.payload.my_score}-
+          {event.payload.opponent_score}
+        </span>
+      </li>
+    );
+  }
+  return null;
+}
 
 function MemberRow({ member, onAdd, onAccept, onDecline, onChallenge, onViewProfile }) {
   return (
@@ -67,6 +111,9 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
   const [allMembersHasMore, setAllMembersHasMore] = useState(false);
   const [loadingAllMembers, setLoadingAllMembers] = useState(false);
   const [allMembersLoaded, setAllMembersLoaded] = useState(false);
+
+  const [activity, setActivity] = useState([]);
+  const [activityLoaded, setActivityLoaded] = useState(false);
 
   const refresh = () => {
     listFriends(token)
@@ -123,6 +170,14 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
   useEffect(() => {
     if (discoverTab === 'all' && !allMembersLoaded) loadAllMembers(0);
   }, [discoverTab, allMembersLoaded]);
+
+  useEffect(() => {
+    if (discoverTab !== 'activity' || activityLoaded) return;
+    getActivity({ scope: 'friends' }, token)
+      .then((data) => setActivity(data.events))
+      .catch(() => {})
+      .finally(() => setActivityLoaded(true));
+  }, [discoverTab, activityLoaded, token]);
 
   const handleAdd = async (event) => {
     event.preventDefault();
@@ -215,6 +270,13 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           >
             Search
           </button>
+          <button
+            type="button"
+            className={`nav-btn ${discoverTab === 'activity' ? 'is-active' : ''}`}
+            onClick={() => setDiscoverTab('activity')}
+          >
+            Activity
+          </button>
         </div>
 
         {discoverTab === 'search' && (
@@ -306,6 +368,19 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
             )}
           </>
         )}
+
+        {discoverTab === 'activity' &&
+          (!activityLoaded ? (
+            <p className="explanation">Loading&hellip;</p>
+          ) : activity.length === 0 ? (
+            <p className="explanation">Nothing yet — play a run, add a friend, or win a duel to see it here.</p>
+          ) : (
+            <ul className="friend-list">
+              {activity.map((event, i) => (
+                <ActivityRow key={i} event={event} />
+              ))}
+            </ul>
+          ))}
       </Plate>
 
       {requests.length > 0 && (
