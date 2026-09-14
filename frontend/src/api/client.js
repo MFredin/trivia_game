@@ -94,6 +94,10 @@ export function getDuelLeaderboard(scope = 'global', token) {
   return request(`/duels/leaderboard?scope=${scope}`, {}, token);
 }
 
+export function getHouseCup() {
+  return request('/leaderboard/house-cup');
+}
+
 export function getCategories() {
   return request('/categories');
 }

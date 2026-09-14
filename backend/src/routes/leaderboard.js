@@ -99,4 +99,41 @@ router.get('/', optionalAuth, async (req, res) => {
   return res.json(result);
 });
 
+// Standing inter-house board: each player's single best completed run (any mode, any
+// filters — same "keep only their best" fairness rule as the main leaderboard, so one
+// prolific player can't inflate their house by volume alone) summed by chosen house.
+// Monochrome means "no house chosen," not a sixth competing house, so it's excluded from the
+// ranking but still reported as an unranked row for transparency.
+router.get('/house-cup', async (req, res) => {
+  const cacheKey = 'house-cup';
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  const { rows } = await pool.query(
+    `WITH best_per_user AS (
+       SELECT DISTINCT ON (gs.user_id) gs.user_id, gs.total_score
+       FROM game_sessions gs
+       WHERE gs.status = 'completed'
+       ORDER BY gs.user_id, gs.total_score DESC
+     )
+     SELECT u.theme, SUM(b.total_score) AS total_score, COUNT(*) AS players
+     FROM best_per_user b
+     JOIN users u ON u.id = b.user_id
+     GROUP BY u.theme
+     ORDER BY total_score DESC`,
+  );
+
+  const houses = rows
+    .filter((r) => r.theme !== 'monochrome')
+    .map((r) => ({ theme: r.theme, total_score: Number(r.total_score), players: Number(r.players) }));
+  const unsorted = rows.find((r) => r.theme === 'monochrome');
+
+  const result = {
+    houses,
+    unsorted: unsorted ? { total_score: Number(unsorted.total_score), players: Number(unsorted.players) } : null,
+  };
+  setCached(cacheKey, result);
+  return res.json(result);
+});
+
 export default router;

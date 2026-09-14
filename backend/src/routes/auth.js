@@ -3,17 +3,22 @@ import { pool } from '../db/pool.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { signAuthToken } from '../lib/authTokens.js';
 import { requireAuth } from '../middleware/auth.js';
+import { rateLimit } from '../lib/rateLimiter.js';
 
 const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_THEMES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'monochrome'];
 
+// Credential-stuffing/brute-force throttle — narrowly scoped to these two routes so normal
+// gameplay traffic is never affected. Keyed by IP; see lib/rateLimiter.js for the tradeoffs.
+const authRateLimit = rateLimit({ max: 10, windowMs: 15 * 60 * 1000 });
+
 function userView(row) {
   return { id: row.id, username: row.username, email: row.email, theme: row.theme, is_admin: row.is_admin };
 }
 
-router.post('/register', async (req, res) => {
+router.post('/register', authRateLimit, async (req, res) => {
   const { email, username, password } = req.body ?? {};
   if (typeof email !== 'string' || !EMAIL_RE.test(email)) {
     return res.status(400).json({ error: 'invalid_email' });
@@ -44,7 +49,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', authRateLimit, async (req, res) => {
   const { email, password } = req.body ?? {};
   if (typeof email !== 'string' || typeof password !== 'string') {
     return res.status(400).json({ error: 'invalid_request' });
