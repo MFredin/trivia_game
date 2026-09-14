@@ -252,7 +252,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
       </div>
 
       <Plate className="friend-section">
-        <div className="nav-links" style={{ marginBottom: '1rem' }}>
+        <div className="nav-links on-surface" style={{ marginBottom: '1rem' }}>
           <button
             type="button"
             className={`nav-btn ${discoverTab === 'online' ? 'is-active' : ''}`}

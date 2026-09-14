@@ -34,9 +34,8 @@ export default function ProfileScreen({ username, token, onBack }) {
       <div className="screen-head">
         <div>
           <p className="screen-eyebrow">Player File</p>
-          <h2 className="screen-title" style={{ color: house?.brass }}>
-            {username}
-          </h2>
+          <h2 className="screen-title">{username}</h2>
+          {house && <span className="house-accent-bar" style={{ background: house.brass }} />}
         </div>
         {onBack && (
           <button type="button" className="secondary-button" onClick={onBack}>
@@ -66,7 +65,7 @@ export default function ProfileScreen({ username, token, onBack }) {
             <Stat label="Accuracy" value={profile.accuracy_pct != null ? `${profile.accuracy_pct}%` : '—'} />
             <Stat label="Best single-run score" value={profile.best_score} />
             <Stat label="Longest in-run streak" value={profile.max_best_streak} />
-            <Stat label="Favorite category" value={profile.favorite_category ?? '—'} />
+            <Stat label="Favorite category" value={profile.favorite_category ?? 'No category picked yet'} />
           </Plate>
 
           <Plate>
