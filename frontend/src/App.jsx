@@ -19,6 +19,7 @@ import SuggestQuestionScreen from './components/SuggestQuestionScreen.jsx';
 import AdminSuggestionsScreen from './components/AdminSuggestionsScreen.jsx';
 import PreviewScreen from './components/PreviewScreen.jsx';
 import ProfileScreen from './components/ProfileScreen.jsx';
+import ChallengeScreen from './components/ChallengeScreen.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -30,6 +31,7 @@ import {
   getLeaderboard,
   getMe,
   getPendingDuels,
+  startChallenge,
   submitAnswer,
   updateTheme,
 } from './api/client.js';
@@ -45,6 +47,10 @@ export default function App() {
   const [categories, setCategories] = useState([]);
   const [screen, setScreen] = useState('auth');
   const [cameFromPreview, setCameFromPreview] = useState(false);
+  // A challenge link (?challenge=<code>) should land on that challenge's screen once the
+  // visitor is authenticated, whether they arrived already logged in or just registered/logged
+  // in through AuthScreen — read once, since the query string doesn't change afterward.
+  const [challengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
   const [viewingProfile, setViewingProfile] = useState(null);
   const [profileReturnScreen, setProfileReturnScreen] = useState('friends');
   const [startError, setStartError] = useState(null);
@@ -118,7 +124,7 @@ export default function App() {
       .then((data) => {
         setAuthToken(stored);
         setCurrentUser(data.user);
-        setScreen('start');
+        setScreen(challengeCode ? 'challenge' : 'start');
       })
       .catch(() => localStorage.removeItem(TOKEN_STORAGE_KEY))
       .finally(() => setAuthChecked(true));
@@ -212,7 +218,7 @@ export default function App() {
     localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
     setAuthToken(newToken);
     setCurrentUser(user);
-    setScreen('start');
+    setScreen(challengeCode ? 'challenge' : 'start');
   };
 
   const handleLogout = () => {
@@ -271,6 +277,30 @@ export default function App() {
         setStartError('Something went wrong starting the run. Try again.');
       }
     }
+  };
+
+  const handleStartChallenge = async (code) => {
+    const data = await startChallenge(code, authToken);
+    setSession({
+      id: data.session_id,
+      mode: data.mode,
+      category: data.category,
+      canonSource: data.canon_source,
+      difficulty: data.difficulty,
+      timeLimitMs: data.time_limit_ms,
+      timingMode: data.timing_mode,
+      maxStrikes: data.max_strikes,
+      createdAt: data.created_at,
+    });
+    setQuestion(data.question);
+    setToken(data.token);
+    setIssuedAt(data.issued_at);
+    setStreak(0);
+    setBestStreak(0);
+    setStrikes(0);
+    setTotalScore(0);
+    setFeedback(null);
+    setScreen('question');
   };
 
   const handleSubmit = async (chosenIndex) => {
@@ -436,7 +466,9 @@ export default function App() {
       ? 'friends'
       : screen === 'profile'
         ? profileReturnScreen
-        : screen;
+        : screen === 'challenge'
+          ? 'start'
+          : screen;
 
   return (
     <div className="app-shell">
@@ -509,6 +541,14 @@ export default function App() {
           username={viewingProfile}
           token={authToken}
           onBack={() => setScreen(profileReturnScreen)}
+        />
+      )}
+      {screen === 'challenge' && challengeCode && (
+        <ChallengeScreen
+          code={challengeCode}
+          token={authToken}
+          onPlay={handleStartChallenge}
+          onCancel={() => setScreen('start')}
         />
       )}
       {screen === 'suggest' && <SuggestQuestionScreen categories={categories} token={authToken} />}

@@ -10,4 +10,7 @@ export const MODES = {
   survival: { questionCount: 300, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: 1 },
   gauntlet: { questionCount: 300, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: 3 },
   duel: { questionCount: 10, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: null },
+  // Every private challenge link runs at Classic's fixed config — no per-challenge
+  // customization, kept deliberately simple (see docs/phase5-scaffold.md §1).
+  challenge: { questionCount: 10, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: null },
 };

@@ -10,6 +10,7 @@ import achievementsRouter from './routes/achievements.js';
 import suggestionsRouter from './routes/suggestions.js';
 import previewRouter from './routes/preview.js';
 import profileRouter from './routes/profile.js';
+import challengesRouter from './routes/challenges.js';
 
 export function createApp() {
   const app = express();
@@ -32,6 +33,7 @@ export function createApp() {
   app.use('/api/suggestions', suggestionsRouter);
   app.use('/api/preview', previewRouter);
   app.use('/api/profile', profileRouter);
+  app.use('/api/challenges', challengesRouter);
 
   return app;
 }

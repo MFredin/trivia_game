@@ -147,6 +147,26 @@ CREATE TABLE IF NOT EXISTS suggested_questions (
 CREATE INDEX IF NOT EXISTS idx_suggested_questions_status
   ON suggested_questions (status, created_at);
 
+-- A player-created quiz with a locked category/difficulty and a shared seed — like Daily
+-- Challenge, but spun up on demand and shared via a code instead of waiting for tomorrow.
+-- question_count/time_limit_ms aren't stored here; every challenge runs at Classic's fixed
+-- config, the same way duel_id sessions do.
+CREATE TABLE IF NOT EXISTS challenges (
+  id SERIAL PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  category TEXT,
+  canon_source TEXT NOT NULL DEFAULT 'combined',
+  obscurity_filter TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Every player who starts a challenge gets their own game_sessions row, all sharing this
+-- challenge_id and seeded from it (same mechanism as daily_key/duel_id) so everyone sees the
+-- identical question sequence. Runs under mode = 'challenge', never 'classic' — so a group
+-- picking an easy category/tier to inflate scores can't pollute the real Classic leaderboard.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS challenge_id INTEGER REFERENCES challenges(id);
+
 CREATE TABLE IF NOT EXISTS session_questions (
   id SERIAL PRIMARY KEY,
   session_id UUID NOT NULL REFERENCES game_sessions(id),
