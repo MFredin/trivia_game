@@ -456,7 +456,7 @@ export default function App() {
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
       {screen === 'achievements' && <AchievementsScreen token={authToken} />}
       {screen === 'settings' && (
-        <SettingsScreen theme={currentUser?.theme ?? DEFAULT_HOUSE} onSelectTheme={handleSelectTheme} />
+        <SettingsScreen theme={currentUser?.theme ?? DEFAULT_HOUSE} onSelectTheme={handleSelectTheme} token={authToken} />
       )}
       {screen === 'suggest' && <SuggestQuestionScreen categories={categories} token={authToken} />}
       {screen === 'admin-suggestions' && currentUser?.is_admin && (

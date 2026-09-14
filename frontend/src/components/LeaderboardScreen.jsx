@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
 import DuelLeaderboard from './DuelLeaderboard.jsx';
+import HouseCupBoard from './HouseCupBoard.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
-import { getDuelLeaderboard, getLeaderboard } from '../api/client.js';
+import { getDuelLeaderboard, getHouseCup, getLeaderboard } from '../api/client.js';
 
 const MODES = [
   { value: 'classic', label: 'Classic Quiz' },
@@ -12,6 +13,7 @@ const MODES = [
   { value: 'survival', label: 'Survival' },
   { value: 'gauntlet', label: 'Gauntlet' },
   { value: 'duel', label: 'Duels' },
+  { value: 'house-cup', label: 'House Cup' },
 ];
 
 export default function LeaderboardScreen({ categories, token }) {
@@ -22,11 +24,20 @@ export default function LeaderboardScreen({ categories, token }) {
   const [scope, setScope] = useState('global');
   const [window, setWindow] = useState('current');
   const [entries, setEntries] = useState([]);
+  const [houseCup, setHouseCup] = useState({ houses: [], unsorted: null });
   const [loading, setLoading] = useState(true);
   const isDuelBoard = mode === 'duel';
+  const isHouseCup = mode === 'house-cup';
 
   useEffect(() => {
     setLoading(true);
+    if (isHouseCup) {
+      getHouseCup()
+        .then(setHouseCup)
+        .catch(() => setHouseCup({ houses: [], unsorted: null }))
+        .finally(() => setLoading(false));
+      return;
+    }
     if (isDuelBoard) {
       getDuelLeaderboard(scope, token)
         .then((data) => setEntries(data.entries))
@@ -42,7 +53,7 @@ export default function LeaderboardScreen({ categories, token }) {
       .then((data) => setEntries(data.entries))
       .catch(() => setEntries([]))
       .finally(() => setLoading(false));
-  }, [mode, category, canonSource, difficulty, scope, window, token, isDuelBoard]);
+  }, [mode, category, canonSource, difficulty, scope, window, token, isDuelBoard, isHouseCup]);
 
   const currentLabel = mode === 'daily' ? 'Today' : 'This Week';
 
@@ -53,41 +64,43 @@ export default function LeaderboardScreen({ categories, token }) {
           <p className="screen-eyebrow">The Ledger</p>
           <h2 className="screen-title">Leaderboard</h2>
         </div>
-        <div className="nav-links">
-          {!isDuelBoard && (
-            <>
-              <button
-                type="button"
-                className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
-                onClick={() => setWindow('current')}
-              >
-                {currentLabel}
-              </button>
-              <button
-                type="button"
-                className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
-                onClick={() => setWindow('all')}
-              >
-                All Time
-              </button>
-              <span style={{ width: '1px', background: 'rgba(237,230,214,0.16)', margin: '0 0.2rem' }} />
-            </>
-          )}
-          <button
-            type="button"
-            className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}
-            onClick={() => setScope('global')}
-          >
-            Global
-          </button>
-          <button
-            type="button"
-            className={`nav-btn ${scope === 'friends' ? 'is-active' : ''}`}
-            onClick={() => setScope('friends')}
-          >
-            Friends
-          </button>
-        </div>
+        {!isHouseCup && (
+          <div className="nav-links">
+            {!isDuelBoard && (
+              <>
+                <button
+                  type="button"
+                  className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
+                  onClick={() => setWindow('current')}
+                >
+                  {currentLabel}
+                </button>
+                <button
+                  type="button"
+                  className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
+                  onClick={() => setWindow('all')}
+                >
+                  All Time
+                </button>
+                <span style={{ width: '1px', background: 'rgba(237,230,214,0.16)', margin: '0 0.2rem' }} />
+              </>
+            )}
+            <button
+              type="button"
+              className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}
+              onClick={() => setScope('global')}
+            >
+              Global
+            </button>
+            <button
+              type="button"
+              className={`nav-btn ${scope === 'friends' ? 'is-active' : ''}`}
+              onClick={() => setScope('friends')}
+            >
+              Friends
+            </button>
+          </div>
+        )}
       </div>
 
       <Plate>
@@ -102,7 +115,7 @@ export default function LeaderboardScreen({ categories, token }) {
               ))}
             </select>
           </label>
-          {!isDuelBoard && (
+          {!isDuelBoard && !isHouseCup && (
             <>
               <label>
                 Category
@@ -136,6 +149,8 @@ export default function LeaderboardScreen({ categories, token }) {
 
         {loading ? (
           <p className="explanation">Loading…</p>
+        ) : isHouseCup ? (
+          <HouseCupBoard houses={houseCup.houses} unsorted={houseCup.unsorted} />
         ) : isDuelBoard ? (
           <DuelLeaderboard entries={entries} />
         ) : (

@@ -2,8 +2,15 @@ import { useState } from 'react';
 import Plate from './Plate.jsx';
 import { login, register } from '../api/client.js';
 
+// Read once at module load, not per-render — the query string doesn't change while this
+// screen is mounted, and reading it in useState's initializer avoids stale-closure issues.
+function readInviteCodeFromUrl() {
+  return new URLSearchParams(window.location.search).get('invite') || null;
+}
+
 export default function AuthScreen({ onAuthenticated }) {
-  const [mode, setMode] = useState('login');
+  const [inviteCode] = useState(readInviteCodeFromUrl);
+  const [mode, setMode] = useState(() => (readInviteCodeFromUrl() ? 'register' : 'login'));
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +23,9 @@ export default function AuthScreen({ onAuthenticated }) {
     setSubmitting(true);
     try {
       const data =
-        mode === 'login' ? await login({ email, password }) : await register({ email, username, password });
+        mode === 'login'
+          ? await login({ email, password })
+          : await register({ email, username, password, inviteCode });
       onAuthenticated(data.token, data.user);
     } catch (err) {
       if (err.code === 'invalid_credentials') setError('Wrong email or password.');
@@ -40,6 +49,9 @@ export default function AuthScreen({ onAuthenticated }) {
       <Plate>
         <form className="start-form" onSubmit={handleSubmit}>
           {error && <div className="error-banner">{error}</div>}
+          {mode === 'register' && inviteCode && (
+            <p className="explanation">You've been invited by a friend — you'll be connected once you register.</p>
+          )}
           <label>
             Email
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />

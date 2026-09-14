@@ -15,8 +15,11 @@ async function request(path, options = {}, token) {
   return data;
 }
 
-export function register({ email, username, password }) {
-  return request('/auth/register', { method: 'POST', body: JSON.stringify({ email, username, password }) });
+export function register({ email, username, password, inviteCode }) {
+  return request('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, username, password, invite_code: inviteCode }),
+  });
 }
 
 export function login({ email, password }) {
@@ -29,6 +32,10 @@ export function getMe(token) {
 
 export function updateTheme(theme, token) {
   return request('/auth/theme', { method: 'PATCH', body: JSON.stringify({ theme }) }, token);
+}
+
+export function getInviteCode(token) {
+  return request('/auth/invite-code', {}, token);
 }
 
 export function listFriends(token) {
@@ -92,6 +99,10 @@ export function declineDuel(duelId, token) {
 
 export function getDuelLeaderboard(scope = 'global', token) {
   return request(`/duels/leaderboard?scope=${scope}`, {}, token);
+}
+
+export function getHouseCup() {
+  return request('/leaderboard/house-cup');
 }
 
 export function getCategories() {
