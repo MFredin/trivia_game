@@ -119,4 +119,33 @@ export const ACHIEVEMENTS = [
   { id: 'social_friend', category: 'Social', name: 'Owl Post', description: 'Add your first friend.' },
   { id: 'social_duel', category: 'Social', name: 'Duelist', description: 'Complete your first duel.' },
   { id: 'social_duel_wins_5', category: 'Social', name: 'Duel Champion', description: 'Win 5 duels.' },
+  { id: 'social_friends_10', category: 'Social', name: 'Well Connected', description: 'Have 10 friends.' },
+  {
+    id: 'duel_win_streak_3',
+    category: 'Social',
+    name: 'Hot Streak',
+    description: 'Win 3 duels in a row.',
+  },
+  {
+    id: 'duel_win_streak_5',
+    category: 'Social',
+    name: 'Reigning Champion',
+    description: 'Win 5 duels in a row.',
+  },
+
+  // Distinct from dedication_7/30 (distinct *Daily Challenge* days played) — these track a
+  // day-streak across ANY mode, so reusing the dedication_* name would conflate two different
+  // stats under one badge.
+  {
+    id: 'consistency_streak_7',
+    category: 'Dedication',
+    name: 'Habit Forming',
+    description: 'Play on 7 consecutive days.',
+  },
+  {
+    id: 'consistency_streak_30',
+    category: 'Dedication',
+    name: 'Creature of Habit',
+    description: 'Play on 30 consecutive days.',
+  },
 ];
