@@ -127,6 +127,22 @@ export function getProfile(username, token) {
   return request(`/profile/${encodeURIComponent(username)}`, {}, token);
 }
 
+export function createChallenge({ category, canonSource, difficulty }, token) {
+  return request(
+    '/challenges',
+    { method: 'POST', body: JSON.stringify({ category, canon_source: canonSource, difficulty }) },
+    token,
+  );
+}
+
+export function getChallenge(code, token) {
+  return request(`/challenges/${encodeURIComponent(code)}`, {}, token);
+}
+
+export function startChallenge(code, token) {
+  return request(`/challenges/${encodeURIComponent(code)}/start`, { method: 'POST' }, token);
+}
+
 export function getCategories() {
   return request('/categories');
 }

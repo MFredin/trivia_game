@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
-import { getProfile } from '../api/client.js';
+import { createChallenge, getProfile } from '../api/client.js';
+import { copyToClipboard } from '../lib/shareResult.js';
 
 const MODE_INFO = {
   classic: {
@@ -34,6 +35,9 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
   const [canonSource, setCanonSource] = useState('combined');
   const [difficulty, setDifficulty] = useState('');
   const [dayStreak, setDayStreak] = useState(0);
+  const [challengeLink, setChallengeLink] = useState(null);
+  const [creatingChallenge, setCreatingChallenge] = useState(false);
+  const [copyLabel, setCopyLabel] = useState('Copy link');
 
   useEffect(() => {
     getProfile(currentUser.username, token)
@@ -49,6 +53,26 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
       canonSource: mode === 'daily' ? 'combined' : canonSource,
       difficulty: mode === 'daily' || difficulty === '' ? null : difficulty,
     });
+  };
+
+  const handleCreateChallenge = async () => {
+    setCreatingChallenge(true);
+    try {
+      const data = await createChallenge({ category: category || null, canonSource, difficulty: difficulty || null }, token);
+      setChallengeLink(`${window.location.origin}/?challenge=${data.code}`);
+    } catch {
+      // Silent — this is an optional secondary action; the "Create a Challenge Link" button
+      // simply stays put for another try rather than surfacing a whole error banner over it.
+    } finally {
+      setCreatingChallenge(false);
+    }
+  };
+
+  const handleCopyChallengeLink = async () => {
+    if (!challengeLink) return;
+    await copyToClipboard(challengeLink);
+    setCopyLabel('Copied!');
+    setTimeout(() => setCopyLabel('Copy link'), 2000);
   };
 
   return (
@@ -121,6 +145,22 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
             Begin
           </button>
         </form>
+        {mode === 'classic' && (
+          <div style={{ marginTop: '1.2rem' }}>
+            {challengeLink ? (
+              <div className="invite-link-row">
+                <input type="text" readOnly value={challengeLink} onFocus={(e) => e.target.select()} />
+                <button type="button" className="secondary-button" onClick={handleCopyChallengeLink}>
+                  {copyLabel}
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="secondary-button" onClick={handleCreateChallenge} disabled={creatingChallenge}>
+                {creatingChallenge ? 'Creating…' : 'Create a Challenge Link'}
+              </button>
+            )}
+          </div>
+        )}
       </Plate>
     </div>
   );
