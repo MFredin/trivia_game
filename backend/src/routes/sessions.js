@@ -32,6 +32,7 @@ function sessionSummary(session) {
     status: session.status,
     streak: session.streak,
     strikes: session.strikes,
+    best_streak: session.best_streak,
     total_score: session.total_score,
   };
 }

@@ -1,4 +1,6 @@
 import Plate from './Plate.jsx';
+import ShareResultButton from './ShareResultButton.jsx';
+import { buildDuelShareText } from '../lib/shareResult.js';
 
 export default function DuelSummaryScreen({ yourScore, opponentUsername, result, onDone }) {
   const waiting = !result;
@@ -9,6 +11,9 @@ export default function DuelSummaryScreen({ yourScore, opponentUsername, result,
       : yourScore < result.opponentScore
         ? 'loss'
         : 'tie';
+  const shareText = waiting
+    ? null
+    : buildDuelShareText({ yourScore, opponentScore: result.opponentScore, opponentUsername, outcome });
 
   return (
     <div>
@@ -37,6 +42,11 @@ export default function DuelSummaryScreen({ yourScore, opponentUsername, result,
           </div>
         )}
       </Plate>
+      {shareText && (
+        <div style={{ marginTop: '1.2rem', textAlign: 'center' }}>
+          <ShareResultButton text={shareText} />
+        </div>
+      )}
       <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
         <button type="button" className="primary-button" onClick={onDone} disabled={waiting}>
           Done

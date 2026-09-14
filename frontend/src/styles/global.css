@@ -744,6 +744,21 @@ button {
   align-items: center;
 }
 
+.share-fallback-textarea {
+  display: block;
+  width: min(100%, 420px);
+  margin-top: 0.6rem;
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--text-on-surface);
+  border: none;
+  border-bottom: 2px solid var(--brass-500);
+  border-radius: 0;
+  padding: 0.6rem 0.3rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
 .invite-link-row input {
   flex: 1 1 260px;
   min-width: 0;

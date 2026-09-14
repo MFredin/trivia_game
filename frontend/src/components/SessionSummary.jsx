@@ -1,5 +1,7 @@
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
+import ShareResultButton from './ShareResultButton.jsx';
+import { buildRunShareText } from '../lib/shareResult.js';
 
 const MODE_LABELS = {
   classic: 'Classic',
@@ -16,6 +18,7 @@ export default function SessionSummary({
   category,
   canonSource,
   difficulty,
+  bestStreak,
   entries,
   scope,
   window,
@@ -25,6 +28,7 @@ export default function SessionSummary({
 }) {
   const segments = [MODE_LABELS[mode] ?? mode, category, difficulty].filter(Boolean);
   const currentLabel = mode === 'daily' ? 'Today' : 'This Week';
+  const shareText = buildRunShareText({ totalScore, mode, category, difficulty, bestStreak });
   return (
     <div>
       <p className="screen-eyebrow" style={{ textAlign: 'center' }}>
@@ -34,6 +38,9 @@ export default function SessionSummary({
         Run Complete
       </h2>
       <div className="summary-score">{totalScore}</div>
+      <div style={{ textAlign: 'center', marginBottom: '1.2rem' }}>
+        <ShareResultButton text={shareText} />
+      </div>
 
       <div className="screen-head">
         <h3 className="screen-title" style={{ fontSize: '1.1rem' }}>
