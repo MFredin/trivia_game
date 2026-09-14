@@ -105,6 +105,24 @@ export function getHouseCup() {
   return request('/leaderboard/house-cup');
 }
 
+export function startPreview() {
+  return request('/preview/start', { method: 'POST' });
+}
+
+export function answerPreview({ previewId, questionId, chosenIndex, token, issuedAt, position }) {
+  return request('/preview/answer', {
+    method: 'POST',
+    body: JSON.stringify({
+      preview_id: previewId,
+      question_id: questionId,
+      chosen_index: chosenIndex,
+      token,
+      issued_at: issuedAt,
+      position,
+    }),
+  });
+}
+
 export function getCategories() {
   return request('/categories');
 }

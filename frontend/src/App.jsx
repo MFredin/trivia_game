@@ -17,6 +17,7 @@ import SettingsScreen from './components/SettingsScreen.jsx';
 import MischiefModal from './components/MischiefModal.jsx';
 import SuggestQuestionScreen from './components/SuggestQuestionScreen.jsx';
 import AdminSuggestionsScreen from './components/AdminSuggestionsScreen.jsx';
+import PreviewScreen from './components/PreviewScreen.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -42,6 +43,7 @@ export default function App() {
 
   const [categories, setCategories] = useState([]);
   const [screen, setScreen] = useState('auth');
+  const [cameFromPreview, setCameFromPreview] = useState(false);
   const [startError, setStartError] = useState(null);
 
   const [session, setSession] = useState(null);
@@ -424,7 +426,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {screen !== 'auth' && (
+      {screen !== 'auth' && screen !== 'preview' && (
         <NavBar
           currentUser={currentUser}
           activeScreen={navActiveScreen}
@@ -454,7 +456,21 @@ export default function App() {
         achievement={achievementQueue[0]}
         onDismiss={() => setAchievementQueue((prev) => prev.slice(1))}
       />
-      {screen === 'auth' && <AuthScreen onAuthenticated={handleAuthenticated} />}
+      {screen === 'auth' && (
+        <AuthScreen
+          onAuthenticated={handleAuthenticated}
+          onTryPreview={() => setScreen('preview')}
+          startInMode={cameFromPreview ? 'register' : undefined}
+        />
+      )}
+      {screen === 'preview' && (
+        <PreviewScreen
+          onDone={() => {
+            setCameFromPreview(true);
+            setScreen('auth');
+          }}
+        />
+      )}
       {screen === 'start' && currentUser && (
         <StartScreen categories={categories} currentUser={currentUser} onStart={handleStart} error={startError} />
       )}
