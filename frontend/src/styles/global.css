@@ -105,7 +105,8 @@ button {
   background: var(--silver-200);
 }
 
-/* --- generic filter-toggle pills (leaderboard scope/window switches), sit on the dark page --- */
+/* --- generic filter-toggle pills (leaderboard scope/window switches). Default styling sits on
+   the dark page; add .on-surface when nesting a .nav-links row inside a <Plate> instead. --- */
 .nav-links {
   display: flex;
   gap: 0.5rem;
@@ -135,6 +136,28 @@ button {
   background: rgba(var(--silver-400-rgb), 0.12);
 }
 
+/* On-surface variant — for a .nav-links row nested inside a <Plate> (light parchment), where
+   the silver chrome above is calibrated for the dark page and goes low-contrast. Colors match
+   the rest of the on-surface system (ink-based text, brass accent for the active state), the
+   same way --text-muted-on-surface already exists as the on-surface counterpart to the page's
+   own muted tone. */
+.nav-links.on-surface .nav-btn {
+  color: var(--text-muted-on-surface);
+  background: rgba(18, 21, 28, 0.03);
+  border-color: rgba(18, 21, 28, 0.22);
+}
+
+.nav-links.on-surface .nav-btn:hover {
+  border-color: rgba(18, 21, 28, 0.4);
+  color: var(--text-on-surface);
+}
+
+.nav-links.on-surface .nav-btn.is-active {
+  color: var(--text-on-surface);
+  border-color: var(--brass-500);
+  background: rgba(var(--brass-500-rgb), 0.1);
+}
+
 .screen-head {
   display: flex;
   justify-content: space-between;
@@ -156,6 +179,19 @@ button {
   font-size: 1.35rem;
   font-weight: 600;
   margin: 0;
+}
+
+/* A small house-colored flourish under a title on the dark page — house "brass" tokens are
+   calibrated for the light parchment surface (see tokens.css) and go low-contrast as text
+   directly on the page background for several houses, so the title itself stays at the
+   default on-bg color and the house's true color shows up here instead, where its own
+   contrast against the page doesn't affect legibility. */
+.house-accent-bar {
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 0.5rem;
 }
 
 /* --- the parchment plate: the one repeated card motif --- */
@@ -284,6 +320,27 @@ button {
 
   .book-spread-leaf.right {
     background: none;
+  }
+
+  /* Each leaf only carries 2 of the usual 4 corner marks (correct for a side-by-side spread,
+     where together they frame the whole card) — stacked, that reads as a stray bracket rather
+     than a frame. Drop them here; the divider above already separates the two blocks. */
+  .book-spread-leaf .plate-corner {
+    display: none;
+  }
+
+  /* A right-side control (a single button, or a multi-button toggle like Leaderboard's
+     window/scope switch) no longer fits beside the title at phone width without crowding or
+     wrapping into it — stack it below instead, and let it use the full width to wrap on its
+     own terms. */
+  .screen-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .screen-head > *:last-child:not(:only-child) {
+    width: 100%;
   }
 }
 
@@ -487,8 +544,22 @@ button {
   background: rgba(92, 26, 43, 0.09);
 }
 
+/* Dedicated muted-state colors rather than a blanket opacity — opacity dims the border and
+   chip along with the text uniformly, which is harder to keep intentional as more answer
+   states get added, and can't be tuned for contrast independently of the base colors. */
 .choice-button.is-muted {
-  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(18, 21, 28, 0.1);
+}
+
+.choice-button.is-muted .choice-text {
+  color: var(--text-muted-on-surface);
+}
+
+.choice-button.is-muted .choice-chip {
+  border-color: rgba(18, 21, 28, 0.18);
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(18, 21, 28, 0.35);
 }
 
 .choice-chip {
@@ -787,13 +858,17 @@ button {
 
 /* Sits on the parchment plate, unlike .running-nav buttons which sit on the dark page. */
 .secondary-button {
-  background: rgba(255, 255, 255, 0.3);
+  /* A stronger fill + a soft lift than the plain 0.3-alpha white this used to be — that read
+     too close to the plate's own tan tone to look clickable at a glance (see design-audit
+     finding #6), distinguishable mainly by its border rather than by looking like a button. */
+  background: rgba(255, 255, 255, 0.55);
   color: var(--text-on-surface);
-  border: 1px solid rgba(18, 21, 28, 0.22);
+  border: 1px solid rgba(18, 21, 28, 0.3);
   border-radius: 2px;
   padding: 0.6rem 1rem;
   font-family: var(--font-display);
   font-size: 0.9rem;
+  box-shadow: 0 2px 6px -2px rgba(18, 21, 28, 0.28);
 }
 
 .secondary-button:hover {
@@ -1179,8 +1254,16 @@ button {
   border-color: rgba(var(--brass-500-rgb), 0.4);
 }
 
+/* Same reasoning as .choice-button.is-muted above — a dedicated muted color instead of a
+   blanket opacity. */
 .achievement-card.is-locked {
-  opacity: 0.55;
+  background: rgba(18, 21, 28, 0.02);
+  border-color: rgba(18, 21, 28, 0.08);
+}
+
+.achievement-card.is-locked .achievement-card-head,
+.achievement-card.is-locked .achievement-name {
+  color: var(--text-muted-on-surface);
 }
 
 .achievement-card-head {
