@@ -52,6 +52,17 @@ router.post('/', async (req, res) => {
   if (!opponent) return res.status(404).json({ error: 'user_not_found' });
   if (opponent.id === req.userId) return res.status(400).json({ error: 'cannot_duel_yourself' });
 
+  // A double-click (or re-visiting the Challenge flow before the invite's been answered)
+  // shouldn't stack up repeat pending invites cluttering the recipient's screen — return the
+  // existing one instead of creating a duplicate.
+  const { rows: existingRows } = await pool.query(
+    `SELECT * FROM duels WHERE created_by = $1 AND opponent_id = $2 AND status = 'pending'`,
+    [req.userId, opponent.id],
+  );
+  if (existingRows.length > 0) {
+    return res.status(200).json({ ...duelSummary(existingRows[0]), opponent_username: opponent.username });
+  }
+
   const modeConfig = MODES.duel;
   const { rows } = await pool.query(
     `INSERT INTO duels (created_by, opponent_id, category, canon_source, obscurity_filter, question_count, time_limit_ms)
