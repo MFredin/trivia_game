@@ -20,6 +20,7 @@ import AdminSuggestionsScreen from './components/AdminSuggestionsScreen.jsx';
 import PreviewScreen from './components/PreviewScreen.jsx';
 import ProfileScreen from './components/ProfileScreen.jsx';
 import ChallengeScreen from './components/ChallengeScreen.jsx';
+import FeedbackModal from './components/FeedbackModal.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -51,6 +52,7 @@ export default function App() {
   // visitor is authenticated, whether they arrived already logged in or just registered/logged
   // in through AuthScreen — read once, since the query string doesn't change afterward.
   const [challengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
+  const [showFeedback, setShowFeedback] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [profileReturnScreen, setProfileReturnScreen] = useState('friends');
   const [startError, setStartError] = useState(null);
@@ -627,10 +629,18 @@ export default function App() {
           onDone={handleDuelDone}
         />
       )}
-      <p className="colophon">
-        An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,
-        Pottermore, or J.K. Rowling.
-      </p>
+      <div className="colophon">
+        <p>
+          An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,
+          Pottermore, or J.K. Rowling.
+        </p>
+        <button type="button" className="colophon-link" onClick={() => setShowFeedback(true)}>
+          Submit Feedback
+        </button>
+      </div>
+      {showFeedback && (
+        <FeedbackModal onClose={() => setShowFeedback(false)} token={authToken} page={screen} />
+      )}
     </div>
   );
 }

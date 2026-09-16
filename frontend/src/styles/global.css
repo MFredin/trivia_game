@@ -1416,8 +1416,31 @@ button {
   opacity: 0.75;
 }
 
-/* --- the Marauder's Map easter egg reveal --- */
-.mischief-overlay {
+.colophon p {
+  margin: 0;
+}
+
+.colophon-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ash-300);
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.colophon-link:hover {
+  color: var(--text-on-bg);
+}
+
+/* --- shared centered-modal shell — the Marauder's Map easter egg reveal was the first user of
+   this, "Submit Feedback" is the second, hence the generic names --- */
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(4, 4, 6, 0.72);
@@ -1426,10 +1449,10 @@ button {
   justify-content: center;
   padding: 1.25rem;
   z-index: 50;
-  animation: mischief-fade-in 220ms ease-out;
+  animation: modal-fade-in 220ms ease-out;
 }
 
-@keyframes mischief-fade-in {
+@keyframes modal-fade-in {
   from {
     opacity: 0;
   }
@@ -1438,7 +1461,7 @@ button {
   }
 }
 
-.mischief-plate {
+.modal-plate {
   position: relative;
   max-width: 440px;
   background: var(--parchment-100);
@@ -1453,17 +1476,17 @@ button {
     inset 0 0 0 1px rgba(var(--brass-500-rgb), 0.35);
 }
 
-.mischief-plate .screen-eyebrow,
-.mischief-plate .screen-title {
+.modal-plate .screen-eyebrow,
+.modal-plate .screen-title {
   text-align: center;
 }
 
-.mischief-plate .explanation {
+.modal-plate .explanation {
   margin: 0 0 1.5rem;
   max-width: none;
 }
 
-.mischief-actions {
+.modal-actions {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
