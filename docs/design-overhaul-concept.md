@@ -1,6 +1,6 @@
 # Design overhaul concept — "The Illuminated Archive" (Second Edition)
 
-Status: concept, not yet approved. Companion design canvas: the "Restricted Section Overhaul"
+Status: approved; Phase A in progress. Companion design canvas: the "Restricted Section Overhaul"
 artifact (sixteen artboards: Start, Question, Reveal and Monochrome Question on desktop; Start,
 Question, Reveal, nav drawer and Monochrome Question on phone; Start + Question for Hufflepuff,
 Slytherin and Ravenclaw; System).
@@ -178,8 +178,10 @@ No schema or backend work; the overhaul is CSS, SVG and JSX only.
 5. **E — Ledger, profile, settings, friends** polish pass.
 6. **F — Other three houses.** Devices already drawn; mostly verifying contrast per binding.
 
-## Decisions to make before Phase A
-1. Display face: IM Fell English (recommended) or keep Cormorant Garamond.
+## Decisions (made 2026-09-17)
+1. Display face: **IM Fell English**.
 2. ~~Candle timer~~ — replaced by the ring dial after review.
-3. Widen the shell from 720px to ~1040px on desktop (the boards assume 1040).
-4. Whether verdict lines use O.W.L. grade names or a neutral archive phrase.
+3. Desktop shell widened from 720px to **1040px**.
+4. Verdict lines use the **O.W.L. grade names** (Outstanding, Exceeds Expectations, Acceptable,
+   Poor, Dreadful, Troll), applied at every difficulty tier so any run gets a grade — the
+   reveal reads "Outstanding at N.E.W.T.", never a bare grade. Lands in Phase D.

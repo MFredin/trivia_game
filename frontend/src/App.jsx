@@ -21,6 +21,7 @@ import PreviewScreen from './components/PreviewScreen.jsx';
 import ProfileScreen from './components/ProfileScreen.jsx';
 import ChallengeScreen from './components/ChallengeScreen.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
+import Embers from './components/Embers.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -474,6 +475,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <Embers />
       {screen !== 'auth' && screen !== 'preview' && (
         <NavBar
           currentUser={currentUser}

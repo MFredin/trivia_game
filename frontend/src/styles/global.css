@@ -12,9 +12,12 @@ body,
 
 body {
   margin: 0;
+  /* The page is lit, not painted: a house-coloured lamp glow top-left, a fainter metal
+     one bottom-right, over a ground deeper than the old flat radial. */
   background:
-    radial-gradient(ellipse 900px 500px at 50% -8%, var(--ink-800) 0%, transparent 60%),
-    var(--ink-900);
+    radial-gradient(ellipse 700px 420px at 18% 0%, rgba(var(--glow-rgb), 0.42) 0%, rgba(var(--glow-rgb), 0) 70%),
+    radial-gradient(ellipse 520px 360px at 82% 100%, rgba(var(--glow2-rgb), 0.16) 0%, rgba(var(--glow2-rgb), 0) 70%),
+    var(--bg);
   background-attachment: fixed;
   color: var(--text-on-bg);
   font-family: var(--font-body);
@@ -22,12 +25,63 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Faint horizontal ruling over the whole page — paper under lamplight. At ~1% white it is
+   texture, not a pattern, so it may sit over text without affecting legibility. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 4px);
+  opacity: 0.5;
+}
+
+/* IM Fell English ships one weight; with font-synthesis off, a heavier weight would
+   silently fall back to regular anyway, so declare what actually renders. */
 h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 400;
   margin: 0;
+}
+
+/* --- embers: a few slow-drifting motes at the page's edges. Only on viewports wide
+   enough to have empty margins beside the shell, so they never sit over content. --- */
+.ember {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 10px 3px rgba(var(--ember-rgb), 0.5);
+  pointer-events: none;
+  z-index: 0;
+  animation: ember-drift 11s ease-in-out infinite;
+}
+
+.ember.is-small {
+  width: 3px;
+  height: 3px;
+}
+
+@keyframes ember-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(10px, -40px);
+    opacity: 0.95;
+  }
+}
+
+@media (max-width: 1240px), (prefers-reduced-motion: reduce) {
+  .ember {
+    display: none;
+  }
 }
 
 button {
@@ -36,7 +90,8 @@ button {
 }
 
 .app-shell {
-  max-width: 720px;
+  position: relative;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
 }
@@ -58,15 +113,25 @@ button {
 }
 
 .running-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   background: none;
   border: none;
   padding: 0;
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.2rem;
+  font-weight: 400;
+  font-size: 1.4rem;
   letter-spacing: 0.02em;
   color: var(--silver-200);
   cursor: pointer;
+}
+
+/* The house device sits in the nav as silver chrome, never house colour — same rule as
+   the rest of the running header. */
+.running-title .house-device {
+  color: var(--silver-200);
+  flex: none;
 }
 
 .running-nav {
@@ -154,7 +219,7 @@ button {
 
 .nav-links.on-surface .nav-btn.is-active {
   color: var(--text-on-surface);
-  border-color: var(--brass-500);
+  border-color: var(--rubric);
   background: rgba(var(--brass-500-rgb), 0.1);
 }
 
@@ -165,20 +230,49 @@ button {
   margin-bottom: 1.5rem;
 }
 
+/* Rubric labels. On the dark page they take the house's on-page accent (rubric proper is
+   calibrated for parchment and goes low-contrast on the page for several houses — the same
+   trap design-audit finding #2 was about); nested in a plate or modal they take rubric. */
 .screen-eyebrow {
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--brass-500);
-  font-weight: 600;
+  color: var(--onbg);
   margin: 0 0 0.4rem;
+}
+
+.plate .screen-eyebrow,
+.book-spread .screen-eyebrow,
+.modal-plate .screen-eyebrow {
+  color: var(--rubric);
 }
 
 .screen-title {
   font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1;
   margin: 0;
+  color: #f2e4c4;
+}
+
+.plate .screen-title,
+.book-spread .screen-title,
+.modal-plate .screen-title {
+  color: var(--text-on-surface);
+}
+
+/* --- rules: the two double-rule primitives from the design system --- */
+.rule-rubric {
+  height: 4px;
+  border-top: 2px solid var(--rubric);
+  border-bottom: 1px solid var(--rubric);
+}
+
+.rule-gilt {
+  height: 0;
+  border-top: 3px double var(--gilt-deep);
 }
 
 /* A small house-colored flourish under a title on the dark page — house "brass" tokens are
@@ -206,7 +300,7 @@ button {
     0 1px 1px rgba(0, 0, 0, 0.5),
     0 10px 24px -10px rgba(0, 0, 0, 0.6),
     0 28px 54px -30px rgba(0, 0, 0, 0.65),
-    inset 0 0 0 1px rgba(var(--brass-500-rgb), 0.35);
+    inset 0 0 0 1px rgba(var(--gilt-rgb), 0.35);
 }
 
 .plate::before {
@@ -224,12 +318,23 @@ button {
   display: none;
 }
 
+/* The corner bracket, now a corner piece: the gilt L plus a small rubric bud tucked into
+   its angle (a leaf shape, pointing into the corner). */
 .plate-corner {
   position: absolute;
   width: 15px;
   height: 15px;
-  border: 1px solid var(--metal-500);
+  border: 1px solid var(--gilt);
   pointer-events: none;
+}
+
+.plate-corner::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--rubric);
+  border-radius: 0 100% 0 100%;
 }
 
 .plate-corner.tl {
@@ -239,11 +344,22 @@ button {
   border-bottom: none;
 }
 
+.plate-corner.tl::after {
+  top: 2px;
+  left: 2px;
+}
+
 .plate-corner.tr {
   top: 14px;
   right: 14px;
   border-left: none;
   border-bottom: none;
+}
+
+.plate-corner.tr::after {
+  top: 2px;
+  right: 2px;
+  transform: rotate(90deg);
 }
 
 .plate-corner.bl {
@@ -253,11 +369,23 @@ button {
   border-top: none;
 }
 
+.plate-corner.bl::after {
+  bottom: 2px;
+  left: 2px;
+  transform: rotate(-90deg);
+}
+
 .plate-corner.br {
   bottom: 14px;
   right: 14px;
   border-left: none;
   border-top: none;
+}
+
+.plate-corner.br::after {
+  bottom: 2px;
+  right: 2px;
+  transform: rotate(180deg);
 }
 
 /* --- the book spread: two facing leaves of the same sheet, not two separate cards --- */
@@ -527,7 +655,7 @@ button {
 }
 
 .choice-button:hover:not(:disabled) {
-  border-color: var(--brass-500);
+  border-color: var(--rubric);
 }
 
 .choice-button:disabled {
@@ -655,7 +783,7 @@ button {
 .qcard-margin-stat-value {
   font-family: var(--font-display);
   font-size: 1.4rem;
-  color: var(--brass-500);
+  color: var(--rubric);
 }
 
 .strikes {
@@ -713,14 +841,14 @@ button {
 }
 
 .result-reveal.is-wrong h2 {
-  color: var(--brass-300);
+  color: var(--onbg);
 }
 
 .result-reveal .points {
   font-family: var(--font-display);
   font-size: 2.75rem;
   font-weight: 600;
-  color: var(--brass-300);
+  color: var(--onbg);
   letter-spacing: -0.01em;
   margin: 0 0 0.75rem;
 }
@@ -843,17 +971,25 @@ button {
   font-size: 0.95rem;
 }
 
+/* Gold leaf: the one stamped, gilded control on a screen. */
 .primary-button {
-  background: var(--brass-300);
-  color: var(--ink-900);
-  border: 1.5px solid var(--metal-500);
+  background: linear-gradient(180deg, var(--leaf-hi) 0%, var(--leaf) 55%, var(--leaf-lo) 100%);
+  color: var(--leaf-text);
+  border: 1px solid var(--leaf-edge);
   border-radius: 2px;
   padding: 0.85rem 1.4rem;
   font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  box-shadow: 0 6px 16px -6px rgba(var(--brass-500-rgb), 0.55);
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 10px 22px -10px rgba(var(--leaf-glow-rgb), 0.7);
+}
+
+.primary-button:hover:not(:disabled) {
+  filter: brightness(1.06);
 }
 
 /* Sits on the parchment plate, unlike .running-nav buttons which sit on the dark page. */
@@ -872,7 +1008,7 @@ button {
 }
 
 .secondary-button:hover {
-  border-color: var(--brass-500);
+  border-color: var(--rubric);
 }
 
 /* --- difficulty slider --- */
@@ -948,7 +1084,7 @@ button {
 }
 
 .difficulty-ticks .is-active {
-  color: var(--brass-500);
+  color: var(--rubric);
   font-weight: 700;
 }
 
@@ -1000,7 +1136,7 @@ button {
 }
 
 .leaderboard-table tbody tr:first-child .rank {
-  color: var(--brass-500);
+  color: var(--rubric);
 }
 
 .leaderboard-table .player {
@@ -1031,7 +1167,7 @@ button {
   font-family: var(--font-display);
   font-size: 3rem;
   font-weight: 600;
-  color: var(--brass-300);
+  color: var(--onbg);
   text-align: center;
   margin: 1rem 0;
 }
@@ -1287,7 +1423,7 @@ button {
 .achievement-date {
   margin: 0.4rem 0 0;
   font-size: 0.7rem;
-  color: var(--brass-500);
+  color: var(--rubric);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1329,7 +1465,7 @@ button {
   font-size: 0.65rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--brass-500);
+  color: var(--rubric);
   font-weight: 700;
 }
 
@@ -1398,10 +1534,16 @@ button {
 
 /* --- the drop cap reserved for the Start screen's heading --- */
 .has-dropcap::first-letter {
-  font-size: 2rem;
+  font-size: 1.35em;
   line-height: 0.7;
-  color: var(--brass-500);
-  padding-right: 0.05em;
+  color: var(--onbg);
+  padding-right: 0.04em;
+}
+
+.plate .has-dropcap::first-letter,
+.book-spread .has-dropcap::first-letter,
+.modal-plate .has-dropcap::first-letter {
+  color: var(--rubric);
 }
 
 /* --- printer's colophon: the small-print notice a real book carries at the back --- */
