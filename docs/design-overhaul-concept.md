@@ -1,8 +1,9 @@
 # Design overhaul concept — "The Illuminated Archive" (Second Edition)
 
 Status: concept, not yet approved. Companion design canvas: the "Restricted Section Overhaul"
-artifact (ten artboards: Start, Question, Reveal and Monochrome Question on desktop; Start,
-Question, Reveal, nav drawer and Monochrome Question on phone; System).
+artifact (sixteen artboards: Start, Question, Reveal and Monochrome Question on desktop; Start,
+Question, Reveal, nav drawer and Monochrome Question on phone; Start + Question for Hufflepuff,
+Slytherin and Ravenclaw; System).
 
 ## Why an overhaul, and why now
 
@@ -140,12 +141,29 @@ the system is structural rather than decorative.
   terms in the bank; keep them to the verdict line only.
 
 ## Token changes (additive)
+
+The binding boards on the canvas (Start + Question for all four houses) prove the rule:
+every new element maps to a *role* — rubric, cloth, tooling, leaf, gilt, on-page accent — and
+each house assigns its two colour channels to those roles. Hufflepuff forces the rule: its gold
+fails contrast on parchment, so its rubric and tooling take the dark channel while its cloth,
+leaf glow and page accents take the gold. `--rubric` is therefore its own token, never an
+alias of `--brass-500`.
+
+| Role | Gryffindor | Hufflepuff | Slytherin | Ravenclaw | Monochrome |
+|---|---|---|---|---|---|
+| Rubric (on parchment) | scarlet | dark umber | green | navy | ink |
+| Cloth | dark scarlet | mustard | dark green | dark navy | charcoal |
+| Tooling (on cloth) | gold | near-black | silver | bronze | pale grey |
+| Leaf (buttons, seal) | gold | dark umber, gold text | silver | bronze | blind stamp |
+| Gilt (rules, frames, dial ring) | gold | dark umber | grey | bronze | grey |
+| Accent on the dark page | gold | gold | silver | bronze | pale grey |
+
 ```
 --glow-warm / --glow-cool     per-house radial colours for the page atmosphere
---rubric                      = --brass-500 for houses; = --text-ink for monochrome
+--rubric                      the darker channel that passes 4.5:1 on parchment (brass for three houses, metal for Hufflepuff, ink for monochrome)
 --leaf-hi / --leaf / --leaf-lo gold-leaf gradient stops (metal channel for houses)
 --cloth                       spine colour (darker brass)
---tooling                     gilt rule colour on cloth (metal channel; pale grey for monochrome)
+--tooling                     rule colour on cloth (metal channel; near-black for Hufflepuff, pale grey for monochrome)
 --font-display                'IM Fell English'
 ```
 No schema or backend work; the overhaul is CSS, SVG and JSX only.
