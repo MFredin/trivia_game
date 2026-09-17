@@ -47,16 +47,28 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 
 **Accounts & social**
 - Email/password accounts (scrypt-hashed, signed auth tokens)
-- Mutual friend requests (send, accept, decline) with online-presence indicators
-- A member-discovery area on the Friends screen with three tabs: **Online Now** (everyone
-  currently active), **All Members** (the full paginated player directory), and **Search**
-  (find anyone by partial username) — each with inline Add / Accept / Challenge actions
+- Mutual friend requests (send, accept, decline) with online-presence indicators, kept live via
+  the same 15s poll across both the friends list and the Online Now tab
+- A member-discovery area on the Friends screen with four tabs: **Online Now** (everyone
+  currently active), **All Members** (the full paginated player directory), **Search**
+  (find anyone by partial username), and **Activity** (a friends-scoped feed of personal bests,
+  achievement unlocks, and duel wins — opt-in, never pushed) — each discovery tab with inline
+  Add / Accept / Challenge actions
 - Global and friends-scoped leaderboards, segmented by mode/category/canon/difficulty
+- **Player profile pages** — lifetime stats (accuracy, favorite category, best score, duel
+  record, achievement count, day streak) for any player, all derived from existing session data,
+  reachable by clicking a username anywhere it appears
+- **Daily play streaks** — a Duolingo-style day-streak (any mode counts, distinct from the
+  existing in-run answer streak), computed on request from actual play history rather than a
+  counter that could drift; shown quietly on the profile and the Start screen once it's 2+ days
+- **Invite-a-friend links** and **private challenge links** — a lazily-generated personal invite
+  code that auto-friends whoever registers through it, and a shareable code for a custom
+  category/difficulty quiz that a group all plays with the identical question set
 
 **Achievements**
-- 25 achievements across 8 categories (Milestones, Mastery, Streak, Endurance, Speed, Explorer,
-  Dedication, Social), evaluated after each session/friend-request/duel event and pushed live as
-  an in-app toast the moment one unlocks
+- 32 achievements across 8 categories (Milestones, Mastery, Streak, Endurance, Speed, Explorer,
+  Dedication, Social), evaluated after each session/friend-request/duel/challenge event and
+  pushed live as an in-app toast the moment one unlocks
 
 **Design**
 - A book/library-themed interface — parchment "leaf" cards with gilt corner brackets, a printed
@@ -94,13 +106,14 @@ its own clock before scoring. See `docs/anti-cheat-architecture.md`.
 
 Grouped by theme and rough sequencing. Not commitments — a working plan, revised as priorities
 shift. "Category" marks the kind of value each item adds; "Phase" is when it's currently
-expected to land. See `docs/phase4-scaffold.md` (shipped) and `docs/phase5-scaffold.md`
-(in progress) for implementation-ready specs.
+expected to land. See `docs/phase4-scaffold.md` and `docs/phase5-scaffold.md` (both shipped) for
+implementation-ready specs, and `docs/stack-audit-2026-09.md` / `docs/design-audit-2026-09.md`
+for the two hardening passes that ran alongside Phase 5.
 
 | Phase | Theme | Focus |
 |---|---|---|
 | **Phase 4** | Growth & Quick Wins | Make it easy for people to hear about this and start playing — ✅ shipped |
-| **Phase 5** | Social & Retention Depth | Give players reasons to come back, and to come back together |
+| **Phase 5** | Social & Retention Depth | Give players reasons to come back, and to come back together — ✅ shipped |
 | **Phase 6** | Bigger Swings | Larger gameplay and content investments |
 
 ### Phase 4 — Growth & Quick Wins ✅ shipped
@@ -113,7 +126,11 @@ expected to land. See `docs/phase4-scaffold.md` (shipped) and `docs/phase5-scaff
 | House Cup leaderboard | Gameplay | Aggregate every player's scores by chosen house into a standing inter-house board — nearly free to build on existing house data, and very on-theme |
 | Auth rate limiting | Technical | `/auth/login` and `/auth/register` have no throttling yet — cheap hardening before real traffic arrives |
 
-### Phase 5 — Social & Retention Depth
+### Phase 5 — Social & Retention Depth ✅ shipped
+
+Every item held to a "stay optional, stay light" rule: the quiz stays the whole point, nothing
+pushes a notification for someone else's activity, and every new screen is reached by an
+existing tab or a single optional link rather than new mandatory nav chrome.
 
 | Feature | Category | Why |
 |---|---|---|
@@ -121,17 +138,27 @@ expected to land. See `docs/phase4-scaffold.md` (shipped) and `docs/phase5-scaff
 | Activity feed | Social | "Alice just beat her high score in Potions" — makes the app feel alive with few concurrent users, built from events already emitted on session completion |
 | Player profile page | Retention | Lifetime stats — accuracy, favorite category, total questions answered — from data already stored per session |
 | Daily login/play streaks | Retention | A Duolingo-style day-streak, distinct from the existing in-run answer streak |
-| Achievement expansion | Retention | New achievements building on what's shipped — duel win-streaks, "added 10 friends," directory-browsing milestones |
+| Achievement expansion | Retention | New achievements building on what's shipped — duel win-streaks, "10 friends," and (once challenge links shipped) challenge-creator/challenge-group achievements |
+
+**Hardening alongside Phase 5**: three stack-audit findings that had been documented but never
+actually fixed (duplicate pending duel invites, stale friends-list presence, a double-fire
+achievement toast under concurrent evaluation), plus a full design/UX audit that found and fixed
+two root-cause contrast bugs (a nav-tab component styled only for the dark page background, used
+inside a light card on the Friends screen; a house accent color applied directly to text on the
+dark page) and two mobile-only layout bugs. See `docs/stack-audit-2026-09.md` and
+`docs/design-audit-2026-09.md` for the full findings.
 
 ### Phase 6 — Bigger Swings
 
 | Feature | Category | Why |
 |---|---|---|
-| Tournament brackets | Gameplay | Multi-round elimination duels among a friend group, run over a few days |
+| Tournament brackets | Gameplay | Multi-round elimination duels among a friend group, run over a few days — cheaper to build now than when first scoped, since private challenge links already solved "give N players the identical seeded question set" |
 | Lifelines (50-50, skip) | Gameplay | Adds strategic depth to Classic mode; needs server-side handling to keep the anti-cheat model intact |
 | Canned duel reactions | Social | Lightweight reactions during a live duel, without the moderation burden of free-text chat |
 | Seasonal content bundles | Content | Timed to real-world anniversaries (book/film release dates) — a good scheduled-retention hook |
-| Mobile & accessibility pass | Technical | Most casual trivia traffic is mobile; testing so far has been desktop-only |
+| Mobile & accessibility pass | Technical | The design audit caught two mobile-only layout bugs by sampling a handful of screens at phone width, not an exhaustive pass — most casual trivia traffic is mobile, and this still warrants a dedicated pass across every screen and real device testing, not just a viewport-width screenshot check |
+| Achievement showcase on profile | Retention | The profile page currently shows only an "X / 32 unlocked" count — surfacing a few actual unlocked badges would tie the profile and achievements systems together for near-zero new backend work (the data's already there) |
+| Featured weekly challenge | Retention | A system-generated private challenge (reusing that infra directly) auto-rotated weekly, giving a lighter-weight, fresher-content sibling to the fixed-forever Daily Challenge without the full Seasonal Content investment |
 
 ### Carried over, not yet scheduled
 
