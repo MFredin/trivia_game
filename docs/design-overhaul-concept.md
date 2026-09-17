@@ -103,9 +103,23 @@ They are the only "logo-like" element in the app and they belong to us.
 | Nav | silver running header | Unchanged, plus the house device (in silver) beside the wordmark |
 
 ### 8. Mobile
-The spine shelf scrolls horizontally in a single row; the marbled endpaper becomes a 112px
-band under the header carrying the Ex Libris card; everything else stacks as today. Nothing
-in the overhaul depends on hover.
+Mobile is not a cut-down version; it's the same bones re-stacked. Rules the phone boards
+follow (Start, Question, Reveal, nav drawer, Monochrome Question at 390px):
+- The two-leaf spread collapses to **one leaf with a 10px marbled top edge** — the endpaper
+  survives as a fore-edge, not a panel.
+- The margin column becomes a **90px strip** under that edge: roman numeral left, candle +
+  time centre, streak pips right. The candle shrinks to 72px tall and stays a candle.
+- The Start screen's marbled endpaper becomes a **112px band** under the header carrying the
+  Ex Libris card; the **spine shelf stays a single row** (five 50px spines fit in 358px).
+- Choices are **52px-minimum ledger rows** (touch targets ≥44px). The Question screen fits in
+  an 844px viewport *without scrolling* — the whole point of the quiz loop on a phone.
+- The Reveal scrolls (it's a summary); the seal shrinks to 150px and still overlaps the
+  plate's top edge; the ✓/✗ folio strip fits in one row of ten; actions stack, primary first.
+- The running nav becomes a **right-hand drawer** (scrim + 300px sheet): device + binding
+  name, six links at 48px, a small "Today" card (day streak, daily played or not), log out,
+  Submit Feedback. Nothing new is added to the drawer that isn't already in the desktop nav.
+- Nothing in the overhaul depends on hover; the embers and the candle flicker respect
+  `prefers-reduced-motion`.
 
 ## Monochrome rules
 Same bones, no colour: rubrication → ink; gold leaf → blind stamp (embossed, grey);
