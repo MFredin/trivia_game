@@ -39,7 +39,7 @@ const MARKS = {
   monochrome: <circle cx="32" cy="32" r="18" fill="none" stroke="currentColor" strokeWidth="1.4" />,
 };
 
-export default function HouseDevice({ house = 'monochrome', size = 28, className = '' }) {
+export default function HouseDevice({ house = 'monochrome', size = 28, className = '', style }) {
   return (
     <svg
       className={`house-device ${className}`}
@@ -48,6 +48,7 @@ export default function HouseDevice({ house = 'monochrome', size = 28, className
       height={size}
       aria-hidden="true"
       focusable="false"
+      style={style}
     >
       <circle cx="32" cy="32" r="29" fill="none" stroke="currentColor" strokeWidth="2" />
       {MARKS[house] ?? MARKS.monochrome}

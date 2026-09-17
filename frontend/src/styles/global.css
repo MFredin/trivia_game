@@ -275,19 +275,6 @@ button {
   border-top: 3px double var(--gilt-deep);
 }
 
-/* A small house-colored flourish under a title on the dark page — house "brass" tokens are
-   calibrated for the light parchment surface (see tokens.css) and go low-contrast as text
-   directly on the page background for several houses, so the title itself stays at the
-   default on-bg color and the house's true color shows up here instead, where its own
-   contrast against the page doesn't affect legibility. */
-.house-accent-bar {
-  display: block;
-  width: 2.5rem;
-  height: 3px;
-  border-radius: 2px;
-  margin-top: 0.5rem;
-}
-
 /* --- the parchment plate: the one repeated card motif --- */
 .plate {
   position: relative;
@@ -1289,10 +1276,20 @@ button {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
+/* Standalone use (Profile) — outside the Start room's cloth board, so plain block spacing
+   instead of the margins tuned to sit inside that board's padding. */
+.exlibris-card--standalone {
+  margin: 0 0 1.5rem;
+}
+
 @media (max-width: 720px) {
   .exlibris-card {
     margin: 16px 16px 20px;
     padding: 16px 18px;
+  }
+
+  .exlibris-card--standalone {
+    margin: 0 0 1.5rem;
   }
 
   .exlibris-mode {
@@ -1444,13 +1441,20 @@ button {
   padding: 0.85rem 1.1rem;
 }
 
+.house-cup-device {
+  vertical-align: middle;
+  margin-bottom: 2px;
+}
+
+/* The ledger: a gilt double rule under the header instead of a hairline. */
 .leaderboard-table thead th {
-  font-size: 0.65rem;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(18, 21, 28, 0.55);
-  font-weight: 700;
-  border-bottom: 1px solid rgba(18, 21, 28, 0.16);
+  font-weight: 400;
+  border-bottom: 3px double var(--gilt-deep);
 }
 
 .leaderboard-table tbody td {
@@ -1463,8 +1467,7 @@ button {
 
 .leaderboard-table .rank {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: rgba(18, 21, 28, 0.55);
 }
 
@@ -1931,6 +1934,14 @@ button {
   width: 3px;
   border-radius: 2px;
   opacity: 0.85;
+}
+
+.house-swatch-device {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  opacity: 0.9;
 }
 
 .house-swatch.is-active .house-swatch-chip {

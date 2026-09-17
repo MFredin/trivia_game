@@ -1,3 +1,5 @@
+import HouseDevice from './HouseDevice.jsx';
+import { toRoman } from '../lib/roman.js';
 import { HOUSES } from '../constants/houses.js';
 
 const HOUSE_BY_ID = Object.fromEntries(HOUSES.map((h) => [h.id, h]));
@@ -23,22 +25,17 @@ export default function HouseCupBoard({ houses, unsorted }) {
             const house = HOUSE_BY_ID[h.theme];
             return (
               <tr key={h.theme}>
-                <td className="rank">{index + 1}</td>
+                <td className="rank">{toRoman(index + 1)}</td>
                 <td className="player" style={{ color: house?.brass, fontWeight: 700 }}>
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      display: 'inline-block',
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '2px',
-                      background: house?.accent,
-                      border: `1px solid ${house?.brass}`,
-                      marginRight: '0.5rem',
-                      verticalAlign: 'middle',
-                    }}
+                  <HouseDevice
+                    house={h.theme}
+                    size={18}
+                    className="house-cup-device"
+                    /* This board shows all five houses side by side regardless of the
+                       viewer's own binding, so the device takes that house's own colour
+                       directly rather than the (viewer-scoped) --onbg/--rubric tokens. */
                   />
-                  {house?.label ?? h.theme}
+                  <span style={{ marginLeft: '0.5rem' }}>{house?.label ?? h.theme}</span>
                 </td>
                 <td className="score">{h.total_score}</td>
                 <td className="score">{h.players}</td>

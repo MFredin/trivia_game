@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
+import HouseDevice from './HouseDevice.jsx';
 import { getProfile } from '../api/client.js';
 import { HOUSES } from '../constants/houses.js';
 
@@ -35,7 +36,6 @@ export default function ProfileScreen({ username, token, onBack }) {
         <div>
           <p className="screen-eyebrow">Player File</p>
           <h2 className="screen-title">{username}</h2>
-          {house && <span className="house-accent-bar" style={{ background: house.brass }} />}
         </div>
         {onBack && (
           <button type="button" className="secondary-button" onClick={onBack}>
@@ -43,6 +43,25 @@ export default function ProfileScreen({ username, token, onBack }) {
           </button>
         )}
       </div>
+
+      {house && (
+        // The subject's own house colours, applied directly rather than through the
+        // (viewer-scoped) --rubric/--leaf tokens — this profile may belong to someone
+        // bound in a different house than whoever is looking at it.
+        <div className="exlibris-card exlibris-card--standalone">
+          <div className="exlibris-header">
+            <HouseDevice house={house.id} size={40} style={{ color: house.brass }} />
+            <div>
+              <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0, color: house.brass }}>
+                Bound in
+              </p>
+              <p className="exlibris-house" style={{ color: house.brass }}>
+                {house.label}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <Plate>

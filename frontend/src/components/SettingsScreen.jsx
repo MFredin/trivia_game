@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
+import HouseDevice from './HouseDevice.jsx';
 import { HOUSES } from '../constants/houses.js';
 import { getInviteCode } from '../api/client.js';
 
@@ -61,6 +62,7 @@ export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnP
                 style={{ background: `linear-gradient(160deg, ${house.cover}, ${house.coverDeep})` }}
               >
                 <span className="house-swatch-spine" style={{ background: house.accent }} />
+                <HouseDevice house={house.id} size={20} className="house-swatch-device" style={{ color: house.accent }} />
               </span>
               {house.label}
             </button>
