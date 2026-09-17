@@ -1,7 +1,10 @@
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
 import ShareResultButton from './ShareResultButton.jsx';
+import SealDevice from './SealDevice.jsx';
 import { buildRunShareText } from '../lib/shareResult.js';
+import { toRoman } from '../lib/roman.js';
+import { gradeForAccuracy } from '../lib/grade.js';
 
 const MODE_LABELS = {
   classic: 'Classic',
@@ -12,6 +15,20 @@ const MODE_LABELS = {
   duel: 'Duel',
 };
 
+const MAX_FOLIO_PIPS = 20;
+
+function FolioPip({ correct }) {
+  return correct ? (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 12l5 5 11-11" stroke="var(--verdigris-400)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="var(--oxblood-600)" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function SessionSummary({
   totalScore,
   mode,
@@ -19,6 +36,10 @@ export default function SessionSummary({
   canonSource,
   difficulty,
   bestStreak,
+  correctCount,
+  answeredCount,
+  runCorrectness,
+  house,
   entries,
   scope,
   window,
@@ -29,20 +50,60 @@ export default function SessionSummary({
   const segments = [MODE_LABELS[mode] ?? mode, category, difficulty].filter(Boolean);
   const currentLabel = mode === 'daily' ? 'Today' : 'This Week';
   const shareText = buildRunShareText({ totalScore, mode, category, difficulty, bestStreak });
+  const grade = gradeForAccuracy(correctCount, answeredCount);
+  const gradeLine = grade && difficulty ? `${grade} at ${difficulty}` : grade;
+  const wrongCount = answeredCount - correctCount;
+  const firstWrongIndex = runCorrectness.findIndex((c) => !c);
+  const slipNote =
+    wrongCount === 0
+      ? 'A clean run — not a single slip.'
+      : `${wrongCount} slip${wrongCount > 1 ? 's' : ''}${firstWrongIndex >= 0 ? `, first on folio ${toRoman(firstWrongIndex + 1).toLowerCase()}` : ''}.`;
+  const visiblePips = runCorrectness.slice(0, MAX_FOLIO_PIPS);
+  const hiddenCount = runCorrectness.length - visiblePips.length;
+
   return (
     <div>
-      <p className="screen-eyebrow" style={{ textAlign: 'center' }}>
-        Enquiry Concluded
-      </p>
-      <h2 className="screen-title" style={{ textAlign: 'center' }}>
-        Run Complete
-      </h2>
-      <div className="summary-score">{totalScore}</div>
-      <div style={{ textAlign: 'center', marginBottom: '1.2rem' }}>
-        <ShareResultButton text={shareText} />
+      <div className="summary-seal-wrap">
+        <SealDevice house={house} size={190} />
+        <Plate className="summary-plate">
+          <div className="summary-headline">
+            <p className="screen-eyebrow" style={{ margin: 0 }}>
+              {segments.join(' · ')}
+            </p>
+            <div className="summary-numeral">
+              <span>{toRoman(correctCount)}</span>
+              <span className="summary-numeral-of">of {toRoman(answeredCount)}</span>
+            </div>
+            {gradeLine && <p className="summary-grade">{gradeLine}</p>}
+            <p className="explanation" style={{ margin: 0 }}>
+              {totalScore.toLocaleString()} points &middot; best streak of {bestStreak}
+            </p>
+          </div>
+
+          <div className="rule-rubric" style={{ margin: '1.2rem 0' }} />
+
+          <div className="folio-strip">
+            <p className="screen-eyebrow" style={{ fontSize: '0.68rem', margin: '0 0 0.6rem' }}>
+              Folio by folio
+            </p>
+            <div className="folio-pips">
+              {visiblePips.map((correct, i) => (
+                <FolioPip key={i} correct={correct} />
+              ))}
+              {hiddenCount > 0 && <span className="folio-more">+{hiddenCount} more</span>}
+            </div>
+            <p className="explanation" style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}>
+              {slipNote}
+            </p>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '1.4rem' }}>
+            <ShareResultButton text={shareText} />
+          </div>
+        </Plate>
       </div>
 
-      <div className="screen-head">
+      <div className="screen-head" style={{ marginTop: '2.4rem' }}>
         <h3 className="screen-title" style={{ fontSize: '1.1rem' }}>
           Leaderboard — {segments.join(' · ')}
         </h3>
@@ -85,7 +146,7 @@ export default function SessionSummary({
 
       <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
         <button type="button" className="primary-button" onClick={onPlayAgain}>
-          Play again
+          Open another volume
         </button>
       </div>
     </div>

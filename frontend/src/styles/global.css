@@ -1496,13 +1496,95 @@ button {
   background: rgba(92, 26, 43, 0.08);
 }
 
-.summary-score {
-  font-family: var(--font-display);
-  font-size: 3rem;
-  font-weight: 600;
-  color: var(--onbg);
+/* --- the seal: the one big animated moment in the whole design, a stamp-and-settle on
+   mount. Everything else on the page stays still. --- */
+.summary-seal-wrap {
+  position: relative;
+  margin-top: 95px;
+}
+
+.summary-seal-wrap > .seal-device {
+  position: absolute;
+  top: -95px;
+  left: 50%;
+  margin-left: -95px;
+  z-index: 1;
+  animation: seal-stamp 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.1) both;
+}
+
+@keyframes seal-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.5) rotate(-8deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.96) rotate(1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary-seal-wrap > .seal-device {
+    animation: none;
+  }
+}
+
+.summary-plate {
+  padding-top: 90px;
+}
+
+.summary-headline {
   text-align: center;
-  margin: 1rem 0;
+}
+
+.summary-numeral {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.7rem;
+  margin: 0.3rem 0;
+}
+
+.summary-numeral > span:first-child {
+  font-family: var(--font-display);
+  font-size: 4.2rem;
+  line-height: 1;
+  color: var(--rubric);
+}
+
+.summary-numeral-of {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--text-muted-on-surface);
+}
+
+.summary-grade {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem;
+  color: var(--text-on-surface);
+}
+
+.folio-strip {
+  text-align: center;
+}
+
+.folio-pips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.folio-more {
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
+  margin-left: 0.3rem;
 }
 
 /* --- friends & duels --- */
