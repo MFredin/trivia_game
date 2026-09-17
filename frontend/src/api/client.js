@@ -147,6 +147,10 @@ export function getActivity({ scope = 'friends', limit = 20 } = {}, token) {
   return request(`/activity?scope=${scope}&limit=${limit}`, {}, token);
 }
 
+export function submitFeedback({ message, category, page }, token) {
+  return request('/feedback', { method: 'POST', body: JSON.stringify({ message, category, page }) }, token);
+}
+
 export function getCategories() {
   return request('/categories');
 }

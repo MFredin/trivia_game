@@ -1,7 +1,7 @@
 export default function MischiefModal({ onClose, onSuggest }) {
   return (
-    <div className="mischief-overlay" onClick={onClose}>
-      <div className="mischief-plate" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-plate" onClick={(e) => e.stopPropagation()}>
         <p className="screen-eyebrow">Mischief Managed</p>
         <h2 className="screen-title has-dropcap">You've found the restricted shelf.</h2>
         <p className="explanation">
@@ -9,7 +9,7 @@ export default function MischiefModal({ onClose, onSuggest }) {
           you've unlocked a way to add your own question to the archive. Every submission is
           reviewed before it ever reaches another player.
         </p>
-        <div className="mischief-actions">
+        <div className="modal-actions">
           <button type="button" className="primary-button" onClick={onSuggest}>
             Suggest a Question
           </button>
