@@ -1,3 +1,5 @@
+import { toRoman } from '../lib/roman.js';
+
 export default function DuelLeaderboard({ entries }) {
   if (entries.length === 0) {
     return <p className="explanation">No completed duels yet — challenge someone to get on the board.</p>;
@@ -17,7 +19,7 @@ export default function DuelLeaderboard({ entries }) {
       <tbody>
         {entries.map((entry, index) => (
           <tr key={entry.username}>
-            <td className="rank">{index + 1}</td>
+            <td className="rank">{toRoman(index + 1)}</td>
             <td className="player">{entry.username}</td>
             <td className="score">{entry.wins}</td>
             <td className="score">{entry.losses}</td>

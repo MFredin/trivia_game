@@ -21,6 +21,7 @@ import PreviewScreen from './components/PreviewScreen.jsx';
 import ProfileScreen from './components/ProfileScreen.jsx';
 import ChallengeScreen from './components/ChallengeScreen.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
+import Embers from './components/Embers.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -65,6 +66,9 @@ export default function App() {
   const [bestStreak, setBestStreak] = useState(0);
   const [strikes, setStrikes] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [runCorrectness, setRunCorrectness] = useState([]);
   const [feedback, setFeedback] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -177,6 +181,9 @@ export default function App() {
           setBestStreak(0);
           setStrikes(0);
           setTotalScore(0);
+          setCorrectCount(0);
+          setAnsweredCount(0);
+          setRunCorrectness([]);
           setFeedback(null);
           setOpponentLive(null);
           setDuelResult(null);
@@ -266,6 +273,9 @@ export default function App() {
       setBestStreak(0);
       setStrikes(0);
       setTotalScore(0);
+      setCorrectCount(0);
+      setAnsweredCount(0);
+      setRunCorrectness([]);
       setFeedback(null);
       setScreen('question');
     } catch (err) {
@@ -301,6 +311,9 @@ export default function App() {
     setBestStreak(0);
     setStrikes(0);
     setTotalScore(0);
+    setCorrectCount(0);
+    setAnsweredCount(0);
+    setRunCorrectness([]);
     setFeedback(null);
     setScreen('question');
   };
@@ -330,6 +343,9 @@ export default function App() {
       setBestStreak(result.session.best_streak);
       setStrikes(result.strikes);
       setTotalScore(result.running_total);
+      setAnsweredCount((n) => n + 1);
+      if (result.correct) setCorrectCount((n) => n + 1);
+      setRunCorrectness((arr) => [...arr, result.correct]);
     } catch (err) {
       setStartError('Lost connection to the server — your progress up to this point is saved.');
     } finally {
@@ -428,6 +444,9 @@ export default function App() {
       setBestStreak(0);
       setStrikes(0);
       setTotalScore(0);
+      setCorrectCount(0);
+      setAnsweredCount(0);
+      setRunCorrectness([]);
       setFeedback(null);
       setOpponentLive(null);
       setDuelResult(null);
@@ -474,6 +493,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <Embers />
       {screen !== 'auth' && screen !== 'preview' && (
         <NavBar
           currentUser={currentUser}
@@ -581,14 +601,17 @@ export default function App() {
         <>
           {session.mode === 'duel' && <DuelOpponentStrip opponentUsername={duelOpponentUsername} live={opponentLive} />}
           <QuestionCard
+            key={session.id}
             question={question}
             timeLimitMs={session.timeLimitMs}
             issuedAt={issuedAt}
             timingMode={session.timingMode}
             sessionCreatedAt={session.createdAt}
+            mode={session.mode}
             streak={streak}
             strikes={strikes}
             maxStrikes={session.maxStrikes}
+            totalScore={totalScore}
             feedback={feedback}
             onSubmit={handleSubmit}
           />
@@ -613,6 +636,10 @@ export default function App() {
           canonSource={session.canonSource}
           difficulty={session.difficulty}
           bestStreak={bestStreak}
+          correctCount={correctCount}
+          answeredCount={answeredCount}
+          runCorrectness={runCorrectness}
+          house={currentUser?.theme ?? DEFAULT_HOUSE}
           entries={leaderboard}
           scope={leaderboardScope}
           window={leaderboardWindow}
@@ -626,6 +653,7 @@ export default function App() {
           yourScore={totalScore}
           opponentUsername={duelOpponentUsername}
           result={duelResult}
+          house={currentUser?.theme ?? DEFAULT_HOUSE}
           onDone={handleDuelDone}
         />
       )}

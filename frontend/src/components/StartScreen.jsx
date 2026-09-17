@@ -1,33 +1,50 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
+import HouseDevice from './HouseDevice.jsx';
 import { createChallenge, getProfile } from '../api/client.js';
 import { copyToClipboard } from '../lib/shareResult.js';
+import { HOUSES, DEFAULT_HOUSE } from '../constants/houses.js';
+
+const HOUSE_BY_ID = Object.fromEntries(HOUSES.map((h) => [h.id, h]));
+
+const MODE_ORDER = ['classic', 'daily', 'blitz', 'survival', 'gauntlet'];
 
 const MODE_INFO = {
   classic: {
     label: 'Classic Quiz',
     description: 'Ten questions, no clock pressure beyond the norm — one clean measure of what you know.',
+    ledgerNote: 'Counts toward the Classic ledger.',
   },
   daily: {
     label: 'Daily Challenge',
     description:
       'One shared set of ten questions for everyone today, refreshed at midnight. Everyone who plays sees the exact same run.',
+    ledgerNote: "Counts toward today's Daily Challenge.",
   },
   blitz: {
     label: 'Blitz',
     description:
       'Sixty seconds, as many questions as you can answer. The clock never resets between questions — speed is the whole game.',
+    ledgerNote: 'Counts toward the Blitz ledger.',
   },
   survival: {
     label: 'Survival',
     description: 'One wrong answer, or one timeout, ends the run. How far can you get before a single mistake stops you?',
+    ledgerNote: 'Counts toward the Survival ledger.',
   },
   gauntlet: {
     label: 'Gauntlet',
     description: "Three strikes and you're out — a little more forgiving than Survival, a lot more than Classic.",
+    ledgerNote: 'Counts toward the Gauntlet ledger.',
   },
 };
+
+const CANON_OPTIONS = [
+  { value: 'books', label: 'Books' },
+  { value: 'movies', label: 'Films' },
+  { value: 'combined', label: 'Combined' },
+];
 
 export default function StartScreen({ categories, currentUser, onStart, error, token }) {
   const [mode, setMode] = useState('classic');
@@ -38,6 +55,8 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
   const [challengeLink, setChallengeLink] = useState(null);
   const [creatingChallenge, setCreatingChallenge] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy link');
+
+  const house = HOUSE_BY_ID[currentUser?.theme ?? DEFAULT_HOUSE] ?? HOUSE_BY_ID[DEFAULT_HOUSE];
 
   useEffect(() => {
     getProfile(currentUser.username, token)
@@ -89,31 +108,58 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
       </div>
 
       <Plate
+        className="book-spread--exlibris"
         secondary={
-          <div className="qcard-margin">
-            <p className="qcard-margin-stat-label">Mode</p>
-            <p className="qcard-margin-stat-value" style={{ fontSize: '1.15rem' }}>
-              {MODE_INFO[mode].label}
-            </p>
-            <div className="qcard-margin-divider" style={{ marginTop: '0.8rem' }} />
+          <div className="exlibris-card">
+            <div className="exlibris-header">
+              <HouseDevice house={house.id} size={40} className="exlibris-house-device" />
+              <div>
+                <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0 }}>
+                  Bound in
+                </p>
+                <p className="exlibris-house">{house.label}</p>
+              </div>
+            </div>
+            <div className="rule-rubric" />
+            <div>
+              <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0 }}>
+                Mode
+              </p>
+              <p className="exlibris-mode">{MODE_INFO[mode].label}</p>
+            </div>
             <p className="explanation" style={{ margin: 0 }}>
               {MODE_INFO[mode].description}
             </p>
+            <p className="exlibris-note">{MODE_INFO[mode].ledgerNote}</p>
+            <div className="exlibris-footer">
+              <span>Ex Libris</span>
+              <span>Second Edition</span>
+            </div>
           </div>
         }
       >
         <form className="start-form" onSubmit={handleSubmit}>
           {error && <div className="error-banner">{error}</div>}
-          <label>
-            Mode
-            <select value={mode} onChange={(e) => setMode(e.target.value)}>
-              <option value="classic">Classic Quiz</option>
-              <option value="daily">Daily Challenge</option>
-              <option value="blitz">Blitz (60s, race the clock)</option>
-              <option value="survival">Survival (one miss ends the run)</option>
-              <option value="gauntlet">Gauntlet (three strikes)</option>
-            </select>
-          </label>
+
+          <div className="start-form-field">
+            <span className="field-label">Choose a volume</span>
+            <div className="spine-shelf">
+              {MODE_ORDER.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`mode-spine ${mode === key ? 'is-active' : ''}`}
+                  onClick={() => setMode(key)}
+                  aria-pressed={mode === key}
+                >
+                  <span className="mode-spine-band" />
+                  <span className="mode-spine-title">{MODE_INFO[key].label}</span>
+                  <span className="mode-spine-band" />
+                </button>
+              ))}
+            </div>
+          </div>
+
           {mode !== 'daily' && (
             <>
               <label>
@@ -127,14 +173,22 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
                   ))}
                 </select>
               </label>
-              <label>
-                Canon source
-                <select value={canonSource} onChange={(e) => setCanonSource(e.target.value)}>
-                  <option value="combined">Combined</option>
-                  <option value="books">Books</option>
-                  <option value="movies">Movies</option>
-                </select>
-              </label>
+              <div className="start-form-field">
+                <span className="field-label">Canon source</span>
+                <div className="seg-control">
+                  {CANON_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`seg ${canonSource === opt.value ? 'is-active' : ''}`}
+                      onClick={() => setCanonSource(opt.value)}
+                      aria-pressed={canonSource === opt.value}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="start-form-field">
                 <span className="field-label">Difficulty</span>
                 <DifficultySlider value={difficulty} onChange={setDifficulty} />

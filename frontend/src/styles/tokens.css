@@ -9,13 +9,28 @@
    (crest wiki hex/RGB values) supplied in design review, not eyeballed. Where the
    reference's darkest tone is too low-contrast to use as text on the dark page, the
    reference's own brighter tone becomes --brass-500 and the darkest becomes --ink-900
-   instead — the hue stays authentic, only the tier it's assigned to shifts. */
+   instead — the hue stays authentic, only the tier it's assigned to shifts.
+
+   The Second Edition adds ROLE tokens on top of the two channels (see
+   docs/design-overhaul-concept.md, "Token changes"). Each house assigns its channels to
+   the roles; the roles are what components use. Hufflepuff is why they exist: its gold
+   fails contrast on parchment, so its rubric and tooling take the dark channel while its
+   cloth, glow and on-page accents take the gold. --rubric is never an alias of --brass-500.
+     --page          the dark page ground (deeper than --ink-900, so the glow reads)
+     --glow-rgb      primary page glow; --glow2-rgb the secondary one
+     --rubric        wayfinding colour ON PARCHMENT: initials, numerals, labels, rules
+     --onbg          the same role ON THE DARK PAGE (must pass contrast there)
+     --cloth         house bookcloth; --tooling the rule/frame colour on it
+     --leaf-*        the gold-leaf gradient (primary button, seal); --leaf-text its ink
+     --gilt          thin decorative lines on parchment: corner brackets, frames, dial ring
+     --wash-rgb      the hover wash on ledger rows
+     --ember         the drifting page motes */
 :root {
   /* Gryffindor is the default binding: scarlet & gold. */
   --ink-900: #2b0607;
   --ink-800: #190304;
-  --parchment-100: #ddc48a;
-  --parchment-200: #d0b378;
+  --parchment-100: #e6d5ae;
+  --parchment-200: #d9c692;
   --brass-500: #ae0001;
   --brass-300: #d1454f;
   --brass-500-rgb: 174, 0, 1;
@@ -23,8 +38,37 @@
   --metal-300: #ecb939;
   --oxblood-600: #7a2020;
   --verdigris-400: #3f8f6c;
+  /* The on-parchment twin of --verdigris-400, the way --text-muted-on-surface is the
+     on-parchment twin of the page's muted tone. Verdigris is calibrated as a FILL (the
+     correct-answer tint, borders) and reads only 2.71:1 as a mark on parchment, so
+     anything that carries meaning in green — the folio check marks, the correct-answer
+     letter and tick — uses this instead (5.89:1 on parchment, 5.09:1 on the tint). */
+  --success-ink: #2a5449;
   --ash-300: #b0a488;
   --text-ink: #241b10;
+
+  --page: #1a0607;
+  --glow-rgb: 174, 0, 1;
+  --glow2-rgb: 211, 166, 37;
+  --rubric: #ae0001;
+  --rubric-rgb: 174, 0, 1;
+  --onbg: #ecb939;
+  --onbg-rgb: 236, 185, 57;
+  --cloth: #7c0d10;
+  --tooling: #ecb939;
+  --tooling-rgb: 236, 185, 57;
+  --leaf-hi: #f1c65a;
+  --leaf: #d3a625;
+  --leaf-lo: #b8901f;
+  --leaf-edge: #9a7514;
+  --leaf-text: #2b0607;
+  --leaf-glow-rgb: 236, 185, 57;
+  --gilt: #d3a625;
+  --gilt-rgb: 211, 166, 37;
+  --gilt-deep: #9a7514;
+  --wash-rgb: 211, 166, 37;
+  --ember: #ffd66b;
+  --ember-rgb: 236, 185, 57;
 
   /* A fixed metallic accent that does NOT get rebound per house — used only for the
      running-header/nav "chrome" (wordmark, page links, filter pills), so navigation
@@ -34,10 +78,10 @@
   --silver-400: #9aa1a8;
   --silver-400-rgb: 154, 161, 168;
 
-  --font-display: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-display: 'IM Fell English', 'Iowan Old Style', Georgia, serif;
   --font-body: 'EB Garamond', Georgia, serif;
 
-  --bg: var(--ink-900);
+  --bg: var(--page);
   --surface: var(--parchment-100);
   --text-on-bg: #ecdfc0;
   --text-on-surface: var(--text-ink);
@@ -52,7 +96,7 @@
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2  0 0 0 0 0.14  0 0 0 0 0.08  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Hufflepuff: gold & black. */
+/* Hufflepuff: gold & black. Rubric, tooling, gilt and leaf take the dark channel. */
 :root[data-house='hufflepuff'] {
   --ink-900: #1c1712;
   --ink-800: #100d0a;
@@ -61,6 +105,33 @@
   --brass-500-rgb: 236, 185, 57;
   --metal-500: #372e29;
   --metal-300: #726255;
+
+  --page: #15110d;
+  --glow-rgb: 236, 185, 57;
+  --glow2-rgb: 114, 98, 85;
+  --rubric: #372e29;
+  --rubric-rgb: 55, 46, 41;
+  --onbg: #ecb939;
+  --onbg-rgb: 236, 185, 57;
+  --cloth: #a8801c;
+  /* Darkened from #2a221d after the Phase F contrast audit: Hufflepuff is the one house
+     whose cloth is light, so everything sitting on it (spine labels, the Ex Libris
+     footer, rules, the corner bud) needs a near-black tooling to clear 4.5:1 — 4.92:1
+     here, where the old value landed at 4.29:1. */
+  --tooling: #1c1613;
+  --tooling-rgb: 28, 22, 19;
+  --leaf-hi: #6b5a4e;
+  --leaf: #372e29;
+  --leaf-lo: #1f1915;
+  --leaf-edge: #14100d;
+  --leaf-text: #f3d98a;
+  --leaf-glow-rgb: 55, 46, 41;
+  --gilt: #372e29;
+  --gilt-rgb: 55, 46, 41;
+  --gilt-deep: #2a221d;
+  --wash-rgb: 236, 185, 57;
+  --ember: #ffd66b;
+  --ember-rgb: 236, 185, 57;
 }
 
 /* Slytherin: green & silver. */
@@ -72,6 +143,29 @@
   --brass-500-rgb: 42, 98, 61;
   --metal-500: #5d5d5d;
   --metal-300: #aaaaaa;
+
+  --page: #07130e;
+  --glow-rgb: 42, 98, 61;
+  --glow2-rgb: 170, 170, 170;
+  --rubric: #2a623d;
+  --rubric-rgb: 42, 98, 61;
+  --onbg: #aaaaaa;
+  --onbg-rgb: 170, 170, 170;
+  --cloth: #1b4029;
+  --tooling: #c9c9c9;
+  --tooling-rgb: 201, 201, 201;
+  --leaf-hi: #f2f2f2;
+  --leaf: #b8b8b8;
+  --leaf-lo: #8a8a8a;
+  --leaf-edge: #5d5d5d;
+  --leaf-text: #0a1a13;
+  --leaf-glow-rgb: 201, 201, 201;
+  --gilt: #8a8a8a;
+  --gilt-rgb: 138, 138, 138;
+  --gilt-deep: #5d5d5d;
+  --wash-rgb: 42, 98, 61;
+  --ember: #e6e6e6;
+  --ember-rgb: 201, 201, 201;
 }
 
 /* Ravenclaw: navy & bronze. */
@@ -83,10 +177,38 @@
   --brass-500-rgb: 42, 74, 138;
   --metal-500: #946b2d;
   --metal-300: #b98d52;
+
+  --page: #070d22;
+  --glow-rgb: 42, 74, 138;
+  --glow2-rgb: 185, 141, 82;
+  --rubric: #2a4a8a;
+  --rubric-rgb: 42, 74, 138;
+  --onbg: #b98d52;
+  --onbg-rgb: 185, 141, 82;
+  --cloth: #1a2f5c;
+  /* Brightened from #b98d52 (4.36:1 on this navy cloth) to 5.95:1 — see the Phase F
+     audit note on Hufflepuff above; same rule, opposite direction. */
+  --tooling: #d2a86a;
+  --tooling-rgb: 210, 168, 106;
+  --leaf-hi: #dcb375;
+  --leaf: #b98d52;
+  /* Lightened from #946b2d so the button label clears 4.5:1 against the foot of the
+     gradient too (3.83:1 before), not just its middle. */
+  --leaf-lo: #ab7f3e;
+  --leaf-edge: #6e4e1f;
+  --leaf-text: #0a1330;
+  --leaf-glow-rgb: 185, 141, 82;
+  --gilt: #946b2d;
+  --gilt-rgb: 148, 107, 45;
+  --gilt-deep: #6e4e1f;
+  --wash-rgb: 42, 74, 138;
+  --ember: #e2bd80;
+  --ember-rgb: 185, 141, 82;
 }
 
 /* Monochrome: no house color, just tone — the metal reads slightly lighter than the
-   "color" so the two-tone structure still holds even in black and white. */
+   "color" so the two-tone structure still holds even in black and white. Rubric is ink,
+   leaf is a blind stamp, the glow is a neutral lamp. */
 :root[data-house='monochrome'] {
   --ink-900: #161616;
   --ink-800: #0b0b0b;
@@ -99,4 +221,27 @@
   --metal-300: #e6e6e6;
   --text-ink: #1c1c1c;
   --text-on-bg: #e6e6e6;
+
+  --page: #141414;
+  --glow-rgb: 70, 70, 70;
+  --glow2-rgb: 40, 40, 40;
+  --rubric: #1c1c1c;
+  --rubric-rgb: 28, 28, 28;
+  --onbg: #b8b8b8;
+  --onbg-rgb: 184, 184, 184;
+  --cloth: #2a2a2a;
+  --tooling: #e6e6e6;
+  --tooling-rgb: 230, 230, 230;
+  --leaf-hi: #f2f2f2;
+  --leaf: #cfcfcf;
+  --leaf-lo: #a8a8a8;
+  --leaf-edge: #6a6a6a;
+  --leaf-text: #161616;
+  --leaf-glow-rgb: 200, 200, 200;
+  --gilt: #8a8a8a;
+  --gilt-rgb: 138, 138, 138;
+  --gilt-deep: #5a5a5a;
+  --wash-rgb: 28, 28, 28;
+  --ember: #e6e6e6;
+  --ember-rgb: 200, 200, 200;
 }

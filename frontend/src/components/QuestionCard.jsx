@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import Plate from './Plate.jsx';
+import TimerDial from './TimerDial.jsx';
+import { toRoman } from '../lib/roman.js';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 const FLIP_OUT_MS = 480;
 const FLIP_IN_MS = 560;
+const MAX_STREAK_PIPS = 6;
+
+// Only these modes deal out a fixed-length run — Blitz/Survival/Gauntlet play until the
+// clock or a miss ends things, so "of X" would be a made-up target rather than a real one.
+const FIXED_LENGTH = { classic: 10, daily: 10, duel: 10, challenge: 10 };
 
 function CheckIcon() {
   return (
@@ -21,11 +28,15 @@ function CrossIcon() {
   );
 }
 
-function ClockIcon() {
+function EmberPip({ filled }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 14 14" fill="none" style={{ display: 'inline-block' }}>
-      <circle cx="7" cy="7.5" r="5.6" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M7 4.6V7.5L9.1 8.9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+      <path
+        d="M8 1c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 2 2 3 2 5 0-4-1-6 1-9z"
+        fill={filled ? 'var(--rubric)' : 'none'}
+        stroke="var(--rubric)"
+        strokeWidth={filled ? 0 : 1.2}
+      />
     </svg>
   );
 }
@@ -36,9 +47,11 @@ export default function QuestionCard({
   issuedAt,
   timingMode,
   sessionCreatedAt,
+  mode,
   streak,
   strikes,
   maxStrikes,
+  totalScore,
   feedback,
   onSubmit,
 }) {
@@ -72,6 +85,9 @@ export default function QuestionCard({
   const isInstant = timingMode === 'session_total';
   const [displayedQuestion, setDisplayedQuestion] = useState(question);
   const [flipPhase, setFlipPhase] = useState('idle');
+  // Folio numeral — starts at 1 for a fresh session (QuestionCard is remounted per session
+  // via a key on session id) and advances every time a new question actually arrives.
+  const [questionIndex, setQuestionIndex] = useState(1);
 
   useEffect(() => {
     if (question.question_id === displayedQuestion.question_id) return undefined;
@@ -79,6 +95,7 @@ export default function QuestionCard({
     const outTimer = setTimeout(
       () => {
         setDisplayedQuestion(question);
+        setQuestionIndex((i) => i + 1);
         setFlipPhase('in');
       },
       isInstant ? 0 : FLIP_OUT_MS,
@@ -92,12 +109,10 @@ export default function QuestionCard({
     return () => clearTimeout(inTimer);
   }, [flipPhase, isInstant]);
 
-  const seconds = Math.ceil(remainingMs / 1000);
-  const mm = Math.floor(seconds / 60);
-  const ss = String(seconds % 60).padStart(2, '0');
-
   const flipClass = flipPhase === 'out' ? 'is-turning-out' : flipPhase === 'in' ? 'is-turning-in' : '';
   const inputLocked = Boolean(feedback) || flipPhase !== 'idle';
+  const total = FIXED_LENGTH[mode];
+  const pipCount = Math.min(streak, MAX_STREAK_PIPS);
 
   return (
     <div className={`page-flip-stage ${isInstant ? 'is-instant' : ''}`}>
@@ -111,15 +126,25 @@ export default function QuestionCard({
           className="book-spread--tabbed"
           secondary={
             <div className="qcard-margin">
-              <div className="qcard-margin-timer">
-                <ClockIcon />
-                {mm}:{ss}
+              <p className="screen-eyebrow" style={{ fontSize: '0.72rem' }}>
+                Question
+              </p>
+              <div className="qcard-margin-numeral">
+                <span>{toRoman(questionIndex)}</span>
+                {total && <span className="qcard-margin-numeral-of">of {toRoman(total)}</span>}
               </div>
-              <p className="qcard-margin-label">remaining</p>
-              <div className="qcard-margin-divider" />
+              <div className="rule-rubric" style={{ margin: '0.9rem 0 1.1rem' }} />
+              <div className="qcard-margin-dial">
+                <p className="qcard-margin-stat-label">Remaining</p>
+                <TimerDial remainingMs={remainingMs} totalMs={timeLimitMs} size={116} />
+              </div>
+              <div className="qcard-margin-hairline" />
               <div className="qcard-margin-stat">
                 <span className="qcard-margin-stat-label">Streak</span>
-                <span className="qcard-margin-stat-value">{streak}</span>
+                <span className="streak-pips" aria-label={`streak of ${streak}`}>
+                  {Array.from({ length: pipCount }, (_, i) => <EmberPip key={i} filled />)}
+                  <span className="streak-pips-number">{streak}</span>
+                </span>
               </div>
               {maxStrikes != null && (
                 <div className="qcard-margin-stat">
@@ -131,10 +156,16 @@ export default function QuestionCard({
                   </span>
                 </div>
               )}
+              {totalScore != null && (
+                <div className="qcard-margin-score">
+                  <span className="qcard-margin-stat-label">Score so far</span>
+                  <span className="qcard-margin-score-value">{totalScore.toLocaleString()}</span>
+                </div>
+              )}
             </div>
           }
         >
-          <p className="question-text">{displayedQuestion.question_text}</p>
+          <p className="question-text has-rubric-initial">{displayedQuestion.question_text}</p>
           <ul className="choice-list">
             {displayedQuestion.choices.map((choice, index) => {
               let className = 'choice-button';
@@ -158,7 +189,7 @@ export default function QuestionCard({
                     disabled={inputLocked}
                     onClick={() => onSubmit(index)}
                   >
-                    <span className="choice-chip">{LETTERS[index]}</span>
+                    <span className="choice-chip">{LETTERS[index]}.</span>
                     <span className="choice-text">{choice}</span>
                     {mark}
                   </button>
