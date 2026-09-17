@@ -20,7 +20,9 @@ const MAX_FOLIO_PIPS = 20;
 function FolioPip({ correct }) {
   return correct ? (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M4 12l5 5 11-11" stroke="var(--verdigris-400)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      {/* success-ink, not verdigris: these marks are the run's per-question record, so
+          they have to clear 3:1 as meaningful graphics — verdigris reads 2.71:1 here. */}
+      <path d="M4 12l5 5 11-11" stroke="var(--success-ink)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ) : (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">

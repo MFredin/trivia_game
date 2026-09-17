@@ -50,12 +50,12 @@ export default function ProfileScreen({ username, token, onBack }) {
         // bound in a different house than whoever is looking at it.
         <div className="exlibris-card exlibris-card--standalone">
           <div className="exlibris-header">
-            <HouseDevice house={house.id} size={40} style={{ color: house.brass }} />
+            <HouseDevice house={house.id} size={40} style={{ color: house.ink }} />
             <div>
-              <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0, color: house.brass }}>
+              <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0, color: house.ink }}>
                 Bound in
               </p>
-              <p className="exlibris-house" style={{ color: house.brass }}>
+              <p className="exlibris-house" style={{ color: house.ink }}>
                 {house.label}
               </p>
             </div>

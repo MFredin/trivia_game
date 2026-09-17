@@ -38,6 +38,12 @@
   --metal-300: #ecb939;
   --oxblood-600: #7a2020;
   --verdigris-400: #3f8f6c;
+  /* The on-parchment twin of --verdigris-400, the way --text-muted-on-surface is the
+     on-parchment twin of the page's muted tone. Verdigris is calibrated as a FILL (the
+     correct-answer tint, borders) and reads only 2.71:1 as a mark on parchment, so
+     anything that carries meaning in green — the folio check marks, the correct-answer
+     letter and tick — uses this instead (5.89:1 on parchment, 5.09:1 on the tint). */
+  --success-ink: #2a5449;
   --ash-300: #b0a488;
   --text-ink: #241b10;
 
@@ -108,8 +114,12 @@
   --onbg: #ecb939;
   --onbg-rgb: 236, 185, 57;
   --cloth: #a8801c;
-  --tooling: #2a221d;
-  --tooling-rgb: 42, 34, 29;
+  /* Darkened from #2a221d after the Phase F contrast audit: Hufflepuff is the one house
+     whose cloth is light, so everything sitting on it (spine labels, the Ex Libris
+     footer, rules, the corner bud) needs a near-black tooling to clear 4.5:1 — 4.92:1
+     here, where the old value landed at 4.29:1. */
+  --tooling: #1c1613;
+  --tooling-rgb: 28, 22, 19;
   --leaf-hi: #6b5a4e;
   --leaf: #372e29;
   --leaf-lo: #1f1915;
@@ -176,11 +186,15 @@
   --onbg: #b98d52;
   --onbg-rgb: 185, 141, 82;
   --cloth: #1a2f5c;
-  --tooling: #b98d52;
-  --tooling-rgb: 185, 141, 82;
+  /* Brightened from #b98d52 (4.36:1 on this navy cloth) to 5.95:1 — see the Phase F
+     audit note on Hufflepuff above; same rule, opposite direction. */
+  --tooling: #d2a86a;
+  --tooling-rgb: 210, 168, 106;
   --leaf-hi: #dcb375;
   --leaf: #b98d52;
-  --leaf-lo: #946b2d;
+  /* Lightened from #946b2d so the button label clears 4.5:1 against the foot of the
+     gradient too (3.83:1 before), not just its middle. */
+  --leaf-lo: #ab7f3e;
   --leaf-edge: #6e4e1f;
   --leaf-text: #0a1330;
   --leaf-glow-rgb: 185, 141, 82;

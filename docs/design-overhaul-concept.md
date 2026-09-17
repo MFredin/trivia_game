@@ -1,6 +1,7 @@
 # Design overhaul concept — "The Illuminated Archive" (Second Edition)
 
-Status: approved; Phase A in progress. Companion design canvas: the "Restricted Section Overhaul"
+Status: **shipped** — Phases A–F complete (2026-09-17). Contrast verified across all
+five bindings; see docs/contrast-audit-2026-09.md and `npm run audit:contrast`. Companion design canvas: the "Restricted Section Overhaul"
 artifact (sixteen artboards: Start, Question, Reveal and Monochrome Question on desktop; Start,
 Question, Reveal, nav drawer and Monochrome Question on phone; Start + Question for Hufflepuff,
 Slytherin and Ravenclaw; System).
@@ -163,20 +164,30 @@ alias of `--brass-500`.
 --rubric                      the darker channel that passes 4.5:1 on parchment (brass for three houses, metal for Hufflepuff, ink for monochrome)
 --leaf-hi / --leaf / --leaf-lo gold-leaf gradient stops (metal channel for houses)
 --cloth                       spine colour (darker brass)
---tooling                     rule colour on cloth (metal channel; near-black for Hufflepuff, pale grey for monochrome)
+--tooling                     rule/text colour on cloth (metal channel; near-black for Hufflepuff, pale grey for monochrome)
+--onbg                        the accent that reads on the dark page (never --rubric there)
+--success-ink                 the on-parchment twin of --verdigris-400, for marks that carry meaning
 --font-display                'IM Fell English'
 ```
 No schema or backend work; the overhaul is CSS, SVG and JSX only.
 
-## Suggested phasing (each a PR, each shippable alone)
-1. **A — Atmosphere + type + ornament.** Deeper page, glow, embers, IM Fell, rubric labels,
+## Phasing — all shipped (each landed as its own commit/branch)
+1. ✅ **A — Atmosphere + type + ornament.** Deeper page, glow, embers, IM Fell, rubric labels,
    double rules, corner buds, gold-leaf primary button. Site-wide lift, no layout change.
-2. **B — Question spread.** Cloth spine strip, roman numerals, ring-dial timer, rubricated
+2. ✅ **B — Question spread.** Cloth spine strip, roman numerals, ring-dial timer, rubricated
    initial frame, ledger choices.
-3. **C — Start room.** Spine shelf, tooled cloth board, Ex Libris card, segmented canon control.
-4. **D — The seal.** Result reveal + share card refresh.
-5. **E — Ledger, profile, settings, friends** polish pass.
-6. **F — Other three houses.** Devices already drawn; mostly verifying contrast per binding.
+3. ✅ **C — Start room.** Spine shelf, tooled cloth board, Ex Libris card, segmented canon control.
+4. ✅ **D — The seal.** Result reveal + share card refresh.
+5. ✅ **E — Ledger, profile, settings, friends** polish pass.
+6. ✅ **F — Cross-binding contrast audit.** Scoped as "verify the other three houses", but
+   the five bindings already rendered correctly from Phase A's token work, so the phase
+   became what it should have been: a computed WCAG audit of all 210 real colour pairings
+   across every binding, in place of eyeballing screenshots. It found 11 genuine failures
+   that five rounds of visual QA had missed — including the seal's ring text failing in
+   *all five* bindings, and Hufflepuff's house name at 1.25:1 (invisible) on the House Cup
+   board and player profiles. All fixed; the audit is committed as
+   `frontend/scripts/contrast-audit.mjs` (`npm run audit:contrast`) so it guards future
+   work rather than being a one-off. Full findings: docs/contrast-audit-2026-09.md.
 
 ## Decisions (made 2026-09-17)
 1. Display face: **IM Fell English**.
@@ -185,3 +196,21 @@ No schema or backend work; the overhaul is CSS, SVG and JSX only.
 4. Verdict lines use the **O.W.L. grade names** (Outstanding, Exceeds Expectations, Acceptable,
    Poor, Dreadful, Troll), applied at every difficulty tier so any run gets a grade — the
    reveal reads "Outstanding at N.E.W.T.", never a bare grade. Lands in Phase D.
+
+## What Phase F changed in the system
+
+Two rules came out of the audit and are now the standing guidance (table in
+docs/contrast-audit-2026-09.md):
+
+1. **Pick the token by what it sits on, not by which house it belongs to.** Parchment takes
+   `--rubric`; the dark page takes `--onbg`; cloth takes `--tooling`; the rubric fill and
+   the gold leaf take `--parchment-100` and `--leaf-text`. Most of the 11 failures were a
+   token used one surface away from the one it was calibrated for.
+2. **A fill colour is not a text colour.** `--verdigris-400` and a house's `brass` are both
+   fine as fills and both fail as small marks, which is why `--success-ink` and
+   `house.ink` now exist as their on-parchment twins.
+
+Also worth recording: **alpha is not a free dimming knob.** The resting spine label carried
+`rgba(--tooling, .72)` purely to look "unselected"; that fade cost ~2 points of contrast and
+put the label under AA in four of five bindings. State is now signalled by lift and
+brightness, not transparency — the same lesson as design-audit finding #9.

@@ -27,7 +27,10 @@ export default function SealDevice({ house, size = 220 }) {
       <circle cx="110" cy="110" r="106" fill={`url(#${ringId}-fill)`} stroke="var(--leaf-edge)" strokeWidth="2" />
       <circle cx="110" cy="110" r="97" fill="none" stroke="var(--leaf-edge)" strokeWidth="1" opacity="0.8" />
       <circle cx="110" cy="110" r="70" fill="none" stroke="var(--leaf-edge)" strokeWidth="1" opacity="0.8" />
-      <text fontFamily="'IM Fell English', Georgia, serif" fontSize="14.5" letterSpacing="3.2" fill="var(--leaf-edge)">
+      {/* leaf-text, not leaf-edge: the edge colour is the seal's border tone and read as
+          low as 1.43:1 against the leaf it sits on. leaf-text is the role already
+          calibrated to read on the leaf (the primary button's label), 6.09–11.62:1. */}
+      <text fontFamily="'IM Fell English', Georgia, serif" fontSize="14.5" letterSpacing="3.2" fill="var(--leaf-text)">
         <textPath href={`#${ringId}`} startOffset="0">
           THE RESTRICTED SECTION &middot; ENQUIRY CONCLUDED &middot;
         </textPath>

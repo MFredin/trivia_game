@@ -26,7 +26,7 @@ export default function HouseCupBoard({ houses, unsorted }) {
             return (
               <tr key={h.theme}>
                 <td className="rank">{toRoman(index + 1)}</td>
-                <td className="player" style={{ color: house?.brass, fontWeight: 700 }}>
+                <td className="player" style={{ color: house?.ink, fontWeight: 700 }}>
                   <HouseDevice
                     house={h.theme}
                     size={18}

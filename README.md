@@ -110,6 +110,14 @@ expected to land. See `docs/phase4-scaffold.md` and `docs/phase5-scaffold.md` (b
 implementation-ready specs, and `docs/stack-audit-2026-09.md` / `docs/design-audit-2026-09.md`
 for the two hardening passes that ran alongside Phase 5.
 
+The **Second Edition design overhaul** (`docs/design-overhaul-concept.md`) shipped in six
+phases on top of Phase 5: the app is now presented as a rare book, each house a different
+*binding* of it, with rubricated initials and numerals, gold-leaf moments, tooled cloth
+boards, a ring-dial timer, book-spine mode selection and a stamped seal on every completed
+run. Colour is verified rather than eyeballed — `cd frontend && npm run audit:contrast`
+checks 210 real colour pairings across all five bindings and fails the build on a
+regression (findings: `docs/contrast-audit-2026-09.md`).
+
 | Phase | Theme | Focus |
 |---|---|---|
 | **Phase 4** | Growth & Quick Wins | Make it easy for people to hear about this and start playing — ✅ shipped |

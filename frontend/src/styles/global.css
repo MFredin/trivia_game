@@ -627,7 +627,7 @@ button {
 }
 
 .catalog-tab--divergence {
-  color: #2f5e52;
+  color: var(--success-ink);
   border-color: rgba(78, 140, 124, 0.5);
   background: #dfe9e5;
 }
@@ -772,7 +772,7 @@ button {
 }
 
 .is-correct .choice-chip {
-  color: #2f5e52;
+  color: var(--success-ink);
 }
 
 .is-wrong .choice-chip {
@@ -789,7 +789,7 @@ button {
 }
 
 .is-correct .choice-mark {
-  color: #2f5e52;
+  color: var(--success-ink);
 }
 
 .is-wrong .choice-mark {
@@ -1097,8 +1097,11 @@ button {
   border-radius: 2px 5px 5px 2px;
   /* Resting on cloth, not the dark page — tooling (not onbg) is the role calibrated to
      contrast against cloth specifically, which matters for Hufflepuff: its cloth is a
-     medium-light mustard, so a light on-page accent would nearly vanish against it. */
-  color: rgba(var(--tooling-rgb), 0.72);
+     medium-light mustard, so a light on-page accent would nearly vanish against it.
+     Full strength, not the 0.72 alpha this used to carry: the fade cost ~2 points of
+     contrast and pushed the label under AA in four of five bindings. Resting and hover
+     are told apart by the lift and a brightness step instead. */
+  color: var(--tooling);
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.38)),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px),
@@ -1109,12 +1112,15 @@ button {
 
 .mode-spine:hover {
   transform: translateY(-6px);
-  color: var(--tooling);
+  filter: brightness(1.12);
 }
 
 .mode-spine.is-active {
   height: 194px;
-  color: var(--onbg);
+  /* Parchment, not the on-page accent: this label sits on the rubric fill, and rubric is
+     a dark saturated colour in every binding, so a cream reads on all five (4.98–13.29:1)
+     where the accent fell to 2.86:1 on Ravenclaw. Matches .seg.is-active. */
+  color: var(--parchment-100);
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.34)),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
@@ -1269,7 +1275,9 @@ button {
   bottom: -32px;
   display: flex;
   justify-content: space-between;
-  color: var(--parchment-100);
+  /* Tooling, like everything else printed on cloth — a cream read 2.51:1 on Hufflepuff's
+     light mustard board. */
+  color: var(--tooling);
   font-size: 0.68rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1468,7 +1476,9 @@ button {
 .leaderboard-table .rank {
   font-family: var(--font-display);
   font-size: 1.1rem;
-  color: rgba(18, 21, 28, 0.55);
+  /* The established on-surface muted token (4.89:1) rather than the old bare 0.55 alpha,
+     which read 3.65:1 — under AA for a numeral this size. */
+  color: var(--text-muted-on-surface);
 }
 
 .leaderboard-table tbody tr:first-child .rank {
