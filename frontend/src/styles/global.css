@@ -470,6 +470,47 @@ button {
   .screen-head > *:last-child:not(:only-child) {
     width: 100%;
   }
+
+  /* The question margin panel collapses from a tall vertical column into one compact row
+     — numeral, dial, streak — so the question screen still fits without scrolling. Score
+     so far and the section labels are dropped here only: the run's cumulative score is
+     already visible at the end of every question in the reveal, and at the end of the run
+     in the summary, so nothing is lost by not repeating it in this cramped a space. */
+  .book-spread--tabbed .qcard-margin {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  .book-spread--tabbed .qcard-margin > .screen-eyebrow,
+  .book-spread--tabbed .qcard-margin-dial > .qcard-margin-stat-label,
+  .book-spread--tabbed .rule-rubric,
+  .book-spread--tabbed .qcard-margin-hairline,
+  .book-spread--tabbed .qcard-margin-score {
+    display: none;
+  }
+
+  .book-spread--tabbed .qcard-margin-numeral {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-top: 0;
+  }
+
+  .book-spread--tabbed .qcard-margin-numeral > span:first-child {
+    font-size: 1.7rem;
+  }
+
+  .book-spread--tabbed .qcard-margin-dial svg {
+    width: 64px;
+    height: 64px;
+  }
+
+  .book-spread--tabbed .qcard-margin-stat {
+    margin-bottom: 0;
+    align-items: flex-end;
+  }
 }
 
 /* --- catalog tabs (category/tier metadata, sitting on the plate's edge) --- */
@@ -620,42 +661,90 @@ button {
   display: none;
 }
 
+/* The margin leaf's cloth spine: a 30px strip along its own left edge, echoing the Start
+   room's book spines and the profile's Ex Libris board — the same house cloth + tooling
+   formula from tokens.css, never an image file. */
+.book-spread--tabbed .book-spread-leaf.left {
+  padding-left: 2.5rem;
+}
+
+.book-spread--tabbed .book-spread-leaf.left::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px),
+    var(--cloth);
+  box-shadow: inset -5px 0 8px -5px rgba(0, 0, 0, 0.55);
+}
+
+.book-spread--tabbed .book-spread-leaf.left::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 9px;
+  width: 1px;
+  background: rgba(var(--tooling-rgb), 0.85);
+  box-shadow: 10px 0 0 rgba(var(--tooling-rgb), 0.4);
+}
+
 .question-text {
   font-family: var(--font-display);
   font-size: 1.45rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.32;
   letter-spacing: -0.005em;
   margin: 0.25rem 0 1.75rem;
   text-align: left;
 }
 
+/* The rubricated initial: a large boxed capital in the wayfinding colour, framed in gilt —
+   the manuscript convention Second Edition borrows for every question. */
+.has-rubric-initial::first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-size: 2.9rem;
+  line-height: 0.78;
+  color: var(--rubric);
+  padding: 0.3rem 0.4rem 0.15rem 0.3rem;
+  margin: 0.15rem 0.5rem 0 0;
+  border: 1px solid rgba(var(--gilt-rgb), 0.85);
+  box-shadow: inset 0 0 0 3px var(--parchment-100), inset 0 0 0 4px rgba(var(--gilt-rgb), 0.5);
+}
+
 .choice-list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0;
   padding: 0;
   margin: 0 0 0.4rem;
   list-style: none;
+  border-top: 3px double var(--gilt-deep);
 }
 
+/* Ledger rows: no boxed card, just a ruled line and a gilt wash on hover/selection — the
+   choice list reads like an entry in a book rather than a stack of buttons. */
 .choice-button {
   display: flex;
   gap: 0.85rem;
   align-items: center;
   width: 100%;
   text-align: left;
-  background: rgba(255, 255, 255, 0.28);
-  border: 1px solid rgba(18, 21, 28, 0.16);
-  border-radius: 3px;
-  padding: 0.85rem 1rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.16);
+  padding: 0.85rem 0.6rem;
   font-size: 0.98rem;
   color: var(--text-on-surface);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .choice-button:hover:not(:disabled) {
-  border-color: var(--rubric);
+  background: rgba(var(--wash-rgb), 0.18);
+  box-shadow: inset 3px 0 0 var(--rubric);
 }
 
 .choice-button:disabled {
@@ -663,21 +752,20 @@ button {
 }
 
 .choice-button.is-correct {
-  border-color: var(--verdigris-400);
   background: rgba(78, 140, 124, 0.16);
+  box-shadow: inset 3px 0 0 var(--verdigris-400);
 }
 
 .choice-button.is-wrong {
-  border-color: var(--oxblood-600);
   background: rgba(92, 26, 43, 0.09);
+  box-shadow: inset 3px 0 0 var(--oxblood-600);
 }
 
-/* Dedicated muted-state colors rather than a blanket opacity — opacity dims the border and
-   chip along with the text uniformly, which is harder to keep intentional as more answer
-   states get added, and can't be tuned for contrast independently of the base colors. */
+/* Dedicated muted-state colors rather than a blanket opacity — opacity dims the chip along
+   with the text uniformly, which is harder to keep intentional as more answer states get
+   added, and can't be tuned for contrast independently of the base colors. */
 .choice-button.is-muted {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(18, 21, 28, 0.1);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .choice-button.is-muted .choice-text {
@@ -685,37 +773,23 @@ button {
 }
 
 .choice-button.is-muted .choice-chip {
-  border-color: rgba(18, 21, 28, 0.18);
-  background: rgba(255, 255, 255, 0.3);
   color: rgba(18, 21, 28, 0.35);
 }
 
 .choice-chip {
   flex: none;
-  width: 26px;
-  height: 26px;
-  border-radius: 2px;
-  border: 1px solid rgba(18, 21, 28, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 24px;
   font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(18, 21, 28, 0.6);
-  background: rgba(255, 255, 255, 0.5);
+  font-size: 1.15rem;
+  color: var(--rubric);
 }
 
 .is-correct .choice-chip {
-  border-color: var(--verdigris-400);
   color: #2f5e52;
-  background: rgba(78, 140, 124, 0.14);
 }
 
 .is-wrong .choice-chip {
-  border-color: var(--oxblood-600);
   color: var(--oxblood-600);
-  background: rgba(92, 26, 43, 0.08);
 }
 
 .choice-text {
@@ -743,27 +817,37 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.qcard-margin-timer {
+.qcard-margin-numeral {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-display);
-  font-size: 1.9rem;
-  color: var(--text-on-surface);
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: -0.3rem;
 }
 
-.qcard-margin-label {
-  margin: 0.1rem 0 1.2rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.qcard-margin-numeral > span:first-child {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  line-height: 0.9;
+  color: var(--rubric);
+}
+
+.qcard-margin-numeral-of {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
   color: var(--text-muted-on-surface);
 }
 
-.qcard-margin-divider {
+.qcard-margin-dial {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.qcard-margin-hairline {
   height: 1px;
-  background: rgba(var(--brass-500-rgb), 0.3);
-  margin-bottom: 1.2rem;
+  background: rgba(18, 21, 28, 0.15);
+  margin: 1.1rem 0;
 }
 
 .qcard-margin-stat {
@@ -784,6 +868,37 @@ button {
   font-family: var(--font-display);
   font-size: 1.4rem;
   color: var(--rubric);
+}
+
+.streak-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Body face, not display: IM Fell English's oldstyle zero draws as a small ring that reads
+   as "no value" rather than "0" — exactly the state a fresh run starts in. */
+.streak-pips-number {
+  margin-left: 0.35rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-on-surface);
+}
+
+.qcard-margin-score {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.qcard-margin-score-value {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--text-on-surface);
+  font-variant-numeric: tabular-nums;
 }
 
 .strikes {

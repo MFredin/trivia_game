@@ -583,14 +583,17 @@ export default function App() {
         <>
           {session.mode === 'duel' && <DuelOpponentStrip opponentUsername={duelOpponentUsername} live={opponentLive} />}
           <QuestionCard
+            key={session.id}
             question={question}
             timeLimitMs={session.timeLimitMs}
             issuedAt={issuedAt}
             timingMode={session.timingMode}
             sessionCreatedAt={session.createdAt}
+            mode={session.mode}
             streak={streak}
             strikes={strikes}
             maxStrikes={session.maxStrikes}
+            totalScore={totalScore}
             feedback={feedback}
             onSubmit={handleSubmit}
           />
