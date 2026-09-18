@@ -135,6 +135,9 @@ function build(house) {
   add('reveal incorrect heading', onbg, t('--ink-800'), 4.5, '.result-reveal.is-wrong h2');
   add('reveal points on panel', onbg, t('--ink-800'), 3.0, '.result-reveal .points');
   add('reveal explanation on panel', t('--ash-300'), t('--ink-900'), 4.5, '.result-reveal .explanation');
+  add('answer error message on panel', t('--text-on-bg'), t('--ink-800'), 4.5, '.answer-error-message');
+  add('answer error border on page', onbg, t('--ink-800'), 3.0, '.answer-error border');
+  add('choice pending note on parchment', mutedOnSurface, parch, 4.5, '.choice-pending');
   add('catalog tab label', over(hexrgb('#12151c'), t('--parchment-200'), 0.68), t('--parchment-200'), 4.5, '.catalog-tab');
 
   // fixed per-house colours, shown whatever the viewer's own binding is, so both

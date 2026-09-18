@@ -53,11 +53,21 @@ export default function QuestionCard({
   maxStrikes,
   totalScore,
   feedback,
+  submitPending,
   onSubmit,
 }) {
   const [remainingMs, setRemainingMs] = useState(timeLimitMs);
   const hasTimedOutRef = useRef(false);
   const anchor = timingMode === 'session_total' ? sessionCreatedAt : issuedAt;
+
+  // Read through a ref so the countdown below never lists onSubmit as a dependency. It used
+  // to: every re-render handed it a new function, so the effect tore itself down and rebuilt
+  // itself constantly, and each rebuild cleared hasTimedOutRef — the one guard standing
+  // between a expired clock and a second timeout submission for the same question.
+  const onSubmitRef = useRef(onSubmit);
+  useEffect(() => {
+    onSubmitRef.current = onSubmit;
+  }, [onSubmit]);
 
   useEffect(() => {
     hasTimedOutRef.current = false;
@@ -68,14 +78,14 @@ export default function QuestionCard({
       setRemainingMs(remaining);
       if (remaining === 0 && !hasTimedOutRef.current) {
         hasTimedOutRef.current = true;
-        onSubmit(-1);
+        onSubmitRef.current(-1);
       }
     };
 
     tick();
     const interval = setInterval(tick, 100);
     return () => clearInterval(interval);
-  }, [question.question_id, anchor, timeLimitMs, onSubmit]);
+  }, [question.question_id, anchor, timeLimitMs]);
 
   // The visible "page" (catalog tabs + spread) lags one tick behind `question` so it can
   // finish turning away from the old content before swapping in the new — see the page-turn
@@ -110,7 +120,7 @@ export default function QuestionCard({
   }, [flipPhase, isInstant]);
 
   const flipClass = flipPhase === 'out' ? 'is-turning-out' : flipPhase === 'in' ? 'is-turning-in' : '';
-  const inputLocked = Boolean(feedback) || flipPhase !== 'idle';
+  const inputLocked = Boolean(feedback) || flipPhase !== 'idle' || Boolean(submitPending);
   const total = FIXED_LENGTH[mode];
   const pipCount = Math.min(streak, MAX_STREAK_PIPS);
 
@@ -197,6 +207,8 @@ export default function QuestionCard({
               );
             })}
           </ul>
+          {/* A slow connection used to look exactly like a dead button. */}
+          {submitPending && !feedback && <p className="choice-pending">Sending your answer…</p>}
         </Plate>
       </div>
     </div>

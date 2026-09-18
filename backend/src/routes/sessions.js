@@ -8,7 +8,13 @@ import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { verifyQuestionToken } from '../lib/tokens.js';
 import { computeScore } from '../lib/scoring.js';
 import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
-import { pickNextQuestion, serveQuestion, getServedQuestionIds } from '../services/sessionQuestions.js';
+import {
+  pickNextQuestion,
+  serveQuestion,
+  getServedQuestionIds,
+  getPendingQuestion,
+  servedQuestionCount,
+} from '../services/sessionQuestions.js';
 import { requireAuth } from '../middleware/auth.js';
 import { sendToUser } from '../lib/wsServer.js';
 import { getOpponentSession, maybeFinishDuel } from '../services/duels.js';
@@ -16,6 +22,13 @@ import { evaluateAchievements } from '../services/achievements.js';
 import { recordActivity } from '../services/activity.js';
 
 const router = express.Router();
+
+// A question's clock starts when the player is handed the question (POST /:id/answer no
+// longer pre-serves the next one), but the handover itself still costs a round trip and a
+// page-turn animation before the choices are usable. This much slack keeps an answer that
+// was on time on the player's own dial from being scored as a timeout. It only widens the
+// timeout test — the speed bonus already clamps at zero remaining time.
+const TIMEOUT_GRACE_MS = 1500;
 
 function sessionSummary(session) {
   const modeConfig = MODES[session.mode];
@@ -108,6 +121,40 @@ router.get('/:id', async (req, res) => {
   return res.json(sessionSummary(rows[0]));
 });
 
+// Hands the player their next question and starts its clock. Called when they dismiss a
+// result, not when they submit the answer before it, so time spent reading an explanation
+// is never charged to the question that follows.
+//
+// Idempotent on purpose: if this session already has a served, unanswered question it comes
+// back unchanged, keeping its original issued_at. That makes the call safe to retry after a
+// dropped response without handing out a fresh 20 seconds.
+router.post('/:id/next', async (req, res) => {
+  try {
+    const { rows: sessionRows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
+    const session = sessionRows[0];
+    if (!session) return res.status(404).json({ error: 'session_not_found' });
+    if (session.status !== 'active') return res.status(409).json({ error: 'session_not_active' });
+
+    const questions = await getAllQuestions();
+
+    const pending = await getPendingQuestion({ session, questions });
+    if (pending) return res.json(pending);
+
+    const position = await servedQuestionCount(session.id);
+    if (position >= session.question_count) return res.status(409).json({ error: 'session_not_active' });
+
+    const excludeIds = await getServedQuestionIds(session.id);
+    const nextQuestion = pickNextQuestion({ session, questions, position, excludeIds });
+    if (!nextQuestion) return res.status(409).json({ error: 'no_eligible_questions' });
+
+    const served = await serveQuestion({ session, question: nextQuestion, position });
+    return res.json(served);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 router.post('/:id/answer', async (req, res) => {
   try {
     const { question_id, chosen_index, token } = req.body ?? {};
@@ -136,7 +183,7 @@ router.post('/:id/answer', async (req, res) => {
     const timingReference =
       modeConfig.timingMode === 'session_total' ? new Date(session.created_at) : issuedAt;
     const elapsedMs = Date.now() - timingReference.getTime();
-    const timedOut = elapsedMs > session.time_limit_ms;
+    const timedOut = elapsedMs > session.time_limit_ms + TIMEOUT_GRACE_MS;
     const correct = !timedOut && chosen_index === servedQuestion.correct_choice_index;
 
     const questions = await getAllQuestions();
@@ -167,17 +214,17 @@ router.post('/:id/answer', async (req, res) => {
     const sessionBudgetExhausted = modeConfig.timingMode === 'session_total' && timedOut;
     const isLastQuestion = reachedQuestionCap || reachedStrikeLimit || sessionBudgetExhausted;
 
-    let nextQuestionPayload = null;
+    // Deliberately only ASKS whether another question exists — it is POST /:id/next that
+    // actually serves one, when the player dismisses this result and is ready to read it.
+    // Serving here instead would start the next question's clock now, and every second the
+    // player spent reading this explanation would come out of it (see docs/answer-flow.md).
+    let nextAvailable = false;
     if (!isLastQuestion) {
       const excludeIds = await getServedQuestionIds(session.id);
-      const nextQuestion = pickNextQuestion({ session, questions, position: nextPosition, excludeIds });
-      if (nextQuestion) {
-        const served = await serveQuestion({ session, question: nextQuestion, position: nextPosition });
-        nextQuestionPayload = served;
-      }
+      nextAvailable = Boolean(pickNextQuestion({ session, questions, position: nextPosition, excludeIds }));
     }
 
-    const sessionComplete = isLastQuestion || !nextQuestionPayload;
+    const sessionComplete = isLastQuestion || !nextAvailable;
     const newBestStreak = Math.max(session.best_streak, streakAfter);
 
     const { rows: updatedRows } = await pool.query(
@@ -254,9 +301,6 @@ router.post('/:id/answer', async (req, res) => {
       correct_answer: questionMeta.correct_answer,
       explanation: questionMeta.explanation,
       session_complete: sessionComplete,
-      next: nextQuestionPayload
-        ? { question: nextQuestionPayload.question, token: nextQuestionPayload.token, issued_at: nextQuestionPayload.issued_at }
-        : null,
       session: sessionSummary(updatedSession),
     });
   } catch (err) {
