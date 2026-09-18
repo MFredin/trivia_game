@@ -256,3 +256,9 @@ export function rejectSuggestion(id, reviewNote, token) {
     token,
   );
 }
+
+// Which commit the API is running. Used by the colophon to show when the two services are
+// on different releases.
+export function getHealth() {
+  return request('/health');
+}

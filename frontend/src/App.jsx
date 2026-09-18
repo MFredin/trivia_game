@@ -31,6 +31,7 @@ import {
   declineDuel,
   fetchNextQuestion,
   getCategories,
+  getHealth,
   getLeaderboard,
   getMe,
   getPendingDuels,
@@ -41,6 +42,10 @@ import {
 } from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
+
+// Injected at build time by vite.config.js from Railway's RAILWAY_GIT_COMMIT_SHA. Falls back
+// to 'dev' for a local build, which is also how you can tell one at a glance.
+const BUILD_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : 'dev';
 
 const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
 
@@ -132,6 +137,10 @@ export default function App() {
   // --- achievements ---
   const [achievementQueue, setAchievementQueue] = useState([]);
 
+  // The backend's own commit. Shown beside the frontend's only when they differ, which is
+  // exactly the case worth noticing: half a release live.
+  const [apiBuild, setApiBuild] = useState(null);
+
   // --- Marauder's Map easter egg ---
   const [showMischief, setShowMischief] = useState(false);
   const secretBufferRef = useRef('');
@@ -140,6 +149,12 @@ export default function App() {
     getCategories()
       .then((data) => setCategories(data.categories))
       .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    getHealth()
+      .then((data) => setApiBuild(data?.commit ?? null))
+      .catch(() => setApiBuild(null));
   }, []);
 
   useEffect(() => {
@@ -821,6 +836,12 @@ export default function App() {
         <button type="button" className="colophon-link" onClick={() => setShowFeedback(true)}>
           Submit Feedback
         </button>
+        {/* Which build a player is actually looking at. Worth the seven characters: without
+            it, confirming a deploy reached the browser means diffing bundle hashes. */}
+        <p className="colophon-build" title={`frontend build ${BUILD_COMMIT}`}>
+          Set from <span>{BUILD_COMMIT}</span>
+          {apiBuild && apiBuild !== BUILD_COMMIT && <span> · api {apiBuild}</span>}
+        </p>
       </div>
       {showFeedback && (
         <FeedbackModal onClose={() => setShowFeedback(false)} token={authToken} page={screen} />
