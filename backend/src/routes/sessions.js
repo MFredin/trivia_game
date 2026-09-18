@@ -243,55 +243,10 @@ router.post('/:id/answer', async (req, res) => {
       ],
     );
     const updatedSession = updatedRows[0];
-    if (sessionComplete) {
-      invalidateLeaderboardCache();
-      await evaluateAchievements(session.user_id);
 
-      // Simplified on purpose: an all-time personal best across ANY mode/filter, not a true
-      // per-segment "best at this category+tier" check (that would mean replaying the
-      // leaderboard's own segmentation logic on every completion) — see
-      // docs/phase5-scaffold.md §2.
-      const { rows: bestRows } = await pool.query(
-        `SELECT max(total_score) AS prev_best FROM game_sessions WHERE user_id = $1 AND status = 'completed' AND id != $2`,
-        [session.user_id, session.id],
-      );
-      const prevBest = Number(bestRows[0].prev_best ?? 0);
-      if (newTotalScore > prevBest) {
-        await recordActivity(session.user_id, 'personal_best', { mode: session.mode, total_score: newTotalScore });
-      }
-
-      // social_challenge_group checks the challenge CREATOR's stats, not the player who just
-      // finished it — so a completion by anyone else needs to re-evaluate the creator too.
-      if (session.challenge_id) {
-        const { rows: challengeRows } = await pool.query('SELECT created_by FROM challenges WHERE id = $1', [
-          session.challenge_id,
-        ]);
-        const creatorId = challengeRows[0]?.created_by;
-        if (creatorId && creatorId !== session.user_id) {
-          await evaluateAchievements(creatorId);
-        }
-      }
-    }
-
-    if (session.duel_id) {
-      const opponentSession = await getOpponentSession(session.duel_id, session.user_id);
-      if (opponentSession) {
-        sendToUser(opponentSession.user_id, {
-          type: 'duel:opponent_progress',
-          duel_id: session.duel_id,
-          correct,
-          points,
-          running_total: newTotalScore,
-          streak: streakAfter,
-          session_complete: sessionComplete,
-        });
-      }
-      if (sessionComplete) {
-        await maybeFinishDuel(session.duel_id);
-      }
-    }
-
-    return res.json({
+    // The answer is recorded and the session's own row is up to date — everything the player
+    // is waiting on is settled, so answer them now.
+    res.json({
       correct,
       timed_out: timedOut,
       points,
@@ -303,8 +258,72 @@ router.post('/:id/answer', async (req, res) => {
       session_complete: sessionComplete,
       session: sessionSummary(updatedSession),
     });
+
+    // Everything past this point is bookkeeping the player's answer does not depend on:
+    // achievements, the personal-best activity entry, duel messaging. It used to run BEFORE
+    // the response, which meant a throw in any of it returned 500 for an answer that was
+    // already written and a session already marked completed — the player was told their
+    // answer failed, and every retry then got 409 because the run was over. That is the
+    // failure this ordering exists to prevent, so it gets its own catch and never reaches
+    // the handler's. Achievements recompute their aggregates from scratch on the next
+    // completion, so a miss here heals itself rather than being lost.
+    try {
+      if (sessionComplete) {
+        invalidateLeaderboardCache();
+        await evaluateAchievements(session.user_id);
+
+        // Simplified on purpose: an all-time personal best across ANY mode/filter, not a true
+        // per-segment "best at this category+tier" check (that would mean replaying the
+        // leaderboard's own segmentation logic on every completion) — see
+        // docs/phase5-scaffold.md §2.
+        const { rows: bestRows } = await pool.query(
+          `SELECT max(total_score) AS prev_best FROM game_sessions WHERE user_id = $1 AND status = 'completed' AND id != $2`,
+          [session.user_id, session.id],
+        );
+        const prevBest = Number(bestRows[0].prev_best ?? 0);
+        if (newTotalScore > prevBest) {
+          await recordActivity(session.user_id, 'personal_best', { mode: session.mode, total_score: newTotalScore });
+        }
+
+        // social_challenge_group checks the challenge CREATOR's stats, not the player who just
+        // finished it — so a completion by anyone else needs to re-evaluate the creator too.
+        if (session.challenge_id) {
+          const { rows: challengeRows } = await pool.query('SELECT created_by FROM challenges WHERE id = $1', [
+            session.challenge_id,
+          ]);
+          const creatorId = challengeRows[0]?.created_by;
+          if (creatorId && creatorId !== session.user_id) {
+            await evaluateAchievements(creatorId);
+          }
+        }
+      }
+
+      if (session.duel_id) {
+        const opponentSession = await getOpponentSession(session.duel_id, session.user_id);
+        if (opponentSession) {
+          sendToUser(opponentSession.user_id, {
+            type: 'duel:opponent_progress',
+            duel_id: session.duel_id,
+            correct,
+            points,
+            running_total: newTotalScore,
+            streak: streakAfter,
+            session_complete: sessionComplete,
+          });
+        }
+        if (sessionComplete) {
+          await maybeFinishDuel(session.duel_id);
+        }
+      }
+    } catch (bookkeepingErr) {
+      console.error('post-answer bookkeeping failed for session', session.id, bookkeepingErr);
+    }
+    return undefined;
   } catch (err) {
     console.error(err);
+    // The answer may already have been sent before this threw; a second write here would
+    // only turn a served response into an ERR_HTTP_HEADERS_SENT crash.
+    if (res.headersSent) return undefined;
     return res.status(500).json({ error: 'internal_error' });
   }
 });
