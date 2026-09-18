@@ -101,3 +101,64 @@ All five were re-checked end to end through the two-step flow.
 Blitz is the one mode the extra round trip costs anything, since it races a single 60-second
 budget. Its per-question `issued_at` is irrelevant there, so pre-serving would be safe for
 Blitz alone, but it is not worth a second code path unless the latency proves to matter.
+
+## Follow-up: the failure the error panel exposed
+
+Once failed answers became visible, one showed up on the last question of a real run with
+eleven seconds still on the clock. The panel had done its job; the underlying failure was
+still there.
+
+The completion bookkeeping ran **before** the response was sent:
+
+```
+UPDATE game_sessions ... status = 'completed'   <- the run is over, score recorded
+invalidateLeaderboardCache()
+await evaluateAchievements(...)                 <- ~10 queries + WebSocket sends
+await recordActivity('personal_best', ...)
+await maybeFinishDuel(...)
+res.json(...)                                   <- only now does the player hear anything
+```
+
+A throw anywhere in that block returned 500 for an answer that was already written against a
+session already marked `completed`. Confirmed by injecting a fault into
+`evaluateAchievements`:
+
+| | Before | After |
+|---|---|---|
+| Final answer | HTTP 500 | HTTP 200 |
+| Session row | `completed`, score recorded | `completed`, score recorded |
+| Retrying that answer | 409 `session_not_active` | not needed |
+| Player sees | an error on a run that actually finished | the summary |
+
+The response is now sent as soon as the answer and the session row are settled. The
+bookkeeping runs after, in its own catch, and a failure is logged rather than thrown at the
+player. Nothing is lost by deferring it: achievements recompute their aggregates from scratch
+on the next completion, so a miss heals itself.
+
+This was never a recent regression. No backend file changed on `main` in the day before the
+report; the design overhaul was frontend-only. The coupling dates to the achievements work
+(2026-09-11) and the activity feed (2026-09-14), and was simply invisible until failed
+answers started being shown.
+
+### Client hardening that came with it
+
+- **Transient failures are retried** (two backoffs, 400ms and 1200ms) before anything reaches
+  the screen, within a 20 second budget so a hung request cannot leave "Sending..." up for a
+  minute. A 4xx is never retried; the server understood and said no.
+- **Requests carry a 15 second timeout.** Without one, a request that never settles leaves the
+  caller stuck forever with no way to tell that from a slow one.
+- **Errors say what actually happened.** The client used to call `res.json()` straight away, so
+  a proxy's HTML 502 threw a parse error that hid the status behind "we couldn't reach the
+  server". The body is now read as text first, and the message distinguishes an unreachable
+  server, a timeout, a 5xx and a 429.
+
+Verified against four injected failures on the final answer:
+
+| Injected | Result |
+|---|---|
+| One dropped request | absorbed by the retry, no error shown, run continues |
+| Three dropped requests | "We couldn't reach the server while recording that answer." |
+| Three HTTP 500s | "The server hit an error recording that answer." |
+| Three HTML 502s | same, correctly read as a server error rather than a parse crash |
+
+In every case Try again reached the result and the run completed.

@@ -41,7 +41,40 @@ import {
 } from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
+
 const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
+
+// A dropped request on a phone is common and usually momentary. Riding out a couple of them
+// is the difference between a run that carries on and a run the player has to rescue by hand,
+// so transient failures (no response, 5xx, 429) are retried before anything reaches the screen.
+// A 4xx is never retried: the server understood and said no, and asking again cannot change it.
+const RETRY_DELAYS_MS = [400, 1200];
+// Retrying is only worth doing while the player would still rather wait than be told. Past
+// this, silence is worse than a message, so whatever went wrong gets reported instead of
+// retried again — three hung requests in a row would otherwise mean a minute of "Sending...".
+const RETRY_BUDGET_MS = 20000;
+
+async function withRetries(attempt) {
+  const startedAt = Date.now();
+  for (let i = 0; ; i++) {
+    try {
+      return await attempt();
+    } catch (err) {
+      const spent = Date.now() - startedAt;
+      if (!err?.transient || i >= RETRY_DELAYS_MS.length || spent > RETRY_BUDGET_MS) throw err;
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[i]));
+    }
+  }
+}
+
+function describeFailure(err, doing) {
+  if (err?.code === 'network_unreachable') {
+    return err.timedOut ? `The server took too long ${doing}.` : `We couldn't reach the server while ${doing}.`;
+  }
+  if (err?.status >= 500) return `The server hit an error ${doing}.`;
+  if (err?.status === 429) return `The server is busy. It couldn't keep up ${doing}.`;
+  return `Something went wrong ${doing}.`;
+}
 
 export default function App() {
   const [authToken, setAuthToken] = useState(null);
@@ -336,14 +369,14 @@ export default function App() {
   // on a question that is, as far as the server is concerned, behind them.
   const recoverFromStaleAnswer = async () => {
     try {
-      const live = await getSession(session.id);
+      const live = await withRetries(() => getSession(session.id));
       if (live.status === 'completed') {
         setAnswerError(null);
         await finishRun();
         return true;
       }
       // Still running: the answer landed and the next question is ours to ask for.
-      const next = await fetchNextQuestion(session.id);
+      const next = await withRetries(() => fetchNextQuestion(session.id));
       setQuestion(next.question);
       setToken(next.token);
       setIssuedAt(next.issued_at);
@@ -362,11 +395,13 @@ export default function App() {
       setSubmitPending(true);
       setAnswerError(null);
       try {
-        const result = await submitAnswer(session.id, {
-          questionId: question.question_id,
-          chosenIndex,
-          token,
-        });
+        const result = await withRetries(() =>
+          submitAnswer(session.id, {
+            questionId: question.question_id,
+            chosenIndex,
+            token,
+          }),
+        );
         const correctIndex = question.choices.indexOf(result.correct_answer);
         setFeedback({
           correct: result.correct,
@@ -396,10 +431,7 @@ export default function App() {
           return;
         }
         setAnswerError({
-          message:
-            chosenIndex === -1
-              ? "Time ran out, but we couldn't reach the server to record it."
-              : "We couldn't reach the server to record that answer.",
+          message: describeFailure(err, chosenIndex === -1 ? 'recording your timeout' : 'recording that answer'),
           retryable: true,
           chosenIndex,
         });
@@ -450,7 +482,7 @@ export default function App() {
     setAnswerError(null);
     setSubmitPending(true);
     try {
-      const next = await fetchNextQuestion(session.id);
+      const next = await withRetries(() => fetchNextQuestion(session.id));
       setQuestion(next.question);
       setToken(next.token);
       setIssuedAt(next.issued_at);
@@ -461,7 +493,7 @@ export default function App() {
         return;
       }
       setAnswerError({
-        message: "We couldn't load the next question.",
+        message: describeFailure(err, 'loading the next question'),
         retryable: true,
         continueInstead: true,
       });
