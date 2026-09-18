@@ -104,3 +104,34 @@ export async function getServedQuestionIds(sessionId) {
   );
   return new Set(rows.map((r) => r.question_id));
 }
+
+// The question a session is currently sitting on: served but not yet answered. Returned
+// as-is, with its ORIGINAL issued_at, so asking for it twice can never hand a player a
+// fresh clock — that would make a reload worth free time.
+export async function getPendingQuestion({ session, questions }) {
+  const { rows } = await pool.query(
+    `SELECT * FROM session_questions
+     WHERE session_id = $1 AND answered_at IS NULL
+     ORDER BY position ASC
+     LIMIT 1`,
+    [session.id],
+  );
+  const served = rows[0];
+  if (!served) return null;
+  const question = questions.find((q) => q.id === served.question_id);
+  if (!question) return null;
+
+  const issuedAt = new Date(served.issued_at);
+  return {
+    question: toClientQuestion(question, served.choice_order, served.position),
+    token: signQuestionToken({ sessionId: session.id, questionId: question.id, issuedAt }),
+    issued_at: issuedAt.toISOString(),
+  };
+}
+
+export async function servedQuestionCount(sessionId) {
+  const { rows } = await pool.query('SELECT count(*)::int AS n FROM session_questions WHERE session_id = $1', [
+    sessionId,
+  ]);
+  return rows[0].n;
+}

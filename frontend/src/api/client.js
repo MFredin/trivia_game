@@ -177,6 +177,16 @@ export function createSession({ mode, category, canonSource, difficulty }, token
   );
 }
 
+// Asks the server for the next question, which is also what starts its clock — so this is
+// called when the player dismisses a result, never earlier.
+export function fetchNextQuestion(sessionId) {
+  return request(`/sessions/${sessionId}/next`, { method: 'POST' });
+}
+
+export function getSession(sessionId) {
+  return request(`/sessions/${sessionId}`);
+}
+
 export function submitAnswer(sessionId, { questionId, chosenIndex, token: questionToken }) {
   return request(`/sessions/${sessionId}/answer`, {
     method: 'POST',

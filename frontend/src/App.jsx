@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import NavBar from './components/NavBar.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import StartScreen from './components/StartScreen.jsx';
@@ -29,10 +29,12 @@ import {
   createDuel,
   createSession,
   declineDuel,
+  fetchNextQuestion,
   getCategories,
   getLeaderboard,
   getMe,
   getPendingDuels,
+  getSession,
   startChallenge,
   submitAnswer,
   updateTheme,
@@ -70,7 +72,15 @@ export default function App() {
   const [answeredCount, setAnsweredCount] = useState(0);
   const [runCorrectness, setRunCorrectness] = useState([]);
   const [feedback, setFeedback] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
+  // A ref, not state: the countdown's own timeout submission can fire from a closure that
+  // was captured before a state update committed, and would sail straight past a `submitting`
+  // state check and post a second answer for the same question.
+  const submitLockRef = useRef(false);
+  const [submitPending, setSubmitPending] = useState(false);
+  // Anything that stops an answer from landing. It is rendered ON THE QUESTION SCREEN — the
+  // bug this replaced put it in `startError`, which only the start screen renders, so a failed
+  // answer left the player tapping live-looking choices forever with nothing on screen.
+  const [answerError, setAnswerError] = useState(null);
 
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardScope, setLeaderboardScope] = useState('global');
@@ -185,6 +195,7 @@ export default function App() {
           setAnsweredCount(0);
           setRunCorrectness([]);
           setFeedback(null);
+          setAnswerError(null);
           setOpponentLive(null);
           setDuelResult(null);
           setOutgoingDuel(null);
@@ -277,6 +288,7 @@ export default function App() {
       setAnsweredCount(0);
       setRunCorrectness([]);
       setFeedback(null);
+      setAnswerError(null);
       setScreen('question');
     } catch (err) {
       if (err.code === 'unauthorized') {
@@ -315,43 +327,90 @@ export default function App() {
     setAnsweredCount(0);
     setRunCorrectness([]);
     setFeedback(null);
+    setAnswerError(null);
     setScreen('question');
   };
 
-  const handleSubmit = async (chosenIndex) => {
-    if (submitting || feedback) return;
-    setSubmitting(true);
+  // A submission the server already recorded, whose response we never saw. Retrying it can
+  // only ever 409 again, so read the run's real state instead of leaving the player stranded
+  // on a question that is, as far as the server is concerned, behind them.
+  const recoverFromStaleAnswer = async () => {
     try {
-      const result = await submitAnswer(session.id, {
-        questionId: question.question_id,
-        chosenIndex,
-        token,
-      });
-      const correctIndex = question.choices.indexOf(result.correct_answer);
-      setFeedback({
-        correct: result.correct,
-        timedOut: result.timed_out,
-        points: result.points,
-        correctIndex,
-        chosenIndex,
-        correctAnswer: result.correct_answer,
-        explanation: result.explanation,
-        sessionComplete: result.session_complete,
-        next: result.next,
-      });
-      setStreak(result.streak);
-      setBestStreak(result.session.best_streak);
-      setStrikes(result.strikes);
-      setTotalScore(result.running_total);
-      setAnsweredCount((n) => n + 1);
-      if (result.correct) setCorrectCount((n) => n + 1);
-      setRunCorrectness((arr) => [...arr, result.correct]);
-    } catch (err) {
-      setStartError('Lost connection to the server — your progress up to this point is saved.');
-    } finally {
-      setSubmitting(false);
+      const live = await getSession(session.id);
+      if (live.status === 'completed') {
+        setAnswerError(null);
+        await finishRun();
+        return true;
+      }
+      // Still running: the answer landed and the next question is ours to ask for.
+      const next = await fetchNextQuestion(session.id);
+      setQuestion(next.question);
+      setToken(next.token);
+      setIssuedAt(next.issued_at);
+      setFeedback(null);
+      setAnswerError(null);
+      return true;
+    } catch {
+      return false;
     }
   };
+
+  const handleSubmit = useCallback(
+    async (chosenIndex) => {
+      if (submitLockRef.current || feedback) return;
+      submitLockRef.current = true;
+      setSubmitPending(true);
+      setAnswerError(null);
+      try {
+        const result = await submitAnswer(session.id, {
+          questionId: question.question_id,
+          chosenIndex,
+          token,
+        });
+        const correctIndex = question.choices.indexOf(result.correct_answer);
+        setFeedback({
+          correct: result.correct,
+          timedOut: result.timed_out,
+          points: result.points,
+          correctIndex,
+          chosenIndex,
+          correctAnswer: result.correct_answer,
+          explanation: result.explanation,
+          sessionComplete: result.session_complete,
+        });
+        setStreak(result.streak);
+        setBestStreak(result.session.best_streak);
+        setStrikes(result.strikes);
+        setTotalScore(result.running_total);
+        setAnsweredCount((n) => n + 1);
+        if (result.correct) setCorrectCount((n) => n + 1);
+        setRunCorrectness((arr) => [...arr, result.correct]);
+      } catch (err) {
+        if (err.code === 'already_answered' || err.code === 'session_not_active') {
+          const recovered = await recoverFromStaleAnswer();
+          if (recovered) return;
+          setAnswerError({
+            message: 'That answer already reached us, but we lost the reply. Your run is safe.',
+            retryable: false,
+          });
+          return;
+        }
+        setAnswerError({
+          message:
+            chosenIndex === -1
+              ? "Time ran out, but we couldn't reach the server to record it."
+              : "We couldn't reach the server to record that answer.",
+          retryable: true,
+          chosenIndex,
+        });
+      } finally {
+        submitLockRef.current = false;
+        setSubmitPending(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [session?.id, question?.question_id, token, feedback],
+  );
 
   const fetchLeaderboard = async (scope, window) => {
     const data = await getLeaderboard(
@@ -364,20 +423,68 @@ export default function App() {
     setLeaderboardWindow(window);
   };
 
-  const handleContinue = async () => {
-    if (feedback.sessionComplete) {
-      if (session.mode === 'duel') {
-        setScreen('duel-summary');
-        return;
-      }
-      await fetchLeaderboard('global', 'current');
-      setScreen('summary');
+  // The run is over on the server; get the player to their result. The leaderboard is a
+  // courtesy here, so a failure to load it must never be what stands between a finished run
+  // and its summary — that was the other way this screen could dead-end.
+  const finishRun = async () => {
+    if (session.mode === 'duel') {
+      setScreen('duel-summary');
       return;
     }
-    setQuestion(feedback.next.question);
-    setToken(feedback.next.token);
-    setIssuedAt(feedback.next.issued_at);
+    try {
+      await fetchLeaderboard('global', 'current');
+    } catch {
+      setLeaderboard([]);
+    }
+    setScreen('summary');
+  };
+
+  const handleContinue = async () => {
+    if (feedback.sessionComplete) {
+      setAnswerError(null);
+      await finishRun();
+      return;
+    }
+    // Asking for the next question is what starts its clock, so it happens here — when the
+    // player has finished reading and is ready — not back when they submitted the last answer.
+    setAnswerError(null);
+    setSubmitPending(true);
+    try {
+      const next = await fetchNextQuestion(session.id);
+      setQuestion(next.question);
+      setToken(next.token);
+      setIssuedAt(next.issued_at);
+      setFeedback(null);
+    } catch (err) {
+      if (err.code === 'session_not_active') {
+        await finishRun();
+        return;
+      }
+      setAnswerError({
+        message: "We couldn't load the next question.",
+        retryable: true,
+        continueInstead: true,
+      });
+    } finally {
+      setSubmitPending(false);
+    }
+  };
+
+  const handleRetryAnswer = () => {
+    if (!answerError?.retryable) return;
+    if (answerError.continueInstead) {
+      handleContinue();
+      return;
+    }
+    handleSubmit(answerError.chosenIndex);
+  };
+
+  const handleAbandonRun = () => {
+    setAnswerError(null);
+    setSession(null);
+    setQuestion(null);
     setFeedback(null);
+    setScreen('start');
   };
 
   const handlePlayAgain = () => {
@@ -448,6 +555,7 @@ export default function App() {
       setAnsweredCount(0);
       setRunCorrectness([]);
       setFeedback(null);
+      setAnswerError(null);
       setOpponentLive(null);
       setDuelResult(null);
       setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
@@ -613,8 +721,24 @@ export default function App() {
             maxStrikes={session.maxStrikes}
             totalScore={totalScore}
             feedback={feedback}
+            submitPending={submitPending}
             onSubmit={handleSubmit}
           />
+          {answerError && (
+            <div className="answer-error" role="alert">
+              <p className="answer-error-message">{answerError.message}</p>
+              <div className="answer-error-actions">
+                {answerError.retryable && (
+                  <button type="button" className="primary-button" onClick={handleRetryAnswer} disabled={submitPending}>
+                    {submitPending ? 'Trying…' : 'Try again'}
+                  </button>
+                )}
+                <button type="button" className="secondary-button" onClick={handleAbandonRun}>
+                  Leave this run
+                </button>
+              </div>
+            </div>
+          )}
           {feedback && (
             <ResultReveal
               correct={feedback.correct}
