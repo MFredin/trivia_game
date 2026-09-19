@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
-import { getProfile } from '../api/client.js';
+import { getProfile } from '../api/profile.js';
 import { HOUSES } from '../constants/houses.js';
 
 const HOUSE_BY_ID = Object.fromEntries(HOUSES.map((h) => [h.id, h]));

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
 import { HOUSES } from '../constants/houses.js';
-import { getInviteCode } from '../api/client.js';
+import { getInviteCode } from '../api/auth.js';
 
 export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnProfile }) {
   const [inviteCode, setInviteCode] = useState(null);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
-import { getAchievements } from '../api/client.js';
+import { getAchievements } from '../api/catalog.js';
 
 function LockIcon() {
   return (

@@ -10,6 +10,15 @@ import DuelInviteBanner from './components/DuelInviteBanner.jsx';
 import AchievementToast from './components/AchievementToast.jsx';
 import Embers from './components/Embers.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
+import { duelReactionLabel } from './constants/duelReactions.js';
+import { DEFAULT_HOUSE } from './constants/houses.js';
+import { getMe, updateTheme } from './api/auth.js';
+import { getCategories } from './api/catalog.js';
+import { startChallenge } from './api/challenges.js';
+import { acceptDuel, createDuel, declineDuel, getPendingDuels } from './api/duels.js';
+import { getHealth } from './api/health.js';
+import { getLeaderboard } from './api/leaderboard.js';
+import { createSession, fetchNextQuestion, getSession, spendLifeline, submitAnswer } from './api/sessions.js';
 
 // Fetched on demand. All of this used to sit in the first bundle, so every player on a phone
 // downloaded the admin review queue, the suggestion form, the whole Friends panel and the
@@ -33,26 +42,6 @@ const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
 // so fetching a chunk never blanks the nav bar or a run already in progress. Modals fall back
 // to nothing at all: a placeholder where a dialog is about to appear reads as a glitch.
 const screenFallback = <p className="screen-loading">Fetching&hellip;</p>;
-
-import { duelReactionLabel } from './constants/duelReactions.js';
-import { DEFAULT_HOUSE } from './constants/houses.js';
-import {
-  acceptDuel,
-  createDuel,
-  createSession,
-  declineDuel,
-  fetchNextQuestion,
-  getCategories,
-  getHealth,
-  getLeaderboard,
-  getMe,
-  getPendingDuels,
-  getSession,
-  spendLifeline,
-  startChallenge,
-  submitAnswer,
-  updateTheme,
-} from './api/client.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
 

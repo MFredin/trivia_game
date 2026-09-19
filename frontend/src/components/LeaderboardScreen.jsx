@@ -4,7 +4,8 @@ import Leaderboard from './Leaderboard.jsx';
 import DuelLeaderboard from './DuelLeaderboard.jsx';
 import HouseCupBoard from './HouseCupBoard.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
-import { getDuelLeaderboard, getHouseCup, getLeaderboard } from '../api/client.js';
+import { getDuelLeaderboard } from '../api/duels.js';
+import { getHouseCup, getLeaderboard } from '../api/leaderboard.js';
 
 const MODES = [
   { value: 'classic', label: 'Classic Quiz' },

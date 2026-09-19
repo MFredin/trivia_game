@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
-import {
-  acceptFriendRequest,
-  addFriend,
-  declineFriendRequest,
-  getActivity,
-  getAllMembers,
-  getFriendRequests,
-  getOnlineMembers,
-  listFriends,
-  removeFriend,
-  searchMembers,
-} from '../api/client.js';
+import { getActivity } from '../api/activity.js';
+import { acceptFriendRequest, addFriend, declineFriendRequest, getAllMembers, getFriendRequests, getOnlineMembers, listFriends, removeFriend, searchMembers } from '../api/friends.js';
 
 const ONLINE_POLL_MS = 15000;
 const MEMBERS_PAGE_SIZE = 30;

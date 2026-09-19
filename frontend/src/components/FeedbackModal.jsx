@@ -1,6 +1,6 @@
 import Modal from './Modal.jsx';
 import { useState } from 'react';
-import { submitFeedback } from '../api/client.js';
+import { submitFeedback } from '../api/feedback.js';
 
 export default function FeedbackModal({ onClose, token, page }) {
   const [category, setCategory] = useState('other');
