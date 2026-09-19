@@ -1,0 +1,55 @@
+/* --- lifelines ---------------------------------------------------------------------- */
+/* On the parchment spread, so on-parchment roles throughout. */
+.lifelines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(var(--rubric-rgb), 0.18);
+}
+
+.lifeline-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  background: none;
+  border: 1px solid var(--rubric);
+  border-radius: 3px;
+  padding: 0.45rem 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--rubric);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lifeline-btn:hover:not(:disabled) {
+  background: rgba(var(--rubric-rgb), 0.08);
+}
+
+.lifeline-btn:disabled {
+  cursor: default;
+  border-color: var(--text-muted-on-surface);
+  color: var(--text-muted-on-surface);
+}
+
+.lifeline-cost {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}
+
+/* A choice removed by a 50-50. Struck and dimmed rather than deleted, so the spread does
+   not reflow under the player while they are reading it. */
+.choice-button.is-struck .choice-text,
+.choice-button.is-struck .choice-chip {
+  text-decoration: line-through;
+  color: var(--text-muted-on-surface);
+}
+
+.choice-button.is-struck {
+  cursor: default;
+}

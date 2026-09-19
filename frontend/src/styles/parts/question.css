@@ -1,0 +1,564 @@
+/* --- catalog tabs (category/tier metadata, sitting on the plate's edge) --- */
+/* --- page-turn transition between questions --- */
+.page-flip-stage {
+  perspective: 1100px;
+}
+
+.page-flip {
+  position: relative;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transform-origin: left center;
+}
+
+/* A shadow that sweeps across the page as it lifts and turns, like light catching a moving
+   sheet of paper — without this the rotation alone reads as a flat card tilting, not a page. */
+.page-flip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgba(0, 0, 0, 0.4) 0%, transparent 45%);
+  opacity: 0;
+}
+
+.page-flip.is-turning-out {
+  animation: page-turn-out 480ms cubic-bezier(0.5, 0.05, 0.65, 0.3) forwards;
+}
+
+.page-flip.is-turning-out::after {
+  animation: page-shadow-sweep 480ms cubic-bezier(0.5, 0.05, 0.65, 0.3) forwards;
+}
+
+.page-flip.is-turning-in {
+  animation: page-turn-in 560ms cubic-bezier(0.2, 0.55, 0.35, 1) forwards;
+}
+
+.page-flip.is-turning-in::after {
+  animation: page-shadow-sweep 560ms cubic-bezier(0.2, 0.55, 0.35, 1) forwards;
+}
+
+@keyframes page-turn-out {
+  0% {
+    transform: rotateY(0deg) translateY(0);
+    filter: brightness(1);
+  }
+  65% {
+    transform: rotateY(-60deg) translateY(-10px);
+    filter: brightness(0.88);
+  }
+  100% {
+    transform: rotateY(-96deg) translateY(0);
+    filter: brightness(0.65);
+  }
+}
+
+@keyframes page-turn-in {
+  0% {
+    transform: rotateY(96deg) translateY(0);
+    filter: brightness(0.65);
+  }
+  40% {
+    transform: rotateY(45deg) translateY(-10px);
+    filter: brightness(0.85);
+  }
+  100% {
+    transform: rotateY(0deg) translateY(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes page-shadow-sweep {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Blitz races the clock against a single shared budget, so a leisurely page-turn on every
+   question would eat real seconds out of the run — swap instantly there instead. */
+.page-flip-stage.is-instant .page-flip.is-turning-out,
+.page-flip-stage.is-instant .page-flip.is-turning-in {
+  animation-duration: 1ms;
+}
+
+.page-flip-stage.is-instant .page-flip.is-turning-out::after,
+.page-flip-stage.is-instant .page-flip.is-turning-in::after {
+  animation-duration: 1ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-flip.is-turning-out,
+  .page-flip.is-turning-in,
+  .page-flip.is-turning-out::after,
+  .page-flip.is-turning-in::after {
+    animation: none;
+  }
+}
+
+.catalog-tabs {
+  display: flex;
+  gap: 6px;
+  padding-left: 20px;
+}
+
+.catalog-tab {
+  position: relative;
+  top: 1px;
+  background: var(--parchment-200);
+  border: 1px solid rgba(18, 21, 28, 0.2);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  padding: 0.45rem 0.85rem 0.6rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(18, 21, 28, 0.68);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.catalog-tab--divergence {
+  color: var(--success-ink);
+  border-color: rgba(78, 140, 124, 0.5);
+  background: #dfe9e5;
+}
+
+.book-spread--tabbed {
+  border-top-left-radius: 0;
+}
+
+.book-spread--tabbed .book-spread-leaf.left .plate-corner.tl {
+  display: none;
+}
+
+/* The margin leaf's cloth spine: a 30px strip along its own left edge, echoing the Start
+   room's book spines and the profile's Ex Libris board — the same house cloth + tooling
+   formula from tokens.css, never an image file. */
+.book-spread--tabbed .book-spread-leaf.left {
+  padding-left: 2.5rem;
+}
+
+.book-spread--tabbed .book-spread-leaf.left::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px),
+    var(--cloth);
+  box-shadow: inset -5px 0 8px -5px rgba(0, 0, 0, 0.55);
+}
+
+.book-spread--tabbed .book-spread-leaf.left::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 9px;
+  width: 1px;
+  background: rgba(var(--tooling-rgb), 0.85);
+  box-shadow: 10px 0 0 rgba(var(--tooling-rgb), 0.4);
+}
+
+.question-text {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1.32;
+  letter-spacing: -0.005em;
+  margin: 0.25rem 0 1.75rem;
+  text-align: left;
+}
+
+/* The rubricated initial: a large boxed capital in the wayfinding colour, framed in gilt —
+   the manuscript convention Second Edition borrows for every question. */
+.has-rubric-initial::first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-size: 2.9rem;
+  line-height: 0.78;
+  color: var(--rubric);
+  padding: 0.3rem 0.4rem 0.15rem 0.3rem;
+  margin: 0.15rem 0.5rem 0 0;
+  border: 1px solid rgba(var(--gilt-rgb), 0.85);
+  box-shadow: inset 0 0 0 3px var(--parchment-100), inset 0 0 0 4px rgba(var(--gilt-rgb), 0.5);
+}
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  margin: 0 0 0.4rem;
+  list-style: none;
+  border-top: 3px double var(--gilt-deep);
+}
+
+/* Ledger rows: no boxed card, just a ruled line and a gilt wash on hover/selection — the
+   choice list reads like an entry in a book rather than a stack of buttons. */
+.choice-button {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.16);
+  padding: 0.85rem 0.6rem;
+  font-size: 0.98rem;
+  color: var(--text-on-surface);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.choice-button:hover:not(:disabled) {
+  background: rgba(var(--wash-rgb), 0.18);
+  box-shadow: inset 3px 0 0 var(--rubric);
+}
+
+.choice-button:disabled {
+  cursor: default;
+}
+
+.choice-button.is-correct {
+  background: rgba(78, 140, 124, 0.16);
+  box-shadow: inset 3px 0 0 var(--verdigris-400);
+}
+
+.choice-button.is-wrong {
+  background: rgba(92, 26, 43, 0.09);
+  box-shadow: inset 3px 0 0 var(--oxblood-600);
+}
+
+/* Dedicated muted-state colors rather than a blanket opacity — opacity dims the chip along
+   with the text uniformly, which is harder to keep intentional as more answer states get
+   added, and can't be tuned for contrast independently of the base colors. */
+.choice-button.is-muted {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.choice-button.is-muted .choice-text {
+  color: var(--text-muted-on-surface);
+}
+
+.choice-button.is-muted .choice-chip {
+  color: rgba(18, 21, 28, 0.35);
+}
+
+.choice-chip {
+  flex: none;
+  width: 24px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--rubric);
+}
+
+.is-correct .choice-chip {
+  color: var(--success-ink);
+}
+
+.is-wrong .choice-chip {
+  color: var(--oxblood-600);
+}
+
+.choice-text {
+  flex: 1;
+}
+
+.choice-mark {
+  flex: none;
+  margin-left: auto;
+}
+
+.is-correct .choice-mark {
+  color: var(--success-ink);
+}
+
+.is-wrong .choice-mark {
+  color: var(--oxblood-600);
+}
+
+/* --- the question card's margin panel: the left leaf of its book-spread --- */
+.qcard-margin {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+.qcard-margin-numeral {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: -0.3rem;
+}
+
+.qcard-margin-numeral > span:first-child {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  line-height: 0.9;
+  color: var(--rubric);
+}
+
+.qcard-margin-numeral-of {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--text-muted-on-surface);
+}
+
+.qcard-margin-dial {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.qcard-margin-hairline {
+  height: 1px;
+  background: rgba(18, 21, 28, 0.15);
+  margin: 1.1rem 0;
+}
+
+.qcard-margin-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1.1rem;
+}
+
+.qcard-margin-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}
+
+.qcard-margin-stat-value {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--rubric);
+}
+
+.streak-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Body face, not display: IM Fell English's oldstyle zero draws as a small ring that reads
+   as "no value" rather than "0" — exactly the state a fresh run starts in. */
+.streak-pips-number {
+  margin-left: 0.35rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-on-surface);
+}
+
+.qcard-margin-score {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.qcard-margin-score-value {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--text-on-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.strikes {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.strike-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--oxblood-600);
+  background: transparent;
+}
+
+.strike-dot.is-used {
+  background: var(--oxblood-600);
+}
+
+/* --- verdict panel (answer reveal) --- */
+.result-reveal {
+  position: relative;
+  margin-top: 1.4rem;
+  background: linear-gradient(180deg, var(--ink-800) 0%, var(--ink-900) 100%);
+  border: 1px solid rgba(78, 140, 124, 0.35);
+  border-radius: 3px;
+  padding: 1.9rem 2rem 2.1rem;
+  text-align: center;
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.7);
+  animation: reveal-settle 0.35s ease-out;
+}
+
+.result-reveal.is-wrong {
+  border-color: rgba(92, 26, 43, 0.5);
+}
+
+@keyframes reveal-settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.result-reveal h2 {
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--verdigris-400);
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+}
+
+.result-reveal.is-wrong h2 {
+  color: var(--onbg);
+}
+
+.result-reveal .points {
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  font-weight: 600;
+  color: var(--onbg);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
+}
+
+.explanation {
+  color: var(--ash-300);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  max-width: 420px;
+  margin: 0 auto 1.4rem;
+}
+
+.explanation b {
+  color: var(--parchment-100);
+  font-weight: 600;
+}
+
+/* Text sitting on the parchment plate (or a book-spread leaf, same parchment surface)
+   needs the darker muted tone, not the ash tone tuned for the dark page background. */
+.plate .explanation,
+.book-spread-leaf .explanation {
+  color: var(--text-muted-on-surface);
+  margin: 0 0 1rem;
+  max-width: none;
+}
+
+.plate .explanation b,
+.book-spread-leaf .explanation b {
+  color: var(--text-on-surface);
+}
+
+.leaderboard-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ledger-divider {
+  height: 1px;
+  background: rgba(18, 21, 28, 0.14);
+  margin: 0 -1.75rem 0.5rem;
+}
+
+.start-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.start-form label,
+.start-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.start-form label,
+.field-label {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  color: rgba(36, 27, 16, 0.7);
+}
+
+.start-form input,
+.start-form select,
+.start-form textarea {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--text-on-surface);
+  border: none;
+  border-bottom: 2px solid var(--brass-500);
+  border-radius: 0;
+  padding: 0.6rem 0.3rem;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.start-form textarea {
+  resize: vertical;
+  width: 100%;
+}
+
+.invite-link-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.share-fallback-textarea {
+  display: block;
+  width: min(100%, 420px);
+  margin-top: 0.6rem;
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--text-on-surface);
+  border: none;
+  border-bottom: 2px solid var(--brass-500);
+  border-radius: 0;
+  padding: 0.6rem 0.3rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.invite-link-row input {
+  flex: 1 1 260px;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--text-on-surface);
+  border: none;
+  border-bottom: 2px solid var(--brass-500);
+  border-radius: 0;
+  padding: 0.6rem 0.3rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}

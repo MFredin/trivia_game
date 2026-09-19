@@ -1,0 +1,173 @@
+/* --- persistent nav: a printed running header, not a web app bar ---
+   Deliberately silver rather than house-brass: this is the app's own chrome (wordmark,
+   page links, filter pills), not the game surface, so it stays one consistent metal
+   regardless of which house binding is active — house color is reserved for plates,
+   buttons and corner brackets. */
+.running-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.4rem;
+  margin: -0.5rem -0.25rem 2.2rem;
+  padding: 0 0.25rem 0.9rem;
+  border-bottom: 1px solid rgba(var(--silver-400-rgb), 0.4);
+}
+
+.running-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  color: var(--silver-200);
+  cursor: pointer;
+}
+
+/* The house device sits in the nav as silver chrome, never house colour — same rule as
+   the rest of the running header. */
+.running-title .house-device {
+  color: var(--silver-200);
+  flex: none;
+}
+
+.running-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.3rem;
+}
+
+.running-nav button {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  color: var(--silver-400);
+  background: none;
+  border: none;
+  padding: 0 0 0.65rem;
+  position: relative;
+}
+
+.running-nav button:hover {
+  color: var(--text-on-bg);
+}
+
+.running-nav button.on {
+  color: var(--silver-200);
+}
+
+.running-nav button.on::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--silver-200);
+}
+
+/* --- generic filter-toggle pills (leaderboard scope/window switches). Default styling sits on
+   the dark page; add .on-surface when nesting a .nav-links row inside a <Plate> instead. --- */
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--silver-400);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(var(--silver-400-rgb), 0.3);
+  border-radius: 2px;
+  padding: 0.5rem 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.nav-btn:hover {
+  border-color: rgba(var(--silver-400-rgb), 0.55);
+  color: var(--text-on-bg);
+}
+
+.nav-btn.is-active {
+  color: var(--silver-200);
+  border-color: var(--silver-200);
+  background: rgba(var(--silver-400-rgb), 0.12);
+}
+
+/* On-surface variant — for a .nav-links row nested inside a <Plate> (light parchment), where
+   the silver chrome above is calibrated for the dark page and goes low-contrast. Colors match
+   the rest of the on-surface system (ink-based text, brass accent for the active state), the
+   same way --text-muted-on-surface already exists as the on-surface counterpart to the page's
+   own muted tone. */
+.nav-links.on-surface .nav-btn {
+  color: var(--text-muted-on-surface);
+  background: rgba(18, 21, 28, 0.03);
+  border-color: rgba(18, 21, 28, 0.22);
+}
+
+.nav-links.on-surface .nav-btn:hover {
+  border-color: rgba(18, 21, 28, 0.4);
+  color: var(--text-on-surface);
+}
+
+.nav-links.on-surface .nav-btn.is-active {
+  color: var(--text-on-surface);
+  border-color: var(--rubric);
+  background: rgba(var(--brass-500-rgb), 0.1);
+}
+
+.screen-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1.5rem;
+}
+
+/* Rubric labels. On the dark page they take the house's on-page accent (rubric proper is
+   calibrated for parchment and goes low-contrast on the page for several houses — the same
+   trap design-audit finding #2 was about); nested in a plate or modal they take rubric. */
+.screen-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--onbg);
+  margin: 0 0 0.4rem;
+}
+
+.plate .screen-eyebrow,
+.book-spread .screen-eyebrow,
+.modal-plate .screen-eyebrow {
+  color: var(--rubric);
+}
+
+.screen-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1;
+  margin: 0;
+  color: #f2e4c4;
+}
+
+.plate .screen-title,
+.book-spread .screen-title,
+.modal-plate .screen-title {
+  color: var(--text-on-surface);
+}
+
+/* --- rules: the two double-rule primitives from the design system --- */
+.rule-rubric {
+  height: 4px;
+  border-top: 2px solid var(--rubric);
+  border-bottom: 1px solid var(--rubric);
+}

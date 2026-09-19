@@ -1,0 +1,53 @@
+/* --- shared centered-modal shell — the Marauder's Map easter egg reveal was the first user of
+   this, "Submit Feedback" is the second, hence the generic names --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 6, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 50;
+  animation: modal-fade-in 220ms ease-out;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-plate {
+  position: relative;
+  max-width: 440px;
+  background: var(--parchment-100);
+  background-image: var(--paper-grain);
+  border-radius: 3px;
+  padding: 2rem;
+  color: var(--text-on-surface);
+  text-align: center;
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.5),
+    0 20px 50px -12px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(var(--brass-500-rgb), 0.35);
+}
+
+.modal-plate .screen-eyebrow,
+.modal-plate .screen-title {
+  text-align: center;
+}
+
+.modal-plate .explanation {
+  margin: 0 0 1.5rem;
+  max-width: none;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}

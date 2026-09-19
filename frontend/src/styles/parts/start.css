@@ -1,0 +1,362 @@
+/* --- the mode spine shelf: five book spines standing on a gilt double rule, pulled down
+   like a volume off a shelf instead of picked from a <select> --- */
+.spine-shelf {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  height: 200px;
+  padding: 0 0.4rem 0.4rem;
+  border-bottom: 3px double var(--gilt-deep);
+}
+
+.mode-spine {
+  position: relative;
+  width: 58px;
+  height: 172px;
+  border: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 2px 5px 5px 2px;
+  /* Resting on cloth, not the dark page — tooling (not onbg) is the role calibrated to
+     contrast against cloth specifically, which matters for Hufflepuff: its cloth is a
+     medium-light mustard, so a light on-page accent would nearly vanish against it.
+     Full strength, not the 0.72 alpha this used to carry: the fade cost ~2 points of
+     contrast and pushed the label under AA in four of five bindings. Resting and hover
+     are told apart by the lift and a brightness step instead. */
+  color: var(--tooling);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.38)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px),
+    var(--cloth);
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.8);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, height 0.18s ease;
+}
+
+.mode-spine:hover {
+  transform: translateY(-6px);
+  filter: brightness(1.12);
+}
+
+.mode-spine.is-active {
+  height: 194px;
+  /* Parchment, not the on-page accent: this label sits on the rubric fill, and rubric is
+     a dark saturated colour in every binding, so a cream reads on all five (4.98–13.29:1)
+     where the accent fell to 2.86:1 on Ravenclaw. Matches .seg.is-active. */
+  color: var(--parchment-100);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 78%, rgba(0, 0, 0, 0.34)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    var(--rubric);
+  box-shadow:
+    0 0 0 1px rgba(var(--onbg-rgb), 0.55),
+    0 10px 26px -10px rgba(var(--onbg-rgb), 0.55),
+    0 8px 16px -8px rgba(0, 0, 0, 0.9);
+  transform: translateY(-4px);
+}
+
+.mode-spine-band {
+  width: 100%;
+  height: 12px;
+  border-top: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  box-sizing: border-box;
+  margin: 12px 0;
+  opacity: 0.85;
+}
+
+.mode-spine-title {
+  writing-mode: vertical-rl;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .spine-shelf {
+    height: 150px;
+    gap: 0.4rem;
+  }
+
+  .mode-spine {
+    width: 46px;
+    height: 126px;
+  }
+
+  .mode-spine.is-active {
+    height: 144px;
+  }
+}
+
+/* --- segmented control (canon source): three plain rubric-bordered buttons --- */
+.seg-control {
+  display: flex;
+}
+
+.seg {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(var(--rubric-rgb), 0.55);
+  color: var(--text-muted-on-surface);
+}
+
+.seg + .seg {
+  border-left: 0;
+}
+
+.seg.is-active {
+  background: var(--rubric);
+  color: var(--parchment-100);
+}
+
+/* --- the Ex Libris board: the start room's left leaf, a full cloth binding rather than a
+   thin spine strip, carrying a parchment card with the house, mode and its ledger note --- */
+.book-spread--exlibris .book-spread-leaf.left {
+  padding: 0;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(45deg, rgba(var(--tooling-rgb), 0.11) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, rgba(var(--tooling-rgb), 0.11) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, transparent 1px 3px),
+    var(--cloth);
+}
+
+.book-spread--exlibris .book-spread-leaf.left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 85% 70% at 50% 35%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.42) 100%);
+}
+
+/* The corner bud defaults to rubric, calibrated for a parchment ground — on this leaf's own
+   cloth ground it uses tooling instead, the role already calibrated to contrast against
+   cloth (see .mode-spine above for why this can't just be the on-page accent). */
+.book-spread--exlibris .book-spread-leaf.left .plate-corner::after {
+  background: var(--tooling);
+}
+
+.exlibris-card {
+  position: relative;
+  margin: 40px 24px 44px;
+  padding: 26px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  background: var(--parchment-100);
+  color: var(--text-on-surface);
+  box-shadow:
+    0 0 0 1px var(--gilt-deep),
+    0 0 0 4px var(--parchment-100),
+    0 0 0 5px rgba(var(--gilt-rgb), 0.6),
+    0 14px 30px -12px rgba(0, 0, 0, 0.7);
+}
+
+.exlibris-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.exlibris-house-device {
+  color: var(--rubric);
+  flex: none;
+}
+
+.exlibris-house {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--rubric);
+  margin: 0;
+}
+
+.exlibris-mode {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--text-on-surface);
+  margin: 0.1rem 0 0;
+}
+
+.exlibris-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted-on-surface);
+}
+
+.exlibris-footer {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: -32px;
+  display: flex;
+  justify-content: space-between;
+  /* Tooling, like everything else printed on cloth — a cream read 2.51:1 on Hufflepuff's
+     light mustard board. */
+  color: var(--tooling);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Standalone use (Profile) — outside the Start room's cloth board, so plain block spacing
+   instead of the margins tuned to sit inside that board's padding. */
+.exlibris-card--standalone {
+  margin: 0 0 1.5rem;
+}
+
+@media (max-width: 720px) {
+  .exlibris-card {
+    margin: 16px 16px 20px;
+    padding: 16px 18px;
+  }
+
+  .exlibris-card--standalone {
+    margin: 0 0 1.5rem;
+  }
+
+  .exlibris-mode {
+    font-size: 1.35rem;
+  }
+
+  .exlibris-footer {
+    display: none;
+  }
+}
+
+/* Gold leaf: the one stamped, gilded control on a screen. */
+.primary-button {
+  background: linear-gradient(180deg, var(--leaf-hi) 0%, var(--leaf) 55%, var(--leaf-lo) 100%);
+  color: var(--leaf-text);
+  border: 1px solid var(--leaf-edge);
+  border-radius: 2px;
+  padding: 0.85rem 1.4rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 10px 22px -10px rgba(var(--leaf-glow-rgb), 0.7);
+}
+
+.primary-button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* Sits on the parchment plate, unlike .running-nav buttons which sit on the dark page. */
+.secondary-button {
+  /* A stronger fill + a soft lift than the plain 0.3-alpha white this used to be — that read
+     too close to the plate's own tan tone to look clickable at a glance (see design-audit
+     finding #6), distinguishable mainly by its border rather than by looking like a button. */
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-on-surface);
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  border-radius: 2px;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  box-shadow: 0 2px 6px -2px rgba(18, 21, 28, 0.28);
+}
+
+.secondary-button:hover {
+  border-color: var(--rubric);
+}
+
+/* --- difficulty slider --- */
+.difficulty-slider {
+  padding: 0.2rem 0.1rem 0;
+}
+
+.rs-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(18, 21, 28, 0.18);
+  margin: 0.4rem 0 0.6rem;
+}
+
+.rs-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--metal-300), var(--metal-500));
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.rs-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--metal-300), var(--metal-500));
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.difficulty-ticks {
+  position: relative;
+  height: 2.2rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  color: rgba(18, 21, 28, 0.5);
+  text-transform: none;
+  font-weight: 500;
+}
+
+/* Each tick is centered on the range thumb's actual travel position, which — because the
+   18px-wide thumb can't cross the track ends — sits inset by half its width (9px) at each
+   end. Equal-width flex segments used to put labels there instead, so only the middle tick
+   (O.W.L.) lined up with its dot and every other one was visibly off. */
+.difficulty-ticks span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 5.5rem;
+  text-align: center;
+}
+
+/* The two end ticks sit only 9px from the track edge, so centering their box there would
+   push wrapped text (e.g. "Order of the Phoenix") past the card boundary. Anchor them to
+   hug the edge instead, same as the dot's own travel limit. */
+.difficulty-ticks span.is-first {
+  transform: translateX(0);
+  text-align: left;
+}
+
+.difficulty-ticks span.is-last {
+  transform: translateX(-100%);
+  text-align: right;
+}
+
+.difficulty-ticks .is-active {
+  color: var(--rubric);
+  font-weight: 700;
+}
+
+.difficulty-desc {
+  margin: 0.6rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted-on-surface);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}

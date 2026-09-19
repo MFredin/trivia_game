@@ -1,0 +1,62 @@
+/* --- keyboard focus ---------------------------------------------------------
+   The app restyles every control, which in practice means the browser's own focus ring
+   lands on backgrounds it was never picked against — and on several of them it is close to
+   invisible. Nothing in the stylesheet defined one, so until now a keyboard player had no
+   reliable way to see where they were (WCAG 2.4.7).
+
+   :focus-visible, not :focus, so a mouse click does not leave a ring behind on the button
+   it just pressed. Two rings rather than one: the gilt reads on the dark page, the dark
+   halo behind it reads on parchment, and between them the marker survives every surface in
+   the app without needing a variant per component. --------------------------------------- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--gilt);
+  outline-offset: 2px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 5px rgba(26, 6, 7, 0.55);
+}
+
+/* --- touch targets ----------------------------------------------------------
+   Measured at 390px wide: the nav links came out 27px tall, the segmented controls 37px,
+   and the colophon link 14px — under the 24px WCAG 2.5.8 floor outright. This game is
+   played on a phone with a clock running, so the target is the 44px comfortable size, set
+   by padding rather than height so nothing is stretched into a different shape.
+
+   Excluded on purpose: .choice-button and the lifeline buttons, which are already far
+   larger, and the range input, whose thumb is sized separately below. ---------------------- */
+:where(.nav-btn, .running-nav button, .seg, .secondary-button, .colophon-link, .tab-btn) {
+  min-height: 44px;
+}
+
+/* A short label like "Home" made a 37px-wide target next to 44px-tall neighbours. */
+:where(.nav-btn, .running-nav button) {
+  min-width: 44px;
+}
+
+/* The wordmark is also the way back to the start screen, and was the shallowest target
+   on every screen at 30px. */
+.running-title {
+  min-height: 44px;
+}
+
+/* Typing targets, same floor. */
+:where(input:not([type='range']), select, textarea) {
+  min-height: 44px;
+}
+
+/* The slider's target is its thumb, not its 4px track: 18px was under the 24px floor.
+   The track keeps its own height — only the grip grows. */
+.rs-range::-webkit-slider-thumb {
+  width: 24px;
+  height: 24px;
+}
+
+.rs-range::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+}
+
+/* An inline link inside a sentence cannot take 44px of height without pushing the line
+   apart, so it grows sideways into the gap instead and keeps its own box small. */
+.colophon-link {
+  padding: 0.75rem 0.5rem;
+}

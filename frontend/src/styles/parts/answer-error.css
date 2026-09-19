@@ -1,0 +1,51 @@
+/* --- a failed answer, said out loud ------------------------------------------------- */
+/* Sits on the dark page beside the result panel, so every colour here comes from the
+   on-page roles (--onbg, --text-on-bg, --ash-300), never the on-parchment ones. */
+.answer-error {
+  margin-top: 1.4rem;
+  background: linear-gradient(180deg, var(--ink-800) 0%, var(--ink-900) 100%);
+  /* Full strength, not a fade: this outline is what marks the panel as an alert, so it
+     is a meaningful boundary under WCAG 1.4.11 and has to clear 3:1 in every binding. */
+  border: 1px solid var(--onbg);
+  border-radius: 3px;
+  padding: 1.5rem 1.6rem 1.6rem;
+  text-align: center;
+  animation: reveal-settle 0.35s ease-out;
+}
+
+.answer-error-message {
+  margin: 0 0 1.1rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-on-bg);
+}
+
+.answer-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+}
+
+.choice-pending {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-muted-on-surface);
+}
+
+/* The build stamp, set like a printer's imprint at the foot of the colophon. Deliberately
+   quiet — it is for whoever is checking a deploy, not for players. */
+.colophon-build {
+  margin-top: 0.6rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash-300);
+}
+
+.colophon-build span {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
