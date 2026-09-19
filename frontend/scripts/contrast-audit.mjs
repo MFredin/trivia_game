@@ -141,6 +141,10 @@ function build(house) {
   add('duel reaction label on page', onbg, page, 4.5, '.duel-reaction-btn');
   add('duel reaction border on page', over(onbg, page, 0.7), page, 3.0, '.duel-reaction-btn border');
   add('duel reaction incoming on page', t('--text-on-bg'), page, 4.5, '.duel-reaction-incoming');
+  add('lifeline label on parchment', rubric, parch, 4.5, '.lifeline-btn');
+  add('lifeline border on parchment', rubric, parch, 3.0, '.lifeline-btn border');
+  add('lifeline cost note on parchment', mutedOnSurface, parch, 4.5, '.lifeline-cost');
+  add('struck choice on parchment', mutedOnSurface, parch, 4.5, '.choice-button.is-struck');
   add('catalog tab label', over(hexrgb('#12151c'), t('--parchment-200'), 0.68), t('--parchment-200'), 4.5, '.catalog-tab');
 
   // fixed per-house colours, shown whatever the viewer's own binding is, so both

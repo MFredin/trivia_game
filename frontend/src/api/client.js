@@ -226,10 +226,17 @@ export function getSession(sessionId) {
   return request(`/sessions/${sessionId}`);
 }
 
-export function submitAnswer(sessionId, { questionId, chosenIndex, token: questionToken }) {
+export function submitAnswer(sessionId, { questionId, chosenIndex, token: questionToken, lifeline }) {
   return request(`/sessions/${sessionId}/answer`, {
     method: 'POST',
-    body: JSON.stringify({ question_id: questionId, chosen_index: chosenIndex, token: questionToken }),
+    // `lifeline: 'skip'` travels on the answer so a skip reuses the whole answer flow —
+    // session completion, achievements, duel bookkeeping — rather than a parallel route.
+    body: JSON.stringify({
+      question_id: questionId,
+      chosen_index: chosenIndex,
+      token: questionToken,
+      ...(lifeline ? { lifeline } : {}),
+    }),
   });
 }
 
@@ -267,4 +274,13 @@ export function getHealth() {
 // the week, so calling this is also what brings it into existence.
 export function getFeaturedChallenge() {
   return request('/challenges/featured');
+}
+
+// Spends a 50-50. The server decides which choices vanish and returns their indices; the
+// client is never told which answer is right, only which two are not.
+export function spendLifeline(sessionId, { questionId, token: questionToken, type }) {
+  return request(`/sessions/${sessionId}/lifeline`, {
+    method: 'POST',
+    body: JSON.stringify({ question_id: questionId, token: questionToken, type }),
+  });
 }
