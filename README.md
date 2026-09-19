@@ -227,9 +227,10 @@ CI runs all of these on every push to `main` and every pull request
 (`.github/workflows/ci.yml`). To run them yourself:
 
 ```bash
-cd backend  && npm test             # unit tests, plus the session-flow integration tests
-cd frontend && npm run build        # catches anything that will not bundle
-cd frontend && npm run audit:contrast   # WCAG contrast across all five house bindings
+cd backend  && npm test          # unit tests, plus the session-flow integration tests
+cd frontend && npm run build     # catches anything that will not bundle
+cd frontend && npm run audit     # WCAG contrast across all five bindings, plus dead code
+cd frontend && npm run e2e       # a real browser: a solo run, a two-browser duel, a11y
 ```
 
 The session-flow tests need a database and read `DATABASE_URL` from `backend/.env`. Without
@@ -237,6 +238,14 @@ one they skip rather than fail, so `npm test` still works on a machine with no P
 
 `audit:contrast` exits non-zero if any gated pairing falls below its WCAG threshold — each
 house rebinds the role tokens, so a colour that reads well in one binding can fail in another.
+`audit:dead` reports unreferenced CSS classes and exports; it is a report to read, not a gate.
+
+`e2e` needs the API and the dev server running, and drives a real browser at phone width. The
+duel spec opens two of them. Registration is rate limited per IP (10 per 15 minutes), so a
+rapid re-run will be refused — the suite says so rather than timing out mysteriously.
+
+Where code goes is decided by [`ARCHITECTURE.md`](ARCHITECTURE.md); how changes get written
+and shipped by [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Deploying to Railway
 

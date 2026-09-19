@@ -19,7 +19,7 @@ estimated; where a fix went in, the verification that proves it is named.
 | 9 | One 2,375-line stylesheet every feature appended to | Low | Fixed |
 | 10 | Dead CSS rules, unused exports, duplicated constants | Low | Fixed |
 | 11 | Missing favicon — the app's only console error | Low | Fixed |
-| 12 | `App.jsx` holds 30+ pieces of state in 938 lines | Medium | **Left alone — see below** |
+| 12 | `App.jsx` holds 30+ pieces of state in 938 lines | Medium | Fixed (second pass) |
 | 13 | Railway Config as Code is deprecated | Low | **Left alone — see below** |
 
 ## 1. Session routes took the run's id as their only credential
@@ -144,19 +144,53 @@ no untracked build output, no stray files.
 
 ## What was deliberately left alone
 
-**12. `App.jsx` is 938 lines holding 30+ `useState` calls.** This is the largest piece of
-technical debt in the frontend and it is real: the run's state, the duel's state, the nav's
-state and the auth state all live in one component. But it is also the app's entire state
-machine, it works, and it is covered by no unit tests — only by playing the game. A rewrite
-during an audit would put the core loop at risk to buy readability. The honest recommendation
-is to extract the run state (`session`, `question`, `token`, `issuedAt`, `streak`, `strikes`,
-`totalScore`, `feedback`, `lifelinesUsed`, `hiddenChoices`) into a `useReducer` as a piece of
-work of its own, with the integration tests added in this audit as the safety net.
+**12. `App.jsx`** was left alone in the first pass, on the grounds that rewriting the app's
+entire state machine during an audit would risk the core loop to buy readability, and that the
+only thing covering it was playing the game.
+
+That reasoning held until the structural question was asked directly: should features be split
+into individual files as a standing rule? They should, and App.jsx was the rule's worst
+violation — 968 lines, 30-odd `useState` calls, and **four** hand-written copies of the same
+fourteen-line "reset the run" block, one each for starting a run, starting a challenge,
+accepting a duel, and a duel starting over the socket.
+
+So it was done in a second pass, but only after building the safety net the first pass said
+was missing: a browser suite covering a solo run and, critically, a two-browser duel. The duel
+path was both the riskiest thing to change and the thing with no coverage at all — the socket
+handler that starts a duel is the one place a run begins without anyone making a request.
+
+The result is `features/{auth,run,duels,leaderboard,achievements}/`, App.jsx down to 466 lines
+of routing and composition, and one `run.begin()` where there were four resets. The rule is
+written down in [`ARCHITECTURE.md`](../ARCHITECTURE.md).
 
 **13. Railway Config as Code (`railway.toml`) is deprecated** in favour of
 `.railway/railway.ts`; existing files keep working until **2026-12-01**. Both services should
 migrate before then. Not urgent, and not something to fold into an audit whose other changes
 all need to deploy cleanly.
+
+## Second pass: structure as a standing rule
+
+The first pass fixed defects. The second answered a different question — what stops this
+recurring — and produced three things:
+
+- **[`ARCHITECTURE.md`](../ARCHITECTURE.md)**, which states where code goes: one feature, one
+  file, at every layer, and never an append-target that every feature also appends to. The
+  three files that stay shared are indexes rather than append-targets.
+- **[`CONTRIBUTING.md`](../CONTRIBUTING.md)** and **[`CLAUDE.md`](../CLAUDE.md)**, covering how
+  changes get written, tested, reviewed and deployed, binding agent work to the same rules.
+- **The audits, committed as tooling rather than run once.** `npm run audit` (contrast + dead
+  code), `npm run e2e` (19 browser assertions), both wired into CI. The accessibility
+  measurements from the first pass are now assertions that fail a build, not a report in a
+  transcript.
+
+Applying the rule reached three places: `api/client.js` (43 exports for thirteen resources →
+thirteen modules over one shared `request`), `App.jsx` (above), and the answer route, which had
+grown to 199 lines of scoring, writing and bookkeeping inside an HTTP handler. That is now
+`services/answerFlow.js` with the route as a 60-line adapter — the scoring rule of the game is
+not an HTTP concern, and a 199-line handler was hiding it.
+
+The dead-code scan found one thing on its first committed run: a `.tab-btn` touch-target rule
+added speculatively in the first pass that nothing in the app uses.
 
 ## Checks that came back clean
 

@@ -54,6 +54,7 @@ frontend/src/
     tokens.css      design tokens, per house binding
     parts/          one stylesheet per feature
   scripts/          audits that run in CI
+  e2e/              browser tests: a solo run, a two-browser duel, accessibility
 ```
 
 **State lives in a feature hook, not in `App.jsx`.** `App.jsx` composes hooks and routes
