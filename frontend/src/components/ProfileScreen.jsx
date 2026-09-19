@@ -97,6 +97,24 @@ export default function ProfileScreen({ username, token, onBack }) {
             <h3 className="plate-subhead">Duels &amp; Achievements</h3>
             <Stat label="Duel record" value={`${profile.duels_won}–${profile.duels_completed - profile.duels_won}`} />
             <Stat label="Achievements" value={`${profile.achievements_unlocked} / ${profile.achievements_total}`} />
+            {/* The count alone said nothing about what this player is actually good at. These
+                are their most recent unlocks; the Achievements screen stays the full list. */}
+            {profile.achievements_showcase?.length > 0 && (
+              <div className="profile-badges">
+                <p className="profile-badges-label">Most recent</p>
+                <div className="achievement-grid achievement-grid--compact">
+                  {profile.achievements_showcase.map((a) => (
+                    <div key={a.id} className="achievement-card is-unlocked">
+                      <div className="achievement-card-head">
+                        <span className="achievement-name">{a.name}</span>
+                      </div>
+                      <p className="achievement-desc">{a.description}</p>
+                      <p className="achievement-date">Unlocked {new Date(a.unlocked_at).toLocaleDateString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </Plate>
         </>
       )}
