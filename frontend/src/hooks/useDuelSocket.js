@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 function resolveWsUrl(token) {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -14,13 +14,19 @@ function resolveWsUrl(token) {
 
 // Keeps one WebSocket connection open for as long as `token` is set, and calls `onEvent` for
 // every message the server pushes (duel invites, opponent progress, duel completion, ...).
+//
+// Returns a send function, because duel reactions are the first thing that travels the other
+// way. It is a ref-backed callback with a stable identity, so putting it in a dependency array
+// does not retrigger effects on every render.
 export function useDuelSocket(token, onEvent) {
   const handlerRef = useRef(onEvent);
   handlerRef.current = onEvent;
+  const socketRef = useRef(null);
 
   useEffect(() => {
     if (!token) return undefined;
     const ws = new WebSocket(resolveWsUrl(token));
+    socketRef.current = ws;
     ws.onmessage = (msg) => {
       try {
         handlerRef.current(JSON.parse(msg.data));
@@ -28,6 +34,16 @@ export function useDuelSocket(token, onEvent) {
         // ignore malformed frames
       }
     };
-    return () => ws.close();
+    return () => {
+      socketRef.current = null;
+      ws.close();
+    };
   }, [token]);
+
+  // Dropped silently when the socket is not open. A reaction is a nicety; a player who just
+  // reconnected should not be shown an error because a bit of banter did not land.
+  return useCallback((event) => {
+    const ws = socketRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(event));
+  }, []);
 }
