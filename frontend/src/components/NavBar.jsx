@@ -48,19 +48,27 @@ export default function NavBar({ currentUser, activeScreen, onNavigate, onLogout
         The Restricted Section
       </button>
       {currentUser && (
+        // Navigation, not toggles: aria-current says "this is the screen you are on", which
+        // is what the `on` class has been saying visually and to nobody else.
         <div className="running-nav">
           {LINKS.map((link) => (
             <button
               key={link.screen}
               type="button"
               className={activeScreen === link.screen ? 'on' : ''}
+              aria-current={activeScreen === link.screen ? 'page' : undefined}
               onClick={() => onNavigate(link.screen)}
             >
               {link.label}
             </button>
           ))}
           {currentUser.is_admin && (
-            <button type="button" className={activeScreen === 'admin-suggestions' ? 'on' : ''} onClick={() => onNavigate('admin-suggestions')}>
+            <button
+              type="button"
+              className={activeScreen === 'admin-suggestions' ? 'on' : ''}
+              aria-current={activeScreen === 'admin-suggestions' ? 'page' : undefined}
+              onClick={() => onNavigate('admin-suggestions')}
+            >
               Admin
             </button>
           )}

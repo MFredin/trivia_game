@@ -1,3 +1,4 @@
+import Modal from './Modal.jsx';
 import { useState } from 'react';
 import { submitFeedback } from '../api/client.js';
 
@@ -31,61 +32,59 @@ export default function FeedbackModal({ onClose, token, page }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-plate" onClick={(e) => e.stopPropagation()}>
-        {sent ? (
-          <>
-            <p className="screen-eyebrow">Message Sent</p>
-            <h2 className="screen-title has-dropcap">Owl Delivered</h2>
-            <p className="explanation">
-              Thanks — this has been filed for the team to look at. Bug reports and ideas both
-              genuinely help shape what gets built next.
-            </p>
+    <Modal onClose={onClose} labelledBy="feedback-title">
+      {sent ? (
+        <>
+          <p className="screen-eyebrow">Message Sent</p>
+          <h2 className="screen-title has-dropcap" id="feedback-title">Owl Delivered</h2>
+          <p className="explanation">
+            Thanks — this has been filed for the team to look at. Bug reports and ideas both
+            genuinely help shape what gets built next.
+          </p>
+          <div className="modal-actions">
+            <button type="button" className="primary-button" onClick={onClose}>
+              Done
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="screen-eyebrow">Owl Post</p>
+          <h2 className="screen-title has-dropcap" id="feedback-title">Submit Feedback</h2>
+          <p className="explanation">
+            Found a bug, or have an idea for the archive? Say as much or as little as you like.
+          </p>
+          <form className="start-form" onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
+            {error && <div className="error-banner">{error}</div>}
+            <label>
+              Type
+              <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                <option value="bug">Something's broken</option>
+                <option value="idea">I have an idea</option>
+                <option value="other">Something else</option>
+              </select>
+            </label>
+            <label>
+              Your message
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={5}
+                maxLength={2000}
+                required
+              />
+            </label>
             <div className="modal-actions">
-              <button type="button" className="primary-button" onClick={onClose}>
-                Done
+              <button type="submit" className="primary-button" disabled={submitting}>
+                {submitting ? 'Sending…' : 'Send Feedback'}
+              </button>
+              <button type="button" className="secondary-button" onClick={onClose}>
+                Cancel
               </button>
             </div>
-          </>
-        ) : (
-          <>
-            <p className="screen-eyebrow">Owl Post</p>
-            <h2 className="screen-title has-dropcap">Submit Feedback</h2>
-            <p className="explanation">
-              Found a bug, or have an idea for the archive? Say as much or as little as you like.
-            </p>
-            <form className="start-form" onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
-              {error && <div className="error-banner">{error}</div>}
-              <label>
-                Type
-                <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  <option value="bug">Something's broken</option>
-                  <option value="idea">I have an idea</option>
-                  <option value="other">Something else</option>
-                </select>
-              </label>
-              <label>
-                Your message
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={5}
-                  maxLength={2000}
-                  required
-                />
-              </label>
-              <div className="modal-actions">
-                <button type="submit" className="primary-button" disabled={submitting}>
-                  {submitting ? 'Sending…' : 'Send Feedback'}
-                </button>
-                <button type="button" className="secondary-button" onClick={onClose}>
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </>
-        )}
-      </div>
-    </div>
+          </form>
+        </>
+      )}
+    </Modal>
   );
 }

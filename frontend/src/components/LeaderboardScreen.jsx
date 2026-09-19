@@ -71,6 +71,7 @@ export default function LeaderboardScreen({ categories, token }) {
                 <button
                   type="button"
                   className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
+                  aria-pressed={window === 'current'}
                   onClick={() => setWindow('current')}
                 >
                   {currentLabel}
@@ -78,6 +79,7 @@ export default function LeaderboardScreen({ categories, token }) {
                 <button
                   type="button"
                   className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
+                  aria-pressed={window === 'all'}
                   onClick={() => setWindow('all')}
                 >
                   All Time
@@ -88,6 +90,7 @@ export default function LeaderboardScreen({ categories, token }) {
             <button
               type="button"
               className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}
+              aria-pressed={scope === 'global'}
               onClick={() => setScope('global')}
             >
               Global
@@ -95,6 +98,7 @@ export default function LeaderboardScreen({ categories, token }) {
             <button
               type="button"
               className={`nav-btn ${scope === 'friends' ? 'is-active' : ''}`}
+              aria-pressed={scope === 'friends'}
               onClick={() => setScope('friends')}
             >
               Friends

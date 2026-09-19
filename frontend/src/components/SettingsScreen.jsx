@@ -55,6 +55,7 @@ export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnP
               key={house.id}
               type="button"
               className={`house-swatch ${theme === house.id ? 'is-active' : ''}`}
+              aria-pressed={theme === house.id}
               onClick={() => onSelectTheme(house.id)}
             >
               <span
