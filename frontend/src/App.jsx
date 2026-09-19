@@ -23,6 +23,7 @@ import ChallengeScreen from './components/ChallengeScreen.jsx';
 import FeedbackModal from './components/FeedbackModal.jsx';
 import Embers from './components/Embers.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
+import { duelReactionLabel } from './constants/duelReactions.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
   acceptDuel,
@@ -93,7 +94,9 @@ export default function App() {
   // A challenge link (?challenge=<code>) should land on that challenge's screen once the
   // visitor is authenticated, whether they arrived already logged in or just registered/logged
   // in through AuthScreen — read once, since the query string doesn't change afterward.
-  const [challengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
+  // Settable as well as read: the featured weekly challenge opens the same screen a shared
+  // link does, just without the round trip through the URL.
+  const [challengeCode, setChallengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
   const [showFeedback, setShowFeedback] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [profileReturnScreen, setProfileReturnScreen] = useState('friends');
@@ -139,6 +142,9 @@ export default function App() {
   const [opponentLive, setOpponentLive] = useState(null);
   const [duelResult, setDuelResult] = useState(null);
   const [duelNotice, setDuelNotice] = useState(null);
+  // Transient: whatever the opponent last said, and when. Never stored, never a history —
+  // the strip shows it for a few seconds and it is gone.
+  const [duelReaction, setDuelReaction] = useState(null);
 
   // --- achievements ---
   const [achievementQueue, setAchievementQueue] = useState([]);
@@ -229,6 +235,9 @@ export default function App() {
           setDuelOpponentUsername(outgoingDuel.opponent_username);
           setSession({
             id: event.session_id,
+            // Carried so a reaction knows which duel it belongs to; the session id alone
+            // does not tell the server that.
+            duelId: event.duel_id,
             mode: 'duel',
             category: outgoingDuel.category,
             canonSource: outgoingDuel.canon_source,
@@ -259,6 +268,11 @@ export default function App() {
         }
         break;
       }
+      case 'duel:reaction': {
+        const label = duelReactionLabel(event.reaction);
+        if (label) setDuelReaction({ reaction: event.reaction, label, from: event.from_username, at: Date.now() });
+        break;
+      }
       case 'duel:opponent_progress': {
         setOpponentLive({
           runningTotal: event.running_total,
@@ -282,7 +296,7 @@ export default function App() {
     }
   };
 
-  useDuelSocket(authToken, handleDuelEvent);
+  const sendSocketEvent = useDuelSocket(authToken, handleDuelEvent);
 
   useEffect(() => {
     if (achievementQueue.length === 0) return undefined;
@@ -311,6 +325,12 @@ export default function App() {
     } catch {
       // the DOM already reflects the pick; a failed save just means it won't stick next login
     }
+  };
+
+  const handleOpenChallenge = (code) => {
+    setChallengeCode(code);
+    setStartError(null);
+    setScreen('challenge');
   };
 
   const handleNavigate = (target) => {
@@ -630,6 +650,7 @@ export default function App() {
       setDuelOpponentUsername(invite?.created_by_username ?? null);
       setSession({
         id: data.session_id,
+        duelId,
         mode: 'duel',
         category: invite?.category ?? null,
         canonSource: invite?.canon_source ?? 'combined',
@@ -751,6 +772,7 @@ export default function App() {
           onStart={handleStart}
           error={startError}
           token={authToken}
+          onOpenChallenge={handleOpenChallenge}
         />
       )}
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
@@ -804,7 +826,16 @@ export default function App() {
       )}
       {screen === 'question' && question && (
         <>
-          {session.mode === 'duel' && <DuelOpponentStrip opponentUsername={duelOpponentUsername} live={opponentLive} />}
+          {session.mode === 'duel' && (
+            <DuelOpponentStrip
+              opponentUsername={duelOpponentUsername}
+              live={opponentLive}
+              incomingReaction={duelReaction}
+              onReact={(reaction) =>
+                sendSocketEvent({ type: 'duel:react', duel_id: session.duelId, reaction })
+              }
+            />
+          )}
           <QuestionCard
             key={session.id}
             question={question}

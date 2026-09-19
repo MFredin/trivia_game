@@ -270,6 +270,12 @@ export function getHealth() {
   return request('/health');
 }
 
+// This week's system-generated featured challenge. Created server-side on first request of
+// the week, so calling this is also what brings it into existence.
+export function getFeaturedChallenge() {
+  return request('/challenges/featured');
+}
+
 // Spends a 50-50. The server decides which choices vanish and returns their indices; the
 // client is never told which answer is right, only which two are not.
 export function spendLifeline(sessionId, { questionId, token: questionToken, type }) {

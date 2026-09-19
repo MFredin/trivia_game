@@ -6,6 +6,10 @@ import { computeStreaks } from '../lib/streaks.js';
 
 const router = express.Router();
 
+// Enough to show the profile owner has been at this, few enough that the plate stays a
+// summary and the Achievements screen remains the place you go to see everything.
+const ACHIEVEMENT_SHOWCASE_SIZE = 6;
+
 // Viewable by any logged-in player — the same openness the All Members directory already
 // has. Everything here is read-only and derived from data the app already records; no new
 // schema for this screen at all.
@@ -50,7 +54,12 @@ router.get('/:username', requireAuth, async (req, res) => {
        ) t`,
       [user.id],
     ),
-    pool.query('SELECT count(*) AS unlocked FROM user_achievements WHERE user_id = $1', [user.id]),
+    // Rows rather than a bare count: the same query now feeds both the "X / 32" figure and
+    // the showcase below it, so surfacing actual badges costs no extra round trip.
+    pool.query(
+      'SELECT achievement_id, unlocked_at FROM user_achievements WHERE user_id = $1 ORDER BY unlocked_at DESC',
+      [user.id],
+    ),
     pool.query(
       `SELECT DISTINCT DATE(completed_at)::text AS d FROM game_sessions
        WHERE user_id = $1 AND status = 'completed'
@@ -63,6 +72,18 @@ router.get('/:username', requireAuth, async (req, res) => {
   const correctAnswered = Number(answerStats.rows[0].correct_answered);
   const streaks = computeStreaks(dateRows.rows.map((r) => r.d));
 
+  // The most recent unlocks, resolved against the catalog. Joined here rather than in SQL
+  // because ACHIEVEMENTS is deploy-time content, not a table. A row whose id is no longer in
+  // the catalog (an achievement retired in a later release) is dropped rather than rendered
+  // as a blank card.
+  const showcase = achievementStats.rows
+    .map((row) => {
+      const def = ACHIEVEMENTS.find((a) => a.id === row.achievement_id);
+      return def ? { ...def, unlocked_at: row.unlocked_at } : null;
+    })
+    .filter(Boolean)
+    .slice(0, ACHIEVEMENT_SHOWCASE_SIZE);
+
   return res.json({
     username: user.username,
     theme: user.theme,
@@ -74,7 +95,8 @@ router.get('/:username', requireAuth, async (req, res) => {
     max_best_streak: Number(runStats.rows[0].max_best_streak ?? 0),
     duels_completed: Number(duelStats.rows[0].duels_completed),
     duels_won: Number(duelStats.rows[0].duels_won),
-    achievements_unlocked: Number(achievementStats.rows[0].unlocked),
+    achievements_unlocked: achievementStats.rows.length,
+    achievements_showcase: showcase,
     achievements_total: ACHIEVEMENTS.length,
     current_day_streak: streaks.current,
     longest_day_streak: streaks.longest,

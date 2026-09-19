@@ -138,6 +138,9 @@ function build(house) {
   add('answer error message on panel', t('--text-on-bg'), t('--ink-800'), 4.5, '.answer-error-message');
   add('answer error border on page', onbg, t('--ink-800'), 3.0, '.answer-error border');
   add('choice pending note on parchment', mutedOnSurface, parch, 4.5, '.choice-pending');
+  add('duel reaction label on page', onbg, page, 4.5, '.duel-reaction-btn');
+  add('duel reaction border on page', over(onbg, page, 0.7), page, 3.0, '.duel-reaction-btn border');
+  add('duel reaction incoming on page', t('--text-on-bg'), page, 4.5, '.duel-reaction-incoming');
   add('lifeline label on parchment', rubric, parch, 4.5, '.lifeline-btn');
   add('lifeline border on parchment', rubric, parch, 3.0, '.lifeline-btn border');
   add('lifeline cost note on parchment', mutedOnSurface, parch, 4.5, '.lifeline-cost');
