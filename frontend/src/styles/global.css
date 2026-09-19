@@ -1694,9 +1694,11 @@ button {
 }
 
 .duel-strip {
+  /* A column now that the strip carries reactions under the score line; the score line
+     itself keeps the original left/right split as .duel-strip-row. */
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.55rem;
   background: rgba(var(--brass-500-rgb), 0.08);
   border: 1px solid rgba(var(--brass-500-rgb), 0.3);
   border-radius: 3px;
@@ -2120,4 +2122,70 @@ button {
 .colophon-build span {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
+}
+
+/* --- canned duel reactions ---------------------------------------------------------- */
+/* Sits on the dark page, so every colour here comes from the on-page roles. */
+.duel-strip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.duel-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.duel-reaction-btn {
+  background: none;
+  /* 0.7, not a lighter fade: this outline is the only thing marking the chip as a button,
+     so it is a control boundary under WCAG 1.4.11 and has to clear 3:1 in every binding.
+     The audit failed it at 0.45 in four of the five. */
+  border: 1px solid rgba(var(--onbg-rgb), 0.7);
+  border-radius: 2px;
+  padding: 0.25rem 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  letter-spacing: 0.03em;
+  color: var(--onbg);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.duel-reaction-btn:hover:not(:disabled) {
+  background: rgba(var(--onbg-rgb), 0.14);
+}
+
+.duel-reaction-btn:disabled {
+  cursor: default;
+  border-color: rgba(var(--onbg-rgb), 0.2);
+  color: var(--text-muted);
+}
+
+/* The opponent's last reaction. Announced to assistive tech via role="status" rather than
+   only appearing, since it arrives without the player doing anything. */
+.duel-reaction-incoming {
+  margin: 0;
+  width: 100%;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-on-bg);
+  animation: reveal-settle 0.3s ease-out;
+}
+
+.duel-reaction-from {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--onbg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .duel-reaction-incoming {
+    animation: none;
+  }
 }
