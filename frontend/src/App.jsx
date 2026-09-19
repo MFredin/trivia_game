@@ -93,7 +93,9 @@ export default function App() {
   // A challenge link (?challenge=<code>) should land on that challenge's screen once the
   // visitor is authenticated, whether they arrived already logged in or just registered/logged
   // in through AuthScreen — read once, since the query string doesn't change afterward.
-  const [challengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
+  // Settable as well as read: the featured weekly challenge opens the same screen a shared
+  // link does, just without the round trip through the URL.
+  const [challengeCode, setChallengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
   const [showFeedback, setShowFeedback] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [profileReturnScreen, setProfileReturnScreen] = useState('friends');
@@ -315,6 +317,12 @@ export default function App() {
     } catch {
       // the DOM already reflects the pick; a failed save just means it won't stick next login
     }
+  };
+
+  const handleOpenChallenge = (code) => {
+    setChallengeCode(code);
+    setStartError(null);
+    setScreen('challenge');
   };
 
   const handleNavigate = (target) => {
@@ -714,6 +722,7 @@ export default function App() {
           onStart={handleStart}
           error={startError}
           token={authToken}
+          onOpenChallenge={handleOpenChallenge}
         />
       )}
       {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}

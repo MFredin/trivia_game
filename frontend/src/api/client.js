@@ -262,3 +262,9 @@ export function rejectSuggestion(id, reviewNote, token) {
 export function getHealth() {
   return request('/health');
 }
+
+// This week's system-generated featured challenge. Created server-side on first request of
+// the week, so calling this is also what brings it into existence.
+export function getFeaturedChallenge() {
+  return request('/challenges/featured');
+}

@@ -167,6 +167,13 @@ CREATE TABLE IF NOT EXISTS challenges (
 -- picking an easy category/tier to inflate scores can't pollute the real Classic leaderboard.
 ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS challenge_id INTEGER REFERENCES challenges(id);
 
+-- The featured weekly challenge is a system-generated challenge, so it has no creator. One
+-- row per ISO week, keyed by the same week string the leaderboard windows already use, and
+-- created lazily the first time anyone asks for that week. The UNIQUE constraint is what
+-- makes that creation safe when two players ask at the same moment.
+ALTER TABLE challenges ALTER COLUMN created_by DROP NOT NULL;
+ALTER TABLE challenges ADD COLUMN IF NOT EXISTS featured_week TEXT UNIQUE;
+
 -- "Alice just beat her personal best" — a small, friends-scoped activity feed. Never pushed
 -- (no toast, no badge); it's a tab a player opens when they're curious, on the Friends screen.
 CREATE TABLE IF NOT EXISTS activity_events (

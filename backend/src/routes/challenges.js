@@ -8,6 +8,7 @@ import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
 import { evaluateAchievements } from '../services/achievements.js';
+import { featuredChallengeSpec } from '../lib/featuredChallenge.js';
 
 const router = express.Router();
 
@@ -41,11 +42,69 @@ router.post('/', requireAuth, async (req, res) => {
   return res.status(500).json({ error: 'internal_error' });
 });
 
+// Registered BEFORE GET /:code, or Express would read "featured" as a challenge code.
+//
+// The row is created on first request for the week rather than by a scheduler: there is no
+// job runner here, and a challenge nobody has asked for does not need to exist. Two players
+// asking at the same moment both try to insert; the UNIQUE constraint on featured_week lets
+// the loser fall back to reading the winner's row instead of erroring.
+router.get('/featured', async (req, res) => {
+  try {
+    const week = currentLeaderboardWindow();
+
+    const existing = await pool.query('SELECT * FROM challenges WHERE featured_week = $1', [week]);
+    if (existing.rows[0]) return res.json(await describeFeatured(existing.rows[0], week));
+
+    const spec = featuredChallengeSpec(week, await getAllQuestions());
+    if (!spec) return res.status(503).json({ error: 'no_eligible_questions' });
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = crypto.randomBytes(4).toString('hex');
+      try {
+        const { rows } = await pool.query(
+          `INSERT INTO challenges (code, created_by, category, canon_source, obscurity_filter, featured_week)
+           VALUES ($1, NULL, $2, $3, $4, $5)
+           RETURNING *`,
+          [code, spec.category, spec.canonSource, spec.difficulty, week],
+        );
+        return res.json(await describeFeatured(rows[0], week));
+      } catch (err) {
+        if (err.code !== '23505') throw err;
+        // Either the code collided or another request just created this week's row.
+        const raced = await pool.query('SELECT * FROM challenges WHERE featured_week = $1', [week]);
+        if (raced.rows[0]) return res.json(await describeFeatured(raced.rows[0], week));
+      }
+    }
+    return res.status(500).json({ error: 'internal_error' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+async function describeFeatured(challenge, week) {
+  const { rows } = await pool.query(
+    `SELECT count(DISTINCT user_id)::int AS players
+     FROM game_sessions WHERE challenge_id = $1 AND status = 'completed'`,
+    [challenge.id],
+  );
+  return {
+    code: challenge.code,
+    week,
+    category: challenge.category,
+    canon_source: challenge.canon_source,
+    difficulty: challenge.obscurity_filter,
+    players: rows[0].players,
+  };
+}
+
 router.get('/:code', async (req, res) => {
   const { rows: challengeRows } = await pool.query(
+    // LEFT JOIN, not JOIN: the featured weekly challenge has no creator, and an inner join
+    // would make it unreachable by its own code.
     `SELECT c.*, u.username AS created_by_username
      FROM challenges c
-     JOIN users u ON u.id = c.created_by
+     LEFT JOIN users u ON u.id = c.created_by
      WHERE c.code = $1`,
     [req.params.code],
   );
@@ -67,6 +126,7 @@ router.get('/:code', async (req, res) => {
   return res.json({
     code: challenge.code,
     created_by_username: challenge.created_by_username,
+    featured_week: challenge.featured_week ?? null,
     category: challenge.category,
     canon_source: challenge.canon_source,
     difficulty: challenge.obscurity_filter,

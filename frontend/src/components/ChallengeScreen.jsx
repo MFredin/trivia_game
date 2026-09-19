@@ -35,9 +35,15 @@ export default function ChallengeScreen({ code, token, onPlay, onCancel }) {
     <div>
       <div className="screen-head">
         <div>
-          <p className="screen-eyebrow">Private Challenge</p>
+          {/* The featured weekly challenge comes through this same screen but has no
+              creator, so it must not render as "null's Challenge". */}
+          <p className="screen-eyebrow">{challenge?.featured_week ? 'Featured this week' : 'Private Challenge'}</p>
           <h2 className="screen-title">
-            {challenge ? `${challenge.created_by_username}'s Challenge` : 'Private Challenge'}
+            {challenge?.featured_week
+              ? challenge.category
+              : challenge
+                ? `${challenge.created_by_username}'s Challenge`
+                : 'Private Challenge'}
           </h2>
         </div>
         {onCancel && (

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
 import HouseDevice from './HouseDevice.jsx';
-import { createChallenge, getProfile } from '../api/client.js';
+import { createChallenge, getFeaturedChallenge, getProfile } from '../api/client.js';
 import { copyToClipboard } from '../lib/shareResult.js';
 import { HOUSES, DEFAULT_HOUSE } from '../constants/houses.js';
 
@@ -40,13 +40,21 @@ const MODE_INFO = {
   },
 };
 
+// The same three sources the segmented control offers, phrased as a sentence for the
+// featured card rather than as a button label.
+const CANON_LABEL = {
+  combined: 'Books and films',
+  books: 'Books only',
+  movies: 'Films only',
+};
+
 const CANON_OPTIONS = [
   { value: 'books', label: 'Books' },
   { value: 'movies', label: 'Films' },
   { value: 'combined', label: 'Combined' },
 ];
 
-export default function StartScreen({ categories, currentUser, onStart, error, token }) {
+export default function StartScreen({ categories, currentUser, onStart, error, token, onOpenChallenge }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
   const [canonSource, setCanonSource] = useState('combined');
@@ -55,8 +63,18 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
   const [challengeLink, setChallengeLink] = useState(null);
   const [creatingChallenge, setCreatingChallenge] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy link');
+  const [featured, setFeatured] = useState(null);
 
   const house = HOUSE_BY_ID[currentUser?.theme ?? DEFAULT_HOUSE] ?? HOUSE_BY_ID[DEFAULT_HOUSE];
+
+  // Asking for it is also what creates it: the server makes this week's row on first
+  // request. Failing quietly is right — a missing featured card costs the player nothing,
+  // and the rest of the start screen must not depend on it.
+  useEffect(() => {
+    getFeaturedChallenge()
+      .then(setFeatured)
+      .catch(() => setFeatured(null));
+  }, []);
 
   useEffect(() => {
     getProfile(currentUser.username, token)
@@ -216,6 +234,28 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
           </div>
         )}
       </Plate>
+
+      {/* This week's rotating themed quiz — the Daily Challenge's lighter sibling. Rendered
+          only once it has loaded, so a failed fetch leaves the start screen exactly as it was
+          rather than showing a broken shelf. */}
+      {featured && (
+        <Plate className="featured-week">
+          <div className="featured-week-body">
+            <div>
+              <p className="screen-eyebrow">Featured this week</p>
+              <h3 className="featured-week-title">{featured.category}</h3>
+              <p className="featured-week-note">
+                {CANON_LABEL[featured.canon_source] ?? 'Combined canon'}
+                {featured.players > 0 &&
+                  ` · ${featured.players} ${featured.players === 1 ? 'player has' : 'players have'} finished it`}
+              </p>
+            </div>
+            <button type="button" className="primary-button" onClick={() => onOpenChallenge(featured.code)}>
+              Play it
+            </button>
+          </div>
+        </Plate>
+      )}
     </div>
   );
 }
