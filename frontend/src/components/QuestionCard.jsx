@@ -54,6 +54,11 @@ export default function QuestionCard({
   totalScore,
   feedback,
   submitPending,
+  lifelinesEnabled,
+  lifelinesUsed,
+  hiddenChoices,
+  onFiftyFifty,
+  onSkip,
   onSubmit,
 }) {
   const [remainingMs, setRemainingMs] = useState(timeLimitMs);
@@ -180,6 +185,10 @@ export default function QuestionCard({
             {displayedQuestion.choices.map((choice, index) => {
               let className = 'choice-button';
               let mark = null;
+              // Struck through rather than removed: the page does not reflow under the
+              // player mid-question, and they can see what the lifeline bought them.
+              const struck = !feedback && (hiddenChoices ?? []).includes(index);
+              if (struck) className += ' is-struck';
               if (feedback) {
                 if (index === feedback.correctIndex) {
                   className += ' is-correct';
@@ -196,7 +205,7 @@ export default function QuestionCard({
                   <button
                     type="button"
                     className={className}
-                    disabled={inputLocked}
+                    disabled={inputLocked || struck}
                     onClick={() => onSubmit(index)}
                   >
                     <span className="choice-chip">{LETTERS[index]}.</span>
@@ -209,6 +218,26 @@ export default function QuestionCard({
           </ul>
           {/* A slow connection used to look exactly like a dead button. */}
           {submitPending && !feedback && <p className="choice-pending">Sending your answer…</p>}
+
+          {/* Classic only, and each is offered once per run. Once spent, the button goes
+              rather than sitting there disabled: a control you can never use again is
+              clutter, not information. */}
+          {lifelinesEnabled && !feedback && (
+            <div className="lifelines">
+              {!(lifelinesUsed ?? []).includes('fifty_fifty') && (hiddenChoices ?? []).length === 0 && (
+                <button type="button" className="lifeline-btn" onClick={onFiftyFifty} disabled={inputLocked}>
+                  Narrow it down
+                  <span className="lifeline-cost">half points</span>
+                </button>
+              )}
+              {!(lifelinesUsed ?? []).includes('skip') && (
+                <button type="button" className="lifeline-btn" onClick={onSkip} disabled={inputLocked}>
+                  Pass this one
+                  <span className="lifeline-cost">keeps your streak</span>
+                </button>
+              )}
+            </div>
+          )}
         </Plate>
       </div>
     </div>

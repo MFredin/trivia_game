@@ -20,6 +20,14 @@ import { sendToUser } from '../lib/wsServer.js';
 import { getOpponentSession, maybeFinishDuel } from '../services/duels.js';
 import { evaluateAchievements } from '../services/achievements.js';
 import { recordActivity } from '../services/activity.js';
+import {
+  FIFTY_FIFTY,
+  SKIP,
+  LIFELINE_MODES,
+  lifelineAvailable,
+  applyLifelineToScore,
+  fiftyFiftyHiddenIndices,
+} from '../lib/lifelines.js';
 
 const router = express.Router();
 
@@ -48,6 +56,8 @@ function sessionSummary(session) {
     strikes: session.strikes,
     best_streak: session.best_streak,
     total_score: session.total_score,
+    lifelines_used: session.lifelines_used ?? [],
+    lifelines_enabled: LIFELINE_MODES.includes(session.mode),
   };
 }
 
@@ -155,12 +165,71 @@ router.post('/:id/next', async (req, res) => {
   }
 });
 
+// Spending a 50-50. Separate from answering because the player needs the result before they
+// choose, and it must be the server that decides which choices vanish: the client is handed a
+// shuffled list with no idea which answer is right, and that is the whole anti-cheat model.
+//
+// Idempotent. Asking twice returns the same two hidden choices and spends nothing further, so
+// a retry after a dropped response cannot narrow the field a second time.
+router.post('/:id/lifeline', async (req, res) => {
+  try {
+    const { question_id, token, type } = req.body ?? {};
+    if (!question_id || !token || type !== FIFTY_FIFTY) {
+      return res.status(400).json({ error: 'invalid_request' });
+    }
+
+    const { rows: sessionRows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
+    const session = sessionRows[0];
+    if (!session) return res.status(404).json({ error: 'session_not_found' });
+    if (session.status !== 'active') return res.status(409).json({ error: 'session_not_active' });
+
+    const { rows: sqRows } = await pool.query(
+      'SELECT * FROM session_questions WHERE session_id = $1 AND question_id = $2',
+      [session.id, question_id],
+    );
+    const servedQuestion = sqRows[0];
+    if (!servedQuestion) return res.status(400).json({ error: 'unknown_question' });
+    if (servedQuestion.answered_at) return res.status(409).json({ error: 'already_answered' });
+
+    const issuedAt = new Date(servedQuestion.issued_at);
+    if (!verifyQuestionToken({ sessionId: session.id, questionId: question_id, issuedAt, token })) {
+      return res.status(400).json({ error: 'token_invalid' });
+    }
+
+    const hidden = fiftyFiftyHiddenIndices(servedQuestion.correct_choice_index, servedQuestion.choice_order.length);
+
+    // Already spent on this very question: hand back the same answer rather than refusing,
+    // so a retry is safe.
+    if (servedQuestion.lifeline === FIFTY_FIFTY) {
+      return res.json({ type: FIFTY_FIFTY, hidden_indices: hidden, lifelines_used: session.lifelines_used });
+    }
+    if (!lifelineAvailable(session, FIFTY_FIFTY)) return res.status(409).json({ error: 'lifeline_unavailable' });
+
+    await pool.query('UPDATE session_questions SET lifeline = $1 WHERE id = $2', [FIFTY_FIFTY, servedQuestion.id]);
+    const { rows: updated } = await pool.query(
+      `UPDATE game_sessions SET lifelines_used = array_append(lifelines_used, $1)
+       WHERE id = $2 RETURNING lifelines_used`,
+      [FIFTY_FIFTY, session.id],
+    );
+
+    return res.json({ type: FIFTY_FIFTY, hidden_indices: hidden, lifelines_used: updated[0].lifelines_used });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 router.post('/:id/answer', async (req, res) => {
   try {
-    const { question_id, chosen_index, token } = req.body ?? {};
+    const { question_id, chosen_index, token, lifeline } = req.body ?? {};
     if (!question_id || typeof chosen_index !== 'number' || !token) {
       return res.status(400).json({ error: 'invalid_request' });
     }
+    // A skip travels through this route rather than its own, so it inherits the whole
+    // flow — session completion, achievements, duel bookkeeping — instead of a parallel
+    // copy of it that would drift.
+    const isSkip = lifeline === SKIP;
+    if (lifeline !== undefined && !isSkip) return res.status(400).json({ error: 'invalid_request' });
 
     const { rows: sessionRows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
     const session = sessionRows[0];
@@ -179,17 +248,23 @@ router.post('/:id/answer', async (req, res) => {
     const valid = verifyQuestionToken({ sessionId: session.id, questionId: question_id, issuedAt, token });
     if (!valid) return res.status(400).json({ error: 'token_invalid' });
 
+    if (isSkip && !lifelineAvailable(session, SKIP)) {
+      return res.status(409).json({ error: 'lifeline_unavailable' });
+    }
+
     const modeConfig = MODES[session.mode];
     const timingReference =
       modeConfig.timingMode === 'session_total' ? new Date(session.created_at) : issuedAt;
     const elapsedMs = Date.now() - timingReference.getTime();
-    const timedOut = elapsedMs > session.time_limit_ms + TIMEOUT_GRACE_MS;
-    const correct = !timedOut && chosen_index === servedQuestion.correct_choice_index;
+    // A skip is never a timeout and never correct. It is the player declining to answer,
+    // which is a different thing from failing to.
+    const timedOut = !isSkip && elapsedMs > session.time_limit_ms + TIMEOUT_GRACE_MS;
+    const correct = !isSkip && !timedOut && chosen_index === servedQuestion.correct_choice_index;
 
     const questions = await getAllQuestions();
     const questionMeta = questions.find((q) => q.id === question_id);
 
-    const { points, streakAfter } = computeScore({
+    const scored = computeScore({
       correct,
       elapsedMs,
       timeLimitMs: session.time_limit_ms,
@@ -199,15 +274,26 @@ router.post('/:id/answer', async (req, res) => {
       streakBefore: session.streak,
     });
 
+    // A question already 50-50'd scores half; a skipped one scores nothing. The lifeline is
+    // read off the served row, not the request, so the discount cannot be declined.
+    const appliedLifeline = isSkip ? SKIP : servedQuestion.lifeline;
+    const points = applyLifelineToScore(scored.points, appliedLifeline);
+    // Preserving the streak is the entire value of a skip. Declining to answer is not the
+    // same as getting it wrong, so the run's momentum survives it.
+    const streakAfter = isSkip ? session.streak : scored.streakAfter;
+
     await pool.query(
       `UPDATE session_questions
-       SET answered_at = now(), chosen_index = $1, correct = $2, timed_out = $3, points = $4, elapsed_ms = $5
-       WHERE id = $6`,
-      [chosen_index, correct, timedOut, points, elapsedMs, servedQuestion.id],
+       SET answered_at = now(), chosen_index = $1, correct = $2, timed_out = $3, points = $4, elapsed_ms = $5,
+           lifeline = COALESCE($6, lifeline)
+       WHERE id = $7`,
+      [isSkip ? null : chosen_index, isSkip ? null : correct, timedOut, points, elapsedMs,
+       isSkip ? SKIP : null, servedQuestion.id],
     );
 
     const newTotalScore = session.total_score + points;
-    const newStrikes = correct ? session.strikes : session.strikes + 1;
+    // A skip costs no strike either — spending the lifeline is the cost.
+    const newStrikes = correct || isSkip ? session.strikes : session.strikes + 1;
     const nextPosition = servedQuestion.position + 1;
     const reachedQuestionCap = nextPosition >= session.question_count;
     const reachedStrikeLimit = modeConfig.maxStrikes != null && newStrikes >= modeConfig.maxStrikes;
@@ -229,8 +315,10 @@ router.post('/:id/answer', async (req, res) => {
 
     const { rows: updatedRows } = await pool.query(
       `UPDATE game_sessions
-       SET streak = $1, strikes = $2, total_score = $3, status = $4, completed_at = $5, best_streak = $6
-       WHERE id = $7
+       SET streak = $1, strikes = $2, total_score = $3, status = $4, completed_at = $5, best_streak = $6,
+           lifelines_used = CASE WHEN $7::text IS NULL THEN lifelines_used
+                                 ELSE array_append(lifelines_used, $7::text) END
+       WHERE id = $8
        RETURNING *`,
       [
         streakAfter,
@@ -239,6 +327,9 @@ router.post('/:id/answer', async (req, res) => {
         sessionComplete ? 'completed' : 'active',
         sessionComplete ? new Date() : null,
         newBestStreak,
+        // Spent in the same statement that records the answer, so a skip cannot be counted
+        // twice by a retry: the question is already answered by then and the route refuses.
+        isSkip ? SKIP : null,
         session.id,
       ],
     );
@@ -249,6 +340,7 @@ router.post('/:id/answer', async (req, res) => {
     res.json({
       correct,
       timed_out: timedOut,
+      skipped: isSkip,
       points,
       running_total: newTotalScore,
       streak: streakAfter,
@@ -256,6 +348,7 @@ router.post('/:id/answer', async (req, res) => {
       correct_answer: questionMeta.correct_answer,
       explanation: questionMeta.explanation,
       session_complete: sessionComplete,
+      lifeline: appliedLifeline ?? null,
       session: sessionSummary(updatedSession),
     });
 

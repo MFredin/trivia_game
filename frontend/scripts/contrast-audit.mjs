@@ -138,6 +138,10 @@ function build(house) {
   add('answer error message on panel', t('--text-on-bg'), t('--ink-800'), 4.5, '.answer-error-message');
   add('answer error border on page', onbg, t('--ink-800'), 3.0, '.answer-error border');
   add('choice pending note on parchment', mutedOnSurface, parch, 4.5, '.choice-pending');
+  add('lifeline label on parchment', rubric, parch, 4.5, '.lifeline-btn');
+  add('lifeline border on parchment', rubric, parch, 3.0, '.lifeline-btn border');
+  add('lifeline cost note on parchment', mutedOnSurface, parch, 4.5, '.lifeline-cost');
+  add('struck choice on parchment', mutedOnSurface, parch, 4.5, '.choice-button.is-struck');
   add('catalog tab label', over(hexrgb('#12151c'), t('--parchment-200'), 0.68), t('--parchment-200'), 4.5, '.catalog-tab');
 
   // fixed per-house colours, shown whatever the viewer's own binding is, so both

@@ -36,6 +36,7 @@ import {
   getMe,
   getPendingDuels,
   getSession,
+  spendLifeline,
   startChallenge,
   submitAnswer,
   updateTheme,
@@ -119,6 +120,11 @@ export default function App() {
   // bug this replaced put it in `startError`, which only the start screen renders, so a failed
   // answer left the player tapping live-looking choices forever with nothing on screen.
   const [answerError, setAnswerError] = useState(null);
+  // Which lifelines this run has spent, and which choices the current 50-50 hid. The hidden
+  // set is cleared on every new question; the spent set lasts the run. Both are mirrors of
+  // server state — the server refuses a second spend regardless of what these say.
+  const [lifelinesUsed, setLifelinesUsed] = useState([]);
+  const [hiddenChoices, setHiddenChoices] = useState([]);
 
   const [leaderboard, setLeaderboard] = useState([]);
   const [leaderboardScope, setLeaderboardScope] = useState('global');
@@ -244,6 +250,8 @@ export default function App() {
           setRunCorrectness([]);
           setFeedback(null);
           setAnswerError(null);
+          setLifelinesUsed([]);
+          setHiddenChoices([]);
           setOpponentLive(null);
           setDuelResult(null);
           setOutgoingDuel(null);
@@ -324,6 +332,7 @@ export default function App() {
         timingMode: data.timing_mode,
         maxStrikes: data.max_strikes,
         createdAt: data.created_at,
+        lifelinesEnabled: Boolean(data.lifelines_enabled),
       });
       setQuestion(data.question);
       setToken(data.token);
@@ -337,6 +346,8 @@ export default function App() {
       setRunCorrectness([]);
       setFeedback(null);
       setAnswerError(null);
+      setLifelinesUsed([]);
+      setHiddenChoices([]);
       setScreen('question');
     } catch (err) {
       if (err.code === 'unauthorized') {
@@ -376,6 +387,8 @@ export default function App() {
     setRunCorrectness([]);
     setFeedback(null);
     setAnswerError(null);
+    setLifelinesUsed([]);
+    setHiddenChoices([]);
     setScreen('question');
   };
 
@@ -395,6 +408,7 @@ export default function App() {
       setQuestion(next.question);
       setToken(next.token);
       setIssuedAt(next.issued_at);
+      setHiddenChoices([]);
       setFeedback(null);
       setAnswerError(null);
       return true;
@@ -404,7 +418,7 @@ export default function App() {
   };
 
   const handleSubmit = useCallback(
-    async (chosenIndex) => {
+    async (chosenIndex, lifeline) => {
       if (submitLockRef.current || feedback) return;
       submitLockRef.current = true;
       setSubmitPending(true);
@@ -415,6 +429,7 @@ export default function App() {
             questionId: question.question_id,
             chosenIndex,
             token,
+            lifeline,
           }),
         );
         const correctIndex = question.choices.indexOf(result.correct_answer);
@@ -427,7 +442,10 @@ export default function App() {
           correctAnswer: result.correct_answer,
           explanation: result.explanation,
           sessionComplete: result.session_complete,
+          skipped: Boolean(result.skipped),
+          lifeline: result.lifeline ?? null,
         });
+        if (result.session?.lifelines_used) setLifelinesUsed(result.session.lifelines_used);
         setStreak(result.streak);
         setBestStreak(result.session.best_streak);
         setStrikes(result.strikes);
@@ -449,6 +467,7 @@ export default function App() {
           message: describeFailure(err, chosenIndex === -1 ? 'recording your timeout' : 'recording that answer'),
           retryable: true,
           chosenIndex,
+          lifeline,
         });
       } finally {
         submitLockRef.current = false;
@@ -501,6 +520,8 @@ export default function App() {
       setQuestion(next.question);
       setToken(next.token);
       setIssuedAt(next.issued_at);
+      // A 50-50 applies to one question only.
+      setHiddenChoices([]);
       setFeedback(null);
     } catch (err) {
       if (err.code === 'session_not_active') {
@@ -517,13 +538,40 @@ export default function App() {
     }
   };
 
+  const handleFiftyFifty = async () => {
+    if (submitLockRef.current || feedback) return;
+    setAnswerError(null);
+    try {
+      const result = await withRetries(() =>
+        spendLifeline(session.id, { questionId: question.question_id, token, type: 'fifty_fifty' }),
+      );
+      setHiddenChoices(result.hidden_indices ?? []);
+      setLifelinesUsed(result.lifelines_used ?? []);
+    } catch (err) {
+      // Already spent is not worth a panel; the button simply stops being offered once the
+      // server's answer says so.
+      if (err.code === 'lifeline_unavailable') {
+        setLifelinesUsed((prev) => (prev.includes('fifty_fifty') ? prev : [...prev, 'fifty_fifty']));
+        return;
+      }
+      setAnswerError({ message: describeFailure(err, 'using that lifeline'), retryable: false });
+    }
+  };
+
+  // Routed through handleSubmit so a skip gets the same submit lock, retries, error handling
+  // and 409 recovery every other answer gets.
+  const handleSkip = () => {
+    if (lifelinesUsed.includes('skip')) return;
+    handleSubmit(0, 'skip');
+  };
+
   const handleRetryAnswer = () => {
     if (!answerError?.retryable) return;
     if (answerError.continueInstead) {
       handleContinue();
       return;
     }
-    handleSubmit(answerError.chosenIndex);
+    handleSubmit(answerError.chosenIndex, answerError.lifeline);
   };
 
   const handleAbandonRun = () => {
@@ -603,6 +651,8 @@ export default function App() {
       setRunCorrectness([]);
       setFeedback(null);
       setAnswerError(null);
+      setLifelinesUsed([]);
+      setHiddenChoices([]);
       setOpponentLive(null);
       setDuelResult(null);
       setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
@@ -769,6 +819,11 @@ export default function App() {
             totalScore={totalScore}
             feedback={feedback}
             submitPending={submitPending}
+            lifelinesEnabled={session.lifelinesEnabled}
+            lifelinesUsed={lifelinesUsed}
+            hiddenChoices={hiddenChoices}
+            onFiftyFifty={handleFiftyFifty}
+            onSkip={handleSkip}
             onSubmit={handleSubmit}
           />
           {answerError && (
@@ -790,6 +845,7 @@ export default function App() {
             <ResultReveal
               correct={feedback.correct}
               timedOut={feedback.timedOut}
+              skipped={feedback.skipped}
               points={feedback.points}
               correctAnswer={feedback.correctAnswer}
               explanation={feedback.explanation}

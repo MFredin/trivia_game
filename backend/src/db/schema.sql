@@ -103,6 +103,10 @@ ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS strikes INTEGER NOT NULL DEFA
 -- which a final wrong answer resets to 0), this is what streak-based achievements check.
 ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS best_streak INTEGER NOT NULL DEFAULT 0;
 
+-- Lifelines, Classic only. Which ones a run has spent, so the server — not the client — is
+-- the thing that knows a lifeline is gone. One of each per run.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS lifelines_used TEXT[] NOT NULL DEFAULT '{}';
+
 CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard
   ON game_sessions (mode, status, total_score DESC);
 
@@ -196,3 +200,8 @@ CREATE TABLE IF NOT EXISTS session_questions (
   UNIQUE (session_id, question_id),
   UNIQUE (session_id, position)
 );
+
+-- Which lifeline, if any, was applied to this question: 'fifty_fifty' or 'skip'. Recorded
+-- per question rather than only per session because scoring depends on it — a question
+-- answered after a 50-50 is worth less, and a skipped one is worth nothing.
+ALTER TABLE session_questions ADD COLUMN IF NOT EXISTS lifeline TEXT;
