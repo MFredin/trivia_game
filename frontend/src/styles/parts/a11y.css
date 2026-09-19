@@ -23,7 +23,7 @@
 
    Excluded on purpose: .choice-button and the lifeline buttons, which are already far
    larger, and the range input, whose thumb is sized separately below. ---------------------- */
-:where(.nav-btn, .running-nav button, .seg, .secondary-button, .colophon-link, .tab-btn) {
+:where(.nav-btn, .running-nav button, .seg, .secondary-button, .colophon-link) {
   min-height: 44px;
 }
 
