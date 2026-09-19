@@ -6,7 +6,7 @@ export const LIFELINE_MODES = ['classic'];
 
 export const FIFTY_FIFTY = 'fifty_fifty';
 export const SKIP = 'skip';
-export const LIFELINE_TYPES = [FIFTY_FIFTY, SKIP];
+const LIFELINE_TYPES = [FIFTY_FIFTY, SKIP];
 
 // One of each per run. Enough to change how a run is played, not enough to carry it.
 export function lifelineAvailable(session, type) {
@@ -19,7 +19,7 @@ export function lifelineAvailable(session, type) {
 // run, taken every time. Half the points is the plainest rule to explain and the easiest to
 // reason about while playing: worth spending on a question you would otherwise miss, not one
 // you already know.
-export const FIFTY_FIFTY_SCORE_MULTIPLIER = 0.5;
+const FIFTY_FIFTY_SCORE_MULTIPLIER = 0.5;
 
 export function applyLifelineToScore(points, lifeline) {
   if (lifeline === SKIP) return 0;
