@@ -2121,3 +2121,36 @@ button {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
 }
+
+/* --- achievement showcase on the profile ------------------------------------------- */
+/* Reuses .achievement-card wholesale so a badge looks the same wherever it appears; only
+   the grid tightens, since this is a summary sitting inside a plate rather than the full
+   Achievements screen. */
+.profile-badges {
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(var(--rubric-rgb), 0.18);
+}
+
+.profile-badges-label {
+  margin: 0 0 0.7rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--rubric);
+}
+
+/* Fixed counts rather than auto-fill: the showcase is always six, and auto-fill picked five
+   columns at desktop width, which left a single orphaned card alone on a second row. Two and
+   three both divide six exactly. */
+.achievement-grid--compact {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.7rem;
+}
+
+@media (min-width: 720px) {
+  .achievement-grid--compact {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
