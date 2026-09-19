@@ -1,0 +1,67 @@
+# Nothing ran these before. The repo had 26 tests and a contrast audit, and both only ever
+# ran when somebody remembered to; Railway deploys straight off main with no gate in between.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    # The session-flow tests need a real database — that part of the app is exactly what the
+    # pure unit tests could not cover, and what has actually broken in front of players.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: trivia_game
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/trivia_game
+      QUESTION_TOKEN_SECRET: ci-question-secret
+      AUTH_TOKEN_SECRET: ci-auth-secret
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+        working-directory: backend
+      - run: npm run db:migrate
+        working-directory: backend
+      - run: npm run db:seed
+        working-directory: backend
+      - run: npm test
+        working-directory: backend
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build
+        working-directory: frontend
+      # Exits non-zero on any gated pairing below its WCAG threshold, so a colour change that
+      # breaks contrast fails here rather than in front of a player.
+      - run: npm run audit:contrast
+        working-directory: frontend
