@@ -216,17 +216,21 @@ export function createSession({ mode, category, canonSource, difficulty }, token
   );
 }
 
+// Everything below that names a session id carries the auth token: the server checks the run
+// belongs to the caller, so the id on its own is not a credential. The per-question token is a
+// separate thing — it proves which question is being answered and when it was issued.
+//
 // Asks the server for the next question, which is also what starts its clock — so this is
 // called when the player dismisses a result, never earlier.
-export function fetchNextQuestion(sessionId) {
-  return request(`/sessions/${sessionId}/next`, { method: 'POST' });
+export function fetchNextQuestion(sessionId, token) {
+  return request(`/sessions/${sessionId}/next`, { method: 'POST' }, token);
 }
 
-export function getSession(sessionId) {
-  return request(`/sessions/${sessionId}`);
+export function getSession(sessionId, token) {
+  return request(`/sessions/${sessionId}`, {}, token);
 }
 
-export function submitAnswer(sessionId, { questionId, chosenIndex, token: questionToken, lifeline }) {
+export function submitAnswer(sessionId, { questionId, chosenIndex, token: questionToken, lifeline }, authToken) {
   return request(`/sessions/${sessionId}/answer`, {
     method: 'POST',
     // `lifeline: 'skip'` travels on the answer so a skip reuses the whole answer flow —
@@ -237,7 +241,7 @@ export function submitAnswer(sessionId, { questionId, chosenIndex, token: questi
       token: questionToken,
       ...(lifeline ? { lifeline } : {}),
     }),
-  });
+  }, authToken);
 }
 
 export function submitSuggestion(draft, token) {
@@ -278,9 +282,10 @@ export function getFeaturedChallenge() {
 
 // Spends a 50-50. The server decides which choices vanish and returns their indices; the
 // client is never told which answer is right, only which two are not.
-export function spendLifeline(sessionId, { questionId, token: questionToken, type }) {
-  return request(`/sessions/${sessionId}/lifeline`, {
-    method: 'POST',
-    body: JSON.stringify({ question_id: questionId, token: questionToken, type }),
-  });
+export function spendLifeline(sessionId, { questionId, token: questionToken, type }, authToken) {
+  return request(
+    `/sessions/${sessionId}/lifeline`,
+    { method: 'POST', body: JSON.stringify({ question_id: questionId, token: questionToken, type }) },
+    authToken,
+  );
 }

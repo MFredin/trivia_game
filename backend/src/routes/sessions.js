@@ -125,10 +125,39 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+/**
+ * Loads the run named in the URL and proves it belongs to whoever is asking.
+ *
+ * Every route below used to look the session up by id alone, which made the id itself the
+ * only credential: anyone who learned a run's UUID could read its score, pull its next
+ * question, spend its lifelines or answer on its behalf, and the resulting score would post
+ * to the leaderboard under the owner's name. UUIDs are unguessable, but "unguessable" is not
+ * an authorization check — the ownership test is.
+ *
+ * Returns the session, or null after having already sent the response.
+ */
+async function loadOwnedSession(req, res, { requireActive = true } = {}) {
   const { rows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
-  if (rows.length === 0) return res.status(404).json({ error: 'session_not_found' });
-  return res.json(sessionSummary(rows[0]));
+  const session = rows[0];
+  // Same 404 for "no such run" and "not yours", so the endpoint cannot be used to test
+  // whether a given id exists.
+  if (!session || session.user_id !== req.userId) {
+    res.status(404).json({ error: 'session_not_found' });
+    return null;
+  }
+  if (requireActive && session.status !== 'active') {
+    res.status(409).json({ error: 'session_not_active' });
+    return null;
+  }
+  return session;
+}
+
+router.get('/:id', requireAuth, async (req, res) => {
+  // A finished run is still readable — this is what the client falls back to when an answer
+  // response goes missing and it needs to know whether the run already ended.
+  const session = await loadOwnedSession(req, res, { requireActive: false });
+  if (!session) return undefined;
+  return res.json(sessionSummary(session));
 });
 
 // Hands the player their next question and starts its clock. Called when they dismiss a
@@ -138,12 +167,10 @@ router.get('/:id', async (req, res) => {
 // Idempotent on purpose: if this session already has a served, unanswered question it comes
 // back unchanged, keeping its original issued_at. That makes the call safe to retry after a
 // dropped response without handing out a fresh 20 seconds.
-router.post('/:id/next', async (req, res) => {
+router.post('/:id/next', requireAuth, async (req, res) => {
   try {
-    const { rows: sessionRows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
-    const session = sessionRows[0];
-    if (!session) return res.status(404).json({ error: 'session_not_found' });
-    if (session.status !== 'active') return res.status(409).json({ error: 'session_not_active' });
+    const session = await loadOwnedSession(req, res);
+    if (!session) return undefined;
 
     const questions = await getAllQuestions();
 
@@ -171,17 +198,15 @@ router.post('/:id/next', async (req, res) => {
 //
 // Idempotent. Asking twice returns the same two hidden choices and spends nothing further, so
 // a retry after a dropped response cannot narrow the field a second time.
-router.post('/:id/lifeline', async (req, res) => {
+router.post('/:id/lifeline', requireAuth, async (req, res) => {
   try {
     const { question_id, token, type } = req.body ?? {};
     if (!question_id || !token || type !== FIFTY_FIFTY) {
       return res.status(400).json({ error: 'invalid_request' });
     }
 
-    const { rows: sessionRows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
-    const session = sessionRows[0];
-    if (!session) return res.status(404).json({ error: 'session_not_found' });
-    if (session.status !== 'active') return res.status(409).json({ error: 'session_not_active' });
+    const session = await loadOwnedSession(req, res);
+    if (!session) return undefined;
 
     const { rows: sqRows } = await pool.query(
       'SELECT * FROM session_questions WHERE session_id = $1 AND question_id = $2',
@@ -219,7 +244,7 @@ router.post('/:id/lifeline', async (req, res) => {
   }
 });
 
-router.post('/:id/answer', async (req, res) => {
+router.post('/:id/answer', requireAuth, async (req, res) => {
   try {
     const { question_id, chosen_index, token, lifeline } = req.body ?? {};
     if (!question_id || typeof chosen_index !== 'number' || !token) {
@@ -231,10 +256,8 @@ router.post('/:id/answer', async (req, res) => {
     const isSkip = lifeline === SKIP;
     if (lifeline !== undefined && !isSkip) return res.status(400).json({ error: 'invalid_request' });
 
-    const { rows: sessionRows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
-    const session = sessionRows[0];
-    if (!session) return res.status(404).json({ error: 'session_not_found' });
-    if (session.status !== 'active') return res.status(409).json({ error: 'session_not_active' });
+    const session = await loadOwnedSession(req, res);
+    if (!session) return undefined;
 
     const { rows: sqRows } = await pool.query(
       'SELECT * FROM session_questions WHERE session_id = $1 AND question_id = $2',

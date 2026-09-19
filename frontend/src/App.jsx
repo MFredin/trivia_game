@@ -417,14 +417,14 @@ export default function App() {
   // on a question that is, as far as the server is concerned, behind them.
   const recoverFromStaleAnswer = async () => {
     try {
-      const live = await withRetries(() => getSession(session.id));
+      const live = await withRetries(() => getSession(session.id, authToken));
       if (live.status === 'completed') {
         setAnswerError(null);
         await finishRun();
         return true;
       }
       // Still running: the answer landed and the next question is ours to ask for.
-      const next = await withRetries(() => fetchNextQuestion(session.id));
+      const next = await withRetries(() => fetchNextQuestion(session.id, authToken));
       setQuestion(next.question);
       setToken(next.token);
       setIssuedAt(next.issued_at);
@@ -445,12 +445,11 @@ export default function App() {
       setAnswerError(null);
       try {
         const result = await withRetries(() =>
-          submitAnswer(session.id, {
-            questionId: question.question_id,
-            chosenIndex,
-            token,
-            lifeline,
-          }),
+          submitAnswer(
+            session.id,
+            { questionId: question.question_id, chosenIndex, token, lifeline },
+            authToken,
+          ),
         );
         const correctIndex = question.choices.indexOf(result.correct_answer);
         setFeedback({
@@ -495,7 +494,7 @@ export default function App() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [session?.id, question?.question_id, token, feedback],
+    [session?.id, question?.question_id, token, feedback, authToken],
   );
 
   const fetchLeaderboard = async (scope, window) => {
@@ -536,7 +535,7 @@ export default function App() {
     setAnswerError(null);
     setSubmitPending(true);
     try {
-      const next = await withRetries(() => fetchNextQuestion(session.id));
+      const next = await withRetries(() => fetchNextQuestion(session.id, authToken));
       setQuestion(next.question);
       setToken(next.token);
       setIssuedAt(next.issued_at);
@@ -563,7 +562,7 @@ export default function App() {
     setAnswerError(null);
     try {
       const result = await withRetries(() =>
-        spendLifeline(session.id, { questionId: question.question_id, token, type: 'fifty_fifty' }),
+        spendLifeline(session.id, { questionId: question.question_id, token, type: 'fifty_fifty' }, authToken),
       );
       setHiddenChoices(result.hidden_indices ?? []);
       setLifelinesUsed(result.lifelines_used ?? []);

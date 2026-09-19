@@ -212,3 +212,41 @@ CREATE TABLE IF NOT EXISTS session_questions (
 -- per question rather than only per session because scoring depends on it — a question
 -- answered after a 50-50 is worth less, and a skipped one is worth nothing.
 ALTER TABLE session_questions ADD COLUMN IF NOT EXISTS lifeline TEXT;
+
+-- ---------------------------------------------------------------------------
+-- Access-path indexes (platform audit)
+--
+-- The three leaderboard indexes above all lead with `mode`, so none of them helps a query
+-- that starts from a person, a duel or a challenge — and most of the app does. Every one of
+-- these backs a filter that already exists in the routes; they add no behaviour, only a way
+-- to answer those filters without reading the whole table as it grows.
+-- ---------------------------------------------------------------------------
+
+-- Profile is five separate scans of this table for one player, and every completed run
+-- re-reads it to work out whether the score is a personal best.
+CREATE INDEX IF NOT EXISTS idx_game_sessions_user
+  ON game_sessions (user_id, status);
+
+-- Duel scoring pairs the two runs by duel_id, and does it once per duel row when listing a
+-- record, so this is the difference between a lookup and a scan per duel.
+CREATE INDEX IF NOT EXISTS idx_game_sessions_duel
+  ON game_sessions (duel_id) WHERE duel_id IS NOT NULL;
+
+-- Challenge leaderboards read every completed run for one challenge.
+CREATE INDEX IF NOT EXISTS idx_game_sessions_challenge
+  ON game_sessions (challenge_id) WHERE challenge_id IS NOT NULL;
+
+-- UNIQUE (user_id, friend_user_id) already serves lookups that start from the requester. The
+-- incoming-requests query starts from the other end and had no index at all.
+CREATE INDEX IF NOT EXISTS idx_friendships_friend
+  ON friendships (friend_user_id, status);
+
+-- Duel lists filter on one of the two participant columns plus status; a single index cannot
+-- serve an OR across two columns, so each side gets its own.
+CREATE INDEX IF NOT EXISTS idx_duels_created_by ON duels (created_by, status);
+CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels (opponent_id, status);
+
+-- The activity feed is friends-scoped before it is ordered, so the existing created_at-only
+-- index has to read rows belonging to everyone else to find the ones it wants.
+CREATE INDEX IF NOT EXISTS idx_activity_events_user_created
+  ON activity_events (user_id, created_at DESC);
