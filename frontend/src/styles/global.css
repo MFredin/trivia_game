@@ -2106,3 +2106,18 @@ button {
   font-style: italic;
   color: var(--text-muted-on-surface);
 }
+
+/* The build stamp, set like a printer's imprint at the foot of the colophon. Deliberately
+   quiet — it is for whoever is checking a deploy, not for players. */
+.colophon-build {
+  margin-top: 0.6rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash-300);
+}
+
+.colophon-build span {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}

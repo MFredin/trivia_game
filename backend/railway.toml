@@ -2,6 +2,18 @@
 builder = "NIXPACKS"
 
 [deploy]
+# Runs after the build, before the container starts, on every deploy. schema.sql is entirely
+# CREATE TABLE IF NOT EXISTS, so applying it each time is a no-op once the tables exist and
+# is what stops production drifting behind the repo. It drifted once: the `challenges` table
+# was never created, so the achievements query threw on every completed run and took the
+# player's final answer down with it (see docs/answer-flow.md).
+#
+# Kept here rather than only in Railway's service settings so it survives the service being
+# recreated from this repo. Config in code overrides the dashboard.
+#
+# Note: a REDEPLOY replays the previous deployment's snapshot and does NOT run this. Only a
+# real build does, so a migration needs a push or a fresh build, not a redeploy.
+preDeployCommand = ["npm run db:migrate"]
 startCommand = "npm run start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 100

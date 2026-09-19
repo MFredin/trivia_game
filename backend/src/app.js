@@ -24,7 +24,21 @@ export function createApp() {
   app.use(cors(allowedOrigin ? { origin: allowedOrigin.split(',') } : undefined));
   app.use(express.json());
 
-  app.get('/api/health', (req, res) => res.json({ ok: true }));
+  // Railway injects RAILWAY_GIT_COMMIT_SHA into every build from a connected repo, so the
+  // running service can say which commit it is without anyone having to correlate deploy
+  // timestamps by hand. Reporting it here is what makes "is this build actually live?"
+  // answerable from outside, which an audit otherwise has to guess at.
+  const commit = process.env.RAILWAY_GIT_COMMIT_SHA ?? null;
+  const startedAt = new Date().toISOString();
+  app.get('/api/health', (req, res) =>
+    res.json({
+      ok: true,
+      commit: commit ? commit.slice(0, 7) : 'dev',
+      commit_full: commit,
+      branch: process.env.RAILWAY_GIT_BRANCH ?? null,
+      started_at: startedAt,
+    }),
+  );
   app.use('/api/sessions', sessionsRouter);
   app.use('/api/leaderboard', leaderboardRouter);
   app.use('/api/categories', categoriesRouter);
