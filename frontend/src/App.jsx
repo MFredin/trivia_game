@@ -1,28 +1,39 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import NavBar from './components/NavBar.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import StartScreen from './components/StartScreen.jsx';
 import QuestionCard from './components/QuestionCard.jsx';
 import ResultReveal from './components/ResultReveal.jsx';
 import SessionSummary from './components/SessionSummary.jsx';
-import LeaderboardScreen from './components/LeaderboardScreen.jsx';
-import FriendsPanel from './components/FriendsPanel.jsx';
-import DuelLobbyScreen from './components/DuelLobbyScreen.jsx';
 import DuelOpponentStrip from './components/DuelOpponentStrip.jsx';
-import DuelSummaryScreen from './components/DuelSummaryScreen.jsx';
 import DuelInviteBanner from './components/DuelInviteBanner.jsx';
-import AchievementsScreen from './components/AchievementsScreen.jsx';
 import AchievementToast from './components/AchievementToast.jsx';
-import SettingsScreen from './components/SettingsScreen.jsx';
-import MischiefModal from './components/MischiefModal.jsx';
-import SuggestQuestionScreen from './components/SuggestQuestionScreen.jsx';
-import AdminSuggestionsScreen from './components/AdminSuggestionsScreen.jsx';
-import PreviewScreen from './components/PreviewScreen.jsx';
-import ProfileScreen from './components/ProfileScreen.jsx';
-import ChallengeScreen from './components/ChallengeScreen.jsx';
-import FeedbackModal from './components/FeedbackModal.jsx';
 import Embers from './components/Embers.jsx';
 import { useDuelSocket } from './hooks/useDuelSocket.js';
+
+// Fetched on demand. All of this used to sit in the first bundle, so every player on a phone
+// downloaded the admin review queue, the suggestion form, the whole Friends panel and the
+// guest preview before they could read question one — and paid for it again on every release,
+// because one file means one cache key. Nothing here is on the path to playing a quiz.
+const LeaderboardScreen = lazy(() => import('./components/LeaderboardScreen.jsx'));
+const FriendsPanel = lazy(() => import('./components/FriendsPanel.jsx'));
+const DuelLobbyScreen = lazy(() => import('./components/DuelLobbyScreen.jsx'));
+const DuelSummaryScreen = lazy(() => import('./components/DuelSummaryScreen.jsx'));
+const AchievementsScreen = lazy(() => import('./components/AchievementsScreen.jsx'));
+const SettingsScreen = lazy(() => import('./components/SettingsScreen.jsx'));
+const MischiefModal = lazy(() => import('./components/MischiefModal.jsx'));
+const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScreen.jsx'));
+const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
+const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
+const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
+const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
+const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
+
+// Each deferred screen gets its own Suspense boundary rather than one around the whole shell,
+// so fetching a chunk never blanks the nav bar or a run already in progress. Modals fall back
+// to nothing at all: a placeholder where a dialog is about to appear reads as a glitch.
+const screenFallback = <p className="screen-loading">Fetching&hellip;</p>;
+
 import { duelReactionLabel } from './constants/duelReactions.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import {
@@ -729,13 +740,15 @@ export default function App() {
         />
       )}
       {showMischief && (
-        <MischiefModal
-          onClose={() => setShowMischief(false)}
-          onSuggest={() => {
-            setShowMischief(false);
-            setScreen('suggest');
-          }}
-        />
+        <Suspense fallback={null}>
+          <MischiefModal
+            onClose={() => setShowMischief(false)}
+            onSuggest={() => {
+              setShowMischief(false);
+              setScreen('suggest');
+            }}
+          />
+        </Suspense>
       )}
       {screen !== 'auth' && screen !== 'question' && incomingDuelInvites.length > 0 && (
         <DuelInviteBanner invite={incomingDuelInvites[0]} onAccept={handleAcceptDuel} onDecline={handleDeclineDuel} />
@@ -757,12 +770,14 @@ export default function App() {
         />
       )}
       {screen === 'preview' && (
-        <PreviewScreen
-          onDone={() => {
-            setCameFromPreview(true);
-            setScreen('auth');
-          }}
-        />
+        <Suspense fallback={screenFallback}>
+          <PreviewScreen
+            onDone={() => {
+              setCameFromPreview(true);
+              setScreen('auth');
+            }}
+          />
+        </Suspense>
       )}
       {screen === 'start' && currentUser && (
         <StartScreen
@@ -774,54 +789,66 @@ export default function App() {
           onOpenChallenge={handleOpenChallenge}
         />
       )}
-      {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
-      {screen === 'achievements' && <AchievementsScreen token={authToken} />}
+      {screen === 'leaderboard' && <Suspense fallback={screenFallback}><LeaderboardScreen categories={categories} token={authToken} /></Suspense>}
+      {screen === 'achievements' && <Suspense fallback={screenFallback}><AchievementsScreen token={authToken} /></Suspense>}
       {screen === 'settings' && (
-        <SettingsScreen
-          theme={currentUser?.theme ?? DEFAULT_HOUSE}
-          onSelectTheme={handleSelectTheme}
-          token={authToken}
-          onViewOwnProfile={() => handleViewProfile(currentUser.username)}
-        />
+        <Suspense fallback={screenFallback}>
+          <SettingsScreen
+            theme={currentUser?.theme ?? DEFAULT_HOUSE}
+            onSelectTheme={handleSelectTheme}
+            token={authToken}
+            onViewOwnProfile={() => handleViewProfile(currentUser.username)}
+          />
+        </Suspense>
       )}
       {screen === 'profile' && viewingProfile && (
-        <ProfileScreen
-          username={viewingProfile}
-          token={authToken}
-          onBack={() => setScreen(profileReturnScreen)}
-        />
+        <Suspense fallback={screenFallback}>
+          <ProfileScreen
+            username={viewingProfile}
+            token={authToken}
+            onBack={() => setScreen(profileReturnScreen)}
+          />
+        </Suspense>
       )}
       {screen === 'challenge' && challengeCode && (
-        <ChallengeScreen
-          code={challengeCode}
-          token={authToken}
-          onPlay={handleStartChallenge}
-          onCancel={() => setScreen('start')}
-        />
+        <Suspense fallback={screenFallback}>
+          <ChallengeScreen
+            code={challengeCode}
+            token={authToken}
+            onPlay={handleStartChallenge}
+            onCancel={() => setScreen('start')}
+          />
+        </Suspense>
       )}
-      {screen === 'suggest' && <SuggestQuestionScreen categories={categories} token={authToken} />}
+      {screen === 'suggest' && <Suspense fallback={screenFallback}><SuggestQuestionScreen categories={categories} token={authToken} /></Suspense>}
       {screen === 'admin-suggestions' && currentUser?.is_admin && (
-        <AdminSuggestionsScreen categories={categories} token={authToken} />
+        <Suspense fallback={screenFallback}>
+          <AdminSuggestionsScreen categories={categories} token={authToken} />
+        </Suspense>
       )}
       {screen === 'friends' && (
-        <FriendsPanel
-          token={authToken}
-          pendingDuels={pendingDuels}
-          onAcceptDuel={handleAcceptDuel}
-          onDeclineDuel={handleDeclineDuel}
-          onChallenge={handleChallenge}
-          onViewProfile={handleViewProfile}
-        />
+        <Suspense fallback={screenFallback}>
+          <FriendsPanel
+            token={authToken}
+            pendingDuels={pendingDuels}
+            onAcceptDuel={handleAcceptDuel}
+            onDeclineDuel={handleDeclineDuel}
+            onChallenge={handleChallenge}
+            onViewProfile={handleViewProfile}
+          />
+        </Suspense>
       )}
       {screen === 'duel-lobby' && (
-        <DuelLobbyScreen
-          opponentUsername={duelLobbyOpponent}
-          categories={categories}
-          outgoingDuel={outgoingDuel}
-          error={duelLobbyError}
-          onSend={handleSendDuel}
-          onLeave={handleLeaveDuelLobby}
-        />
+        <Suspense fallback={screenFallback}>
+          <DuelLobbyScreen
+            opponentUsername={duelLobbyOpponent}
+            categories={categories}
+            outgoingDuel={outgoingDuel}
+            error={duelLobbyError}
+            onSend={handleSendDuel}
+            onLeave={handleLeaveDuelLobby}
+          />
+        </Suspense>
       )}
       {screen === 'question' && question && (
         <>
@@ -906,13 +933,15 @@ export default function App() {
         />
       )}
       {screen === 'duel-summary' && (
-        <DuelSummaryScreen
-          yourScore={totalScore}
-          opponentUsername={duelOpponentUsername}
-          result={duelResult}
-          house={currentUser?.theme ?? DEFAULT_HOUSE}
-          onDone={handleDuelDone}
-        />
+        <Suspense fallback={screenFallback}>
+          <DuelSummaryScreen
+            yourScore={totalScore}
+            opponentUsername={duelOpponentUsername}
+            result={duelResult}
+            house={currentUser?.theme ?? DEFAULT_HOUSE}
+            onDone={handleDuelDone}
+          />
+        </Suspense>
       )}
       <div className="colophon">
         <p>
@@ -930,7 +959,9 @@ export default function App() {
         </p>
       </div>
       {showFeedback && (
-        <FeedbackModal onClose={() => setShowFeedback(false)} token={authToken} page={screen} />
+        <Suspense fallback={null}>
+          <FeedbackModal onClose={() => setShowFeedback(false)} token={authToken} page={screen} />
+        </Suspense>
       )}
     </div>
   );

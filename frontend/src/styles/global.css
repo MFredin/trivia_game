@@ -2297,3 +2297,16 @@ button {
 .choice-button.is-struck {
   cursor: default;
 }
+
+/* --- deferred screens --- */
+
+/* Shown only while a screen's chunk is in flight, which on a warm cache is no time at all.
+   Deliberately plain: a skeleton that apes the screen about to arrive costs more than the
+   wait it covers, and guesses wrong when the screen changes. */
+.screen-loading {
+  margin: 2.5rem 0;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-style: italic;
+  text-align: center;
+}
