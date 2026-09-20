@@ -48,6 +48,8 @@ router.post('/', requireAuth, async (req, res) => {
 // job runner here, and a challenge nobody has asked for does not need to exist. Two players
 // asking at the same moment both try to insert; the UNIQUE constraint on featured_week lets
 // the loser fall back to reading the winner's row instead of erroring.
+// Deliberately open: the featured challenge is the same for everyone all week and holds
+// nothing personal, so there is nothing here that a login would protect.
 router.get('/featured', async (req, res) => {
   try {
     const week = currentLeaderboardWindow();
@@ -98,7 +100,11 @@ async function describeFeatured(challenge, week) {
   };
 }
 
-router.get('/:code', async (req, res) => {
+// Requires a login, unlike /featured above: a challenge code names one player's private
+// invitation, and its only caller already sends the token. Four random bytes are not
+// realistically brute-forceable over HTTP, but the code is a link to be shared, not a
+// credential to be relied on.
+router.get('/:code', requireAuth, async (req, res) => {
   const { rows: challengeRows } = await pool.query(
     // LEFT JOIN, not JOIN: the featured weekly challenge has no creator, and an inner join
     // would make it unreachable by its own code.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
-import { getMySuggestions, submitSuggestion } from '../api/client.js';
+import { getMySuggestions, submitSuggestion } from '../api/suggestions.js';
 
 const STATUS_LABEL = {
   pending: 'Awaiting review',

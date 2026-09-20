@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import { DIFFICULTY_TIERS } from '../constants/difficulty.js';
-import { approveSuggestion, getAdminSuggestions, rejectSuggestion } from '../api/client.js';
+import { approveSuggestion, getAdminSuggestions, rejectSuggestion } from '../api/suggestions.js';
 
 const OBSCURITY_TIERS = DIFFICULTY_TIERS.map((t) => t.value).filter(Boolean);
 const DESIGN_TIERS = ['Direct', 'Some distractors', 'Trick phrasing', 'Requires cross-referencing'];

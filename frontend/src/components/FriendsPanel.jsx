@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
-import {
-  acceptFriendRequest,
-  addFriend,
-  declineFriendRequest,
-  getActivity,
-  getAllMembers,
-  getFriendRequests,
-  getOnlineMembers,
-  listFriends,
-  removeFriend,
-  searchMembers,
-} from '../api/client.js';
+import { getActivity } from '../api/activity.js';
+import { acceptFriendRequest, addFriend, declineFriendRequest, getAllMembers, getFriendRequests, getOnlineMembers, listFriends, removeFriend, searchMembers } from '../api/friends.js';
 
 const ONLINE_POLL_MS = 15000;
 const MEMBERS_PAGE_SIZE = 30;
@@ -256,6 +246,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <button
             type="button"
             className={`nav-btn ${discoverTab === 'online' ? 'is-active' : ''}`}
+            aria-pressed={discoverTab === 'online'}
             onClick={() => setDiscoverTab('online')}
           >
             Online Now
@@ -263,6 +254,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <button
             type="button"
             className={`nav-btn ${discoverTab === 'all' ? 'is-active' : ''}`}
+            aria-pressed={discoverTab === 'all'}
             onClick={() => setDiscoverTab('all')}
           >
             All Members
@@ -270,6 +262,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <button
             type="button"
             className={`nav-btn ${discoverTab === 'search' ? 'is-active' : ''}`}
+            aria-pressed={discoverTab === 'search'}
             onClick={() => setDiscoverTab('search')}
           >
             Search
@@ -277,6 +270,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <button
             type="button"
             className={`nav-btn ${discoverTab === 'activity' ? 'is-active' : ''}`}
+            aria-pressed={discoverTab === 'activity'}
             onClick={() => setDiscoverTab('activity')}
           >
             Activity
@@ -290,6 +284,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by username"
+              aria-label="Search members by username"
               className="friend-add-input"
               style={{ width: '100%' }}
             />
@@ -442,6 +437,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
             value={newFriend}
             onChange={(e) => setNewFriend(e.target.value)}
             placeholder="Player name"
+            aria-label="Add a friend by player name"
             className="friend-add-input"
           />
           <button type="submit" className="primary-button">

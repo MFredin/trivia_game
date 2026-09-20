@@ -1,0 +1,32 @@
+/* The stylesheet, in cascade order.
+ *
+ * This was one 2,375-line file that every feature appended to, which made it the single worst
+ * merge hotspot in the repo — three of the four Phase 6 features conflicted here, and one of
+ * those resolutions silently cut through a @media block. Split by feature, a new screen brings
+ * its own file and touches this list by one line.
+ *
+ * The order below is the order the single file had, so the cascade is unchanged: anything that
+ * relied on source order still resolves the way it did. Keep new imports at the end unless a
+ * rule genuinely needs to win against something above it.
+ */
+@import './tokens.css';
+
+@import './parts/base.css';
+@import './parts/chrome.css';
+@import './parts/surfaces.css';
+@import './parts/question.css';
+@import './parts/start.css';
+@import './parts/leaderboard.css';
+@import './parts/summary.css';
+@import './parts/friends.css';
+@import './parts/achievements.css';
+@import './parts/settings.css';
+@import './parts/colophon.css';
+@import './parts/modal.css';
+@import './parts/answer-error.css';
+@import './parts/profile-badges.css';
+@import './parts/featured.css';
+@import './parts/duel-reactions.css';
+@import './parts/lifelines.css';
+@import './parts/loading.css';
+@import './parts/a11y.css';

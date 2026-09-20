@@ -11,6 +11,16 @@ export default defineConfig({
     __BUILD_COMMIT__: JSON.stringify(commit ? commit.slice(0, 7) : 'dev'),
   },
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        // React changes when we upgrade it; the app changes several times a day. Sharing one
+        // file meant every release invalidated the framework too, so returning players
+        // re-downloaded it for nothing. Splitting them lets the big, stable half stay cached.
+        manualChunks: { react: ['react', 'react-dom'] },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': 'http://localhost:4000',

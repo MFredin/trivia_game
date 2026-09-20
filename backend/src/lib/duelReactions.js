@@ -3,24 +3,14 @@
 // actually want to say mid-duel. Nothing here can be aimed at someone in a way that requires
 // a moderator, which is the whole point.
 //
-// Text rather than emoji: the rest of the app is set in a book, and these read as marginalia.
-export const DUEL_REACTIONS = [
-  { id: 'well_played', label: 'Well played' },
-  { id: 'nice_one', label: 'Nice one' },
-  { id: 'ouch', label: 'Ouch' },
-  { id: 'so_close', label: 'So close' },
-  { id: 'good_luck', label: 'Good luck' },
-  { id: 'bring_it', label: 'Bring it on' },
-];
-
-const BY_ID = new Map(DUEL_REACTIONS.map((r) => [r.id, r]));
+// Ids only. The server's whole job here is to decide whether an incoming id is one of the
+// six; the labels that go with them are display text, and they live where they are rendered
+// (frontend/src/constants/duelReactions.js). Keeping a second copy of them here would be a
+// copy nothing reads, free to drift.
+const DUEL_REACTION_IDS = new Set(['well_played', 'nice_one', 'ouch', 'so_close', 'good_luck', 'bring_it']);
 
 export function isDuelReaction(id) {
-  return typeof id === 'string' && BY_ID.has(id);
-}
-
-export function duelReactionLabel(id) {
-  return BY_ID.get(id)?.label ?? null;
+  return typeof id === 'string' && DUEL_REACTION_IDS.has(id);
 }
 
 // Reactions are the one thing a client can push at the server unprompted, so they get their

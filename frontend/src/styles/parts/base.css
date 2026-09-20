@@ -1,0 +1,95 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  /* The page is lit, not painted: a house-coloured lamp glow top-left, a fainter metal
+     one bottom-right, over a ground deeper than the old flat radial. */
+  background:
+    radial-gradient(ellipse 700px 420px at 18% 0%, rgba(var(--glow-rgb), 0.42) 0%, rgba(var(--glow-rgb), 0) 70%),
+    radial-gradient(ellipse 520px 360px at 82% 100%, rgba(var(--glow2-rgb), 0.16) 0%, rgba(var(--glow2-rgb), 0) 70%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text-on-bg);
+  font-family: var(--font-body);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Faint horizontal ruling over the whole page — paper under lamplight. At ~1% white it is
+   texture, not a pattern, so it may sit over text without affecting legibility. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 4px);
+  opacity: 0.5;
+}
+
+/* IM Fell English ships one weight; with font-synthesis off, a heavier weight would
+   silently fall back to regular anyway, so declare what actually renders. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  margin: 0;
+}
+
+/* --- embers: a few slow-drifting motes at the page's edges. Only on viewports wide
+   enough to have empty margins beside the shell, so they never sit over content. --- */
+.ember {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 10px 3px rgba(var(--ember-rgb), 0.5);
+  pointer-events: none;
+  z-index: 0;
+  animation: ember-drift 11s ease-in-out infinite;
+}
+
+.ember.is-small {
+  width: 3px;
+  height: 3px;
+}
+
+@keyframes ember-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(10px, -40px);
+    opacity: 0.95;
+  }
+}
+
+@media (max-width: 1240px), (prefers-reduced-motion: reduce) {
+  .ember {
+    display: none;
+  }
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.app-shell {
+  position: relative;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}

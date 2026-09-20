@@ -1,0 +1,103 @@
+/* --- leaderboard ledger --- */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  text-align: left;
+  padding: 0.85rem 1.1rem;
+}
+
+.house-cup-device {
+  vertical-align: middle;
+  margin-bottom: 2px;
+}
+
+/* The ledger: a gilt double rule under the header instead of a hairline. */
+.leaderboard-table thead th {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(18, 21, 28, 0.55);
+  font-weight: 400;
+  border-bottom: 3px double var(--gilt-deep);
+}
+
+.leaderboard-table tbody td {
+  border-bottom: 1px solid rgba(18, 21, 28, 0.08);
+}
+
+.leaderboard-table tbody tr:nth-child(odd) td {
+  background: rgba(var(--brass-500-rgb), 0.045);
+}
+
+.leaderboard-table .rank {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  /* The established on-surface muted token (4.89:1) rather than the old bare 0.55 alpha,
+     which read 3.65:1 — under AA for a numeral this size. */
+  color: var(--text-muted-on-surface);
+}
+
+.leaderboard-table tbody tr:first-child .rank {
+  color: var(--rubric);
+}
+
+.leaderboard-table .player {
+  font-weight: 600;
+}
+
+.leaderboard-table .score {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.leaderboard-table .category {
+  color: var(--text-muted-on-surface);
+  font-size: 0.85rem;
+}
+
+.error-banner {
+  color: var(--oxblood-600);
+  border: 1px solid var(--oxblood-600);
+  border-radius: 3px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  background: rgba(92, 26, 43, 0.08);
+}
+
+/* Four columns of generous padding do not fit a phone. The ledger was 376px wide inside a
+   294px plate at 390px, which pushed the page sideways — the same class of bug as the
+   question header, found by the same regression test.
+
+   Tightened rather than truncated: rank, player, score and segment all still show. A player
+   name is the one genuinely unbreakable token here, so it is allowed to break mid-word;
+   nothing else in the table can outgrow its column. */
+@media (max-width: 720px) {
+  .leaderboard-table {
+    table-layout: fixed;
+    font-size: 0.85rem;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 0.7rem 0.45rem;
+  }
+
+  .leaderboard-table .rank {
+    width: 2.6rem;
+  }
+
+  .leaderboard-table .player {
+    overflow-wrap: anywhere;
+  }
+
+  .leaderboard-table .score {
+    width: 3.6rem;
+  }
+}

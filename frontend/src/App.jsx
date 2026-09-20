@@ -1,49 +1,48 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import NavBar from './components/NavBar.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import StartScreen from './components/StartScreen.jsx';
 import QuestionCard from './components/QuestionCard.jsx';
 import ResultReveal from './components/ResultReveal.jsx';
 import SessionSummary from './components/SessionSummary.jsx';
-import LeaderboardScreen from './components/LeaderboardScreen.jsx';
-import FriendsPanel from './components/FriendsPanel.jsx';
-import DuelLobbyScreen from './components/DuelLobbyScreen.jsx';
 import DuelOpponentStrip from './components/DuelOpponentStrip.jsx';
-import DuelSummaryScreen from './components/DuelSummaryScreen.jsx';
 import DuelInviteBanner from './components/DuelInviteBanner.jsx';
-import AchievementsScreen from './components/AchievementsScreen.jsx';
 import AchievementToast from './components/AchievementToast.jsx';
-import SettingsScreen from './components/SettingsScreen.jsx';
-import MischiefModal from './components/MischiefModal.jsx';
-import SuggestQuestionScreen from './components/SuggestQuestionScreen.jsx';
-import AdminSuggestionsScreen from './components/AdminSuggestionsScreen.jsx';
-import PreviewScreen from './components/PreviewScreen.jsx';
-import ProfileScreen from './components/ProfileScreen.jsx';
-import ChallengeScreen from './components/ChallengeScreen.jsx';
-import FeedbackModal from './components/FeedbackModal.jsx';
 import Embers from './components/Embers.jsx';
-import { useDuelSocket } from './hooks/useDuelSocket.js';
-import { duelReactionLabel } from './constants/duelReactions.js';
+import { useAuth } from './features/auth/useAuth.js';
+import { useRun } from './features/run/useRun.js';
+import { useDuels } from './features/duels/useDuels.js';
+import { useLeaderboard } from './features/leaderboard/useLeaderboard.js';
+import { useAchievementToasts } from './features/achievements/useAchievementToasts.js';
+import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
-import {
-  acceptDuel,
-  createDuel,
-  createSession,
-  declineDuel,
-  fetchNextQuestion,
-  getCategories,
-  getHealth,
-  getLeaderboard,
-  getMe,
-  getPendingDuels,
-  getSession,
-  spendLifeline,
-  startChallenge,
-  submitAnswer,
-  updateTheme,
-} from './api/client.js';
+import { getCategories } from './api/catalog.js';
+import { startChallenge } from './api/challenges.js';
+import { getHealth } from './api/health.js';
+import { createSession } from './api/sessions.js';
 
-const TOKEN_STORAGE_KEY = 'trivia_auth_token';
+// Fetched on demand. All of this used to sit in the first bundle, so every player on a phone
+// downloaded the admin review queue, the suggestion form, the whole Friends panel and the
+// guest preview before they could read question one — and paid for it again on every release,
+// because one file means one cache key. Nothing here is on the path to playing a quiz.
+const LeaderboardScreen = lazy(() => import('./components/LeaderboardScreen.jsx'));
+const FriendsPanel = lazy(() => import('./components/FriendsPanel.jsx'));
+const DuelLobbyScreen = lazy(() => import('./components/DuelLobbyScreen.jsx'));
+const DuelSummaryScreen = lazy(() => import('./components/DuelSummaryScreen.jsx'));
+const AchievementsScreen = lazy(() => import('./components/AchievementsScreen.jsx'));
+const SettingsScreen = lazy(() => import('./components/SettingsScreen.jsx'));
+const MischiefModal = lazy(() => import('./components/MischiefModal.jsx'));
+const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScreen.jsx'));
+const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
+const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
+const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
+const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
+const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
+
+// Each deferred screen gets its own Suspense boundary rather than one around the whole shell,
+// so fetching a chunk never blanks the nav bar or a run already in progress. Modals fall back
+// to nothing at all: a placeholder where a dialog is about to appear reads as a glitch.
+const screenFallback = <p className="screen-loading">Fetching&hellip;</p>;
 
 // Injected at build time by vite.config.js from Railway's RAILWAY_GIT_COMMIT_SHA. Falls back
 // to 'dev' for a local build, which is also how you can tell one at a glance.
@@ -51,49 +50,21 @@ const BUILD_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : '
 
 const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
 
-// A dropped request on a phone is common and usually momentary. Riding out a couple of them
-// is the difference between a run that carries on and a run the player has to rescue by hand,
-// so transient failures (no response, 5xx, 429) are retried before anything reaches the screen.
-// A 4xx is never retried: the server understood and said no, and asking again cannot change it.
-const RETRY_DELAYS_MS = [400, 1200];
-// Retrying is only worth doing while the player would still rather wait than be told. Past
-// this, silence is worse than a message, so whatever went wrong gets reported instead of
-// retried again — three hung requests in a row would otherwise mean a minute of "Sending...".
-const RETRY_BUDGET_MS = 20000;
-
-async function withRetries(attempt) {
-  const startedAt = Date.now();
-  for (let i = 0; ; i++) {
-    try {
-      return await attempt();
-    } catch (err) {
-      const spent = Date.now() - startedAt;
-      if (!err?.transient || i >= RETRY_DELAYS_MS.length || spent > RETRY_BUDGET_MS) throw err;
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[i]));
-    }
-  }
-}
-
-function describeFailure(err, doing) {
-  if (err?.code === 'network_unreachable') {
-    return err.timedOut ? `The server took too long ${doing}.` : `We couldn't reach the server while ${doing}.`;
-  }
-  if (err?.status >= 500) return `The server hit an error ${doing}.`;
-  if (err?.status === 429) return `The server is busy. It couldn't keep up ${doing}.`;
-  return `Something went wrong ${doing}.`;
-}
-
+/**
+ * The shell: which screen is showing, and the wiring between the feature hooks.
+ *
+ * This component used to hold every feature's state — thirty-odd `useState` calls across auth,
+ * the run, duels and the leaderboard, and four hand-written copies of the same "reset the run"
+ * block. Each feature now owns its state in a hook under `features/`, and what is left here is
+ * routing and composition. See ARCHITECTURE.md.
+ */
 export default function App() {
-  const [authToken, setAuthToken] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
-
-  const [categories, setCategories] = useState([]);
   const [screen, setScreen] = useState('auth');
+  const [categories, setCategories] = useState([]);
   const [cameFromPreview, setCameFromPreview] = useState(false);
   // A challenge link (?challenge=<code>) should land on that challenge's screen once the
-  // visitor is authenticated, whether they arrived already logged in or just registered/logged
-  // in through AuthScreen — read once, since the query string doesn't change afterward.
+  // visitor is authenticated, whether they arrived already logged in or just registered
+  // through AuthScreen — read once, since the query string doesn't change afterward.
   // Settable as well as read: the featured weekly challenge opens the same screen a shared
   // link does, just without the round trip through the URL.
   const [challengeCode, setChallengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
@@ -101,61 +72,47 @@ export default function App() {
   const [viewingProfile, setViewingProfile] = useState(null);
   const [profileReturnScreen, setProfileReturnScreen] = useState('friends');
   const [startError, setStartError] = useState(null);
-
-  const [session, setSession] = useState(null);
-  const [question, setQuestion] = useState(null);
-  const [token, setToken] = useState(null);
-  const [issuedAt, setIssuedAt] = useState(null);
-  const [streak, setStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
-  const [strikes, setStrikes] = useState(0);
-  const [totalScore, setTotalScore] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [answeredCount, setAnsweredCount] = useState(0);
-  const [runCorrectness, setRunCorrectness] = useState([]);
-  const [feedback, setFeedback] = useState(null);
-  // A ref, not state: the countdown's own timeout submission can fire from a closure that
-  // was captured before a state update committed, and would sail straight past a `submitting`
-  // state check and post a second answer for the same question.
-  const submitLockRef = useRef(false);
-  const [submitPending, setSubmitPending] = useState(false);
-  // Anything that stops an answer from landing. It is rendered ON THE QUESTION SCREEN — the
-  // bug this replaced put it in `startError`, which only the start screen renders, so a failed
-  // answer left the player tapping live-looking choices forever with nothing on screen.
-  const [answerError, setAnswerError] = useState(null);
-  // Which lifelines this run has spent, and which choices the current 50-50 hid. The hidden
-  // set is cleared on every new question; the spent set lasts the run. Both are mirrors of
-  // server state — the server refuses a second spend regardless of what these say.
-  const [lifelinesUsed, setLifelinesUsed] = useState([]);
-  const [hiddenChoices, setHiddenChoices] = useState([]);
-
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [leaderboardScope, setLeaderboardScope] = useState('global');
-  const [leaderboardWindow, setLeaderboardWindow] = useState('current');
-
-  // --- duels ---
-  const [pendingDuels, setPendingDuels] = useState([]);
-  const [duelLobbyOpponent, setDuelLobbyOpponent] = useState(null);
-  const [outgoingDuel, setOutgoingDuel] = useState(null);
-  const [duelLobbyError, setDuelLobbyError] = useState(null);
-  const [duelOpponentUsername, setDuelOpponentUsername] = useState(null);
-  const [opponentLive, setOpponentLive] = useState(null);
-  const [duelResult, setDuelResult] = useState(null);
-  const [duelNotice, setDuelNotice] = useState(null);
-  // Transient: whatever the opponent last said, and when. Never stored, never a history —
-  // the strip shows it for a few seconds and it is gone.
-  const [duelReaction, setDuelReaction] = useState(null);
-
-  // --- achievements ---
-  const [achievementQueue, setAchievementQueue] = useState([]);
-
-  // The backend's own commit. Shown beside the frontend's only when they differ, which is
-  // exactly the case worth noticing: half a release live.
   const [apiBuild, setApiBuild] = useState(null);
-
-  // --- Marauder's Map easter egg ---
   const [showMischief, setShowMischief] = useState(false);
-  const secretBufferRef = useRef('');
+
+  const auth = useAuth({
+    onAuthenticated: useCallback(() => setScreen(challengeCode ? 'challenge' : 'start'), [challengeCode]),
+    onLoggedOut: useCallback(() => setScreen('auth'), []),
+  });
+
+  const leaderboard = useLeaderboard({ authToken: auth.token });
+  const toasts = useAchievementToasts();
+
+  // The run is over on the server; get the player to their result. The leaderboard is a
+  // courtesy here, so a failure to load it must never be what stands between a finished run
+  // and its summary — that was one of the two ways this screen could dead-end.
+  const finishRun = useCallback(
+    async (session) => {
+      if (session.mode === 'duel') {
+        setScreen('duel-summary');
+        return;
+      }
+      try {
+        await leaderboard.load(session, 'global', 'current');
+      } catch {
+        leaderboard.clear();
+      }
+      setScreen('summary');
+    },
+    [leaderboard.load, leaderboard.clear],
+  );
+
+  const run = useRun({ authToken: auth.token, onComplete: finishRun });
+  const duels = useDuels({
+    authToken: auth.token,
+    currentUser: auth.user,
+    run,
+    onScreen: setScreen,
+    onStartError: setStartError,
+    onAchievement: toasts.push,
+  });
+
+  useSecretPhrase(SECRET_PHRASE, useCallback(() => setShowMischief(true), []));
 
   useEffect(() => {
     getCategories()
@@ -169,209 +126,31 @@ export default function App() {
       .catch(() => setApiBuild(null));
   }, []);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-house', currentUser?.theme ?? DEFAULT_HOUSE);
-  }, [currentUser?.theme]);
-
-  // The desktop half of the easter egg — a passive listener (no preventDefault, so it never
-  // interferes with typing anywhere else on the page) watching for the phrase typed anywhere.
-  // The mobile-friendly half (tap the wordmark 7 times) lives in NavBar and calls the same
-  // setShowMischief handler.
-  useEffect(() => {
-    const handleKeydown = (event) => {
-      if (event.key.length !== 1) return;
-      secretBufferRef.current = (secretBufferRef.current + event.key).slice(-SECRET_PHRASE.length);
-      if (secretBufferRef.current.toLowerCase() === SECRET_PHRASE) {
-        secretBufferRef.current = '';
-        setShowMischief(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeydown);
-    return () => window.removeEventListener('keydown', handleKeydown);
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (!stored) {
-      setAuthChecked(true);
-      return;
-    }
-    getMe(stored)
-      .then((data) => {
-        setAuthToken(stored);
-        setCurrentUser(data.user);
-        setScreen(challengeCode ? 'challenge' : 'start');
-      })
-      .catch(() => localStorage.removeItem(TOKEN_STORAGE_KEY))
-      .finally(() => setAuthChecked(true));
-  }, []);
-
-  useEffect(() => {
-    if (!authToken) return;
-    getPendingDuels(authToken)
-      .then((data) => setPendingDuels(data.pending))
-      .catch(() => {});
-  }, [authToken]);
-
-  const handleDuelEvent = (event) => {
-    switch (event.type) {
-      case 'duel:invited': {
-        setPendingDuels((prev) => [
-          ...prev.filter((d) => d.duel_id !== event.duel.duel_id),
-          { ...event.duel, direction: 'incoming' },
-        ]);
-        break;
-      }
-      case 'duel:declined': {
-        setPendingDuels((prev) => prev.filter((d) => d.duel_id !== event.duel_id));
-        if (outgoingDuel?.duel_id === event.duel_id) {
-          setDuelNotice(`${outgoingDuel.opponent_username} declined your challenge.`);
-          setOutgoingDuel(null);
-        }
-        break;
-      }
-      case 'duel:started': {
-        if (outgoingDuel?.duel_id === event.duel_id) {
-          setDuelOpponentUsername(outgoingDuel.opponent_username);
-          setSession({
-            id: event.session_id,
-            // Carried so a reaction knows which duel it belongs to; the session id alone
-            // does not tell the server that.
-            duelId: event.duel_id,
-            mode: 'duel',
-            category: outgoingDuel.category,
-            canonSource: outgoingDuel.canon_source,
-            difficulty: outgoingDuel.difficulty,
-            timeLimitMs: event.time_limit_ms,
-            timingMode: 'per_question',
-            maxStrikes: null,
-            createdAt: new Date().toISOString(),
-          });
-          setQuestion(event.question);
-          setToken(event.token);
-          setIssuedAt(event.issued_at);
-          setStreak(0);
-          setBestStreak(0);
-          setStrikes(0);
-          setTotalScore(0);
-          setCorrectCount(0);
-          setAnsweredCount(0);
-          setRunCorrectness([]);
-          setFeedback(null);
-          setAnswerError(null);
-          setLifelinesUsed([]);
-          setHiddenChoices([]);
-          setOpponentLive(null);
-          setDuelResult(null);
-          setOutgoingDuel(null);
-          setScreen('question');
-        }
-        break;
-      }
-      case 'duel:reaction': {
-        const label = duelReactionLabel(event.reaction);
-        if (label) setDuelReaction({ reaction: event.reaction, label, from: event.from_username, at: Date.now() });
-        break;
-      }
-      case 'duel:opponent_progress': {
-        setOpponentLive({
-          runningTotal: event.running_total,
-          streak: event.streak,
-          sessionComplete: event.session_complete,
-        });
-        break;
-      }
-      case 'duel:finished': {
-        const mine = event.results.find((r) => r.user_id === currentUser?.id);
-        const theirs = event.results.find((r) => r.user_id !== currentUser?.id);
-        setDuelResult({ yourScore: mine?.total_score ?? 0, opponentScore: theirs?.total_score ?? 0 });
-        break;
-      }
-      case 'achievement:unlocked': {
-        setAchievementQueue((prev) => [...prev, event.achievement]);
-        break;
-      }
-      default:
-        break;
-    }
-  };
-
-  const sendSocketEvent = useDuelSocket(authToken, handleDuelEvent);
-
-  useEffect(() => {
-    if (achievementQueue.length === 0) return undefined;
-    const timer = setTimeout(() => setAchievementQueue((prev) => prev.slice(1)), 5000);
-    return () => clearTimeout(timer);
-  }, [achievementQueue]);
-
-  const handleAuthenticated = (newToken, user) => {
-    localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
-    setAuthToken(newToken);
-    setCurrentUser(user);
-    setScreen(challengeCode ? 'challenge' : 'start');
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    setAuthToken(null);
-    setCurrentUser(null);
-    setScreen('auth');
-  };
-
-  const handleSelectTheme = async (theme) => {
-    setCurrentUser((prev) => ({ ...prev, theme }));
-    try {
-      await updateTheme(theme, authToken);
-    } catch {
-      // the DOM already reflects the pick; a failed save just means it won't stick next login
-    }
-  };
-
-  const handleOpenChallenge = (code) => {
-    setChallengeCode(code);
-    setStartError(null);
-    setScreen('challenge');
-  };
-
-  const handleNavigate = (target) => {
-    setStartError(null);
-    setScreen(target);
-  };
-
-  const handleStart = async ({ mode, category, canonSource, difficulty }) => {
+  const startRun = async ({ mode, category, canonSource, difficulty }) => {
     setStartError(null);
     try {
-      const data = await createSession({ mode, category, canonSource, difficulty }, authToken);
-      setSession({
-        id: data.session_id,
-        mode: data.mode,
-        category: data.category,
-        canonSource: data.canon_source,
-        difficulty: data.difficulty,
-        timeLimitMs: data.time_limit_ms,
-        timingMode: data.timing_mode,
-        maxStrikes: data.max_strikes,
-        createdAt: data.created_at,
-        lifelinesEnabled: Boolean(data.lifelines_enabled),
+      const data = await createSession({ mode, category, canonSource, difficulty }, auth.token);
+      run.begin({
+        session: {
+          id: data.session_id,
+          mode: data.mode,
+          category: data.category,
+          canonSource: data.canon_source,
+          difficulty: data.difficulty,
+          timeLimitMs: data.time_limit_ms,
+          timingMode: data.timing_mode,
+          maxStrikes: data.max_strikes,
+          createdAt: data.created_at,
+          lifelinesEnabled: Boolean(data.lifelines_enabled),
+        },
+        question: data.question,
+        token: data.token,
+        issuedAt: data.issued_at,
       });
-      setQuestion(data.question);
-      setToken(data.token);
-      setIssuedAt(data.issued_at);
-      setStreak(0);
-      setBestStreak(0);
-      setStrikes(0);
-      setTotalScore(0);
-      setCorrectCount(0);
-      setAnsweredCount(0);
-      setRunCorrectness([]);
-      setFeedback(null);
-      setAnswerError(null);
-      setLifelinesUsed([]);
-      setHiddenChoices([]);
       setScreen('question');
     } catch (err) {
       if (err.code === 'unauthorized') {
-        handleLogout();
+        auth.logout();
       } else if (err.code === 'daily_already_played') {
         setStartError("You've already played today's Daily Challenge — come back tomorrow.");
       } else if (err.code === 'no_eligible_questions') {
@@ -382,332 +161,54 @@ export default function App() {
     }
   };
 
-  const handleStartChallenge = async (code) => {
-    const data = await startChallenge(code, authToken);
-    setSession({
-      id: data.session_id,
-      mode: data.mode,
-      category: data.category,
-      canonSource: data.canon_source,
-      difficulty: data.difficulty,
-      timeLimitMs: data.time_limit_ms,
-      timingMode: data.timing_mode,
-      maxStrikes: data.max_strikes,
-      createdAt: data.created_at,
+  const startChallengeRun = async (code) => {
+    const data = await startChallenge(code, auth.token);
+    run.begin({
+      session: {
+        id: data.session_id,
+        mode: data.mode,
+        category: data.category,
+        canonSource: data.canon_source,
+        difficulty: data.difficulty,
+        timeLimitMs: data.time_limit_ms,
+        timingMode: data.timing_mode,
+        maxStrikes: data.max_strikes,
+        createdAt: data.created_at,
+      },
+      question: data.question,
+      token: data.token,
+      issuedAt: data.issued_at,
     });
-    setQuestion(data.question);
-    setToken(data.token);
-    setIssuedAt(data.issued_at);
-    setStreak(0);
-    setBestStreak(0);
-    setStrikes(0);
-    setTotalScore(0);
-    setCorrectCount(0);
-    setAnsweredCount(0);
-    setRunCorrectness([]);
-    setFeedback(null);
-    setAnswerError(null);
-    setLifelinesUsed([]);
-    setHiddenChoices([]);
     setScreen('question');
   };
 
-  // A submission the server already recorded, whose response we never saw. Retrying it can
-  // only ever 409 again, so read the run's real state instead of leaving the player stranded
-  // on a question that is, as far as the server is concerned, behind them.
-  const recoverFromStaleAnswer = async () => {
-    try {
-      const live = await withRetries(() => getSession(session.id));
-      if (live.status === 'completed') {
-        setAnswerError(null);
-        await finishRun();
-        return true;
-      }
-      // Still running: the answer landed and the next question is ours to ask for.
-      const next = await withRetries(() => fetchNextQuestion(session.id));
-      setQuestion(next.question);
-      setToken(next.token);
-      setIssuedAt(next.issued_at);
-      setHiddenChoices([]);
-      setFeedback(null);
-      setAnswerError(null);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const handleSubmit = useCallback(
-    async (chosenIndex, lifeline) => {
-      if (submitLockRef.current || feedback) return;
-      submitLockRef.current = true;
-      setSubmitPending(true);
-      setAnswerError(null);
-      try {
-        const result = await withRetries(() =>
-          submitAnswer(session.id, {
-            questionId: question.question_id,
-            chosenIndex,
-            token,
-            lifeline,
-          }),
-        );
-        const correctIndex = question.choices.indexOf(result.correct_answer);
-        setFeedback({
-          correct: result.correct,
-          timedOut: result.timed_out,
-          points: result.points,
-          correctIndex,
-          chosenIndex,
-          correctAnswer: result.correct_answer,
-          explanation: result.explanation,
-          sessionComplete: result.session_complete,
-          skipped: Boolean(result.skipped),
-          lifeline: result.lifeline ?? null,
-        });
-        if (result.session?.lifelines_used) setLifelinesUsed(result.session.lifelines_used);
-        setStreak(result.streak);
-        setBestStreak(result.session.best_streak);
-        setStrikes(result.strikes);
-        setTotalScore(result.running_total);
-        setAnsweredCount((n) => n + 1);
-        if (result.correct) setCorrectCount((n) => n + 1);
-        setRunCorrectness((arr) => [...arr, result.correct]);
-      } catch (err) {
-        if (err.code === 'already_answered' || err.code === 'session_not_active') {
-          const recovered = await recoverFromStaleAnswer();
-          if (recovered) return;
-          setAnswerError({
-            message: 'That answer already reached us, but we lost the reply. Your run is safe.',
-            retryable: false,
-          });
-          return;
-        }
-        setAnswerError({
-          message: describeFailure(err, chosenIndex === -1 ? 'recording your timeout' : 'recording that answer'),
-          retryable: true,
-          chosenIndex,
-          lifeline,
-        });
-      } finally {
-        submitLockRef.current = false;
-        setSubmitPending(false);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [session?.id, question?.question_id, token, feedback],
-  );
-
-  const fetchLeaderboard = async (scope, window) => {
-    const data = await getLeaderboard(
-      session.mode,
-      { category: session.category, canonSource: session.canonSource, difficulty: session.difficulty, scope, window },
-      authToken,
-    );
-    setLeaderboard(data.entries);
-    setLeaderboardScope(scope);
-    setLeaderboardWindow(window);
-  };
-
-  // The run is over on the server; get the player to their result. The leaderboard is a
-  // courtesy here, so a failure to load it must never be what stands between a finished run
-  // and its summary — that was the other way this screen could dead-end.
-  const finishRun = async () => {
-    if (session.mode === 'duel') {
-      setScreen('duel-summary');
-      return;
-    }
-    try {
-      await fetchLeaderboard('global', 'current');
-    } catch {
-      setLeaderboard([]);
-    }
-    setScreen('summary');
-  };
-
-  const handleContinue = async () => {
-    if (feedback.sessionComplete) {
-      setAnswerError(null);
-      await finishRun();
-      return;
-    }
-    // Asking for the next question is what starts its clock, so it happens here — when the
-    // player has finished reading and is ready — not back when they submitted the last answer.
-    setAnswerError(null);
-    setSubmitPending(true);
-    try {
-      const next = await withRetries(() => fetchNextQuestion(session.id));
-      setQuestion(next.question);
-      setToken(next.token);
-      setIssuedAt(next.issued_at);
-      // A 50-50 applies to one question only.
-      setHiddenChoices([]);
-      setFeedback(null);
-    } catch (err) {
-      if (err.code === 'session_not_active') {
-        await finishRun();
-        return;
-      }
-      setAnswerError({
-        message: describeFailure(err, 'loading the next question'),
-        retryable: true,
-        continueInstead: true,
-      });
-    } finally {
-      setSubmitPending(false);
-    }
-  };
-
-  const handleFiftyFifty = async () => {
-    if (submitLockRef.current || feedback) return;
-    setAnswerError(null);
-    try {
-      const result = await withRetries(() =>
-        spendLifeline(session.id, { questionId: question.question_id, token, type: 'fifty_fifty' }),
-      );
-      setHiddenChoices(result.hidden_indices ?? []);
-      setLifelinesUsed(result.lifelines_used ?? []);
-    } catch (err) {
-      // Already spent is not worth a panel; the button simply stops being offered once the
-      // server's answer says so.
-      if (err.code === 'lifeline_unavailable') {
-        setLifelinesUsed((prev) => (prev.includes('fifty_fifty') ? prev : [...prev, 'fifty_fifty']));
-        return;
-      }
-      setAnswerError({ message: describeFailure(err, 'using that lifeline'), retryable: false });
-    }
-  };
-
-  // Routed through handleSubmit so a skip gets the same submit lock, retries, error handling
-  // and 409 recovery every other answer gets.
-  const handleSkip = () => {
-    if (lifelinesUsed.includes('skip')) return;
-    handleSubmit(0, 'skip');
-  };
-
-  const handleRetryAnswer = () => {
-    if (!answerError?.retryable) return;
-    if (answerError.continueInstead) {
-      handleContinue();
-      return;
-    }
-    handleSubmit(answerError.chosenIndex, answerError.lifeline);
-  };
-
-  const handleAbandonRun = () => {
-    setAnswerError(null);
-    setSession(null);
-    setQuestion(null);
-    setFeedback(null);
+  const leaveRun = () => {
+    run.clear();
     setScreen('start');
   };
 
-  const handlePlayAgain = () => {
-    setSession(null);
-    setQuestion(null);
-    setFeedback(null);
-    setScreen('start');
+  const openChallenge = (code) => {
+    setChallengeCode(code);
+    setStartError(null);
+    setScreen('challenge');
   };
 
-  const handleChallenge = (username) => {
-    setDuelLobbyOpponent(username);
-    setOutgoingDuel(null);
-    setDuelLobbyError(null);
-    setScreen('duel-lobby');
+  const navigate = (target) => {
+    setStartError(null);
+    setScreen(target);
   };
 
-  const handleViewProfile = (username) => {
+  const viewProfile = (username) => {
     setProfileReturnScreen(screen);
     setViewingProfile(username);
     setScreen('profile');
   };
 
-  const handleSendDuel = async ({ category, canonSource, difficulty }) => {
-    setDuelLobbyError(null);
-    try {
-      const data = await createDuel({ opponentUsername: duelLobbyOpponent, category, canonSource, difficulty }, authToken);
-      setOutgoingDuel({
-        duel_id: data.duel_id,
-        opponent_username: data.opponent_username,
-        category: data.category,
-        canon_source: data.canon_source,
-        difficulty: data.difficulty,
-      });
-    } catch (err) {
-      if (err.code === 'user_not_found') setDuelLobbyError('That player could not be found.');
-      else setDuelLobbyError('Could not send that challenge.');
-    }
-  };
-
-  const handleLeaveDuelLobby = () => {
-    setScreen('friends');
-  };
-
-  const handleAcceptDuel = async (duelId) => {
-    const invite = pendingDuels.find((d) => d.duel_id === duelId);
-    try {
-      const data = await acceptDuel(duelId, authToken);
-      setDuelOpponentUsername(invite?.created_by_username ?? null);
-      setSession({
-        id: data.session_id,
-        duelId,
-        mode: 'duel',
-        category: invite?.category ?? null,
-        canonSource: invite?.canon_source ?? 'combined',
-        difficulty: invite?.difficulty ?? null,
-        timeLimitMs: data.time_limit_ms,
-        timingMode: 'per_question',
-        maxStrikes: null,
-        createdAt: new Date().toISOString(),
-      });
-      setQuestion(data.question);
-      setToken(data.token);
-      setIssuedAt(data.issued_at);
-      setStreak(0);
-      setBestStreak(0);
-      setStrikes(0);
-      setTotalScore(0);
-      setCorrectCount(0);
-      setAnsweredCount(0);
-      setRunCorrectness([]);
-      setFeedback(null);
-      setAnswerError(null);
-      setLifelinesUsed([]);
-      setHiddenChoices([]);
-      setOpponentLive(null);
-      setDuelResult(null);
-      setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
-      setScreen('question');
-    } catch (err) {
-      setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
-      setStartError('Could not accept that duel — it may no longer be pending.');
-    }
-  };
-
-  const handleDeclineDuel = async (duelId) => {
-    setPendingDuels((prev) => prev.filter((d) => d.duel_id !== duelId));
-    try {
-      await declineDuel(duelId, authToken);
-    } catch {
-      // already resolved server-side; local list is already updated
-    }
-  };
-
-  const handleDuelDone = () => {
-    setSession(null);
-    setQuestion(null);
-    setFeedback(null);
-    setDuelResult(null);
-    setOpponentLive(null);
-    setDuelOpponentUsername(null);
-    setScreen('friends');
-  };
-
-  if (!authChecked) {
+  if (!auth.checked) {
     return <div className="app-shell" />;
   }
 
-  const incomingDuelInvites = pendingDuels.filter((d) => d.direction === 'incoming');
+  const { session, question, feedback, answerError } = run;
   const navActiveScreen =
     screen === 'duel-lobby' || screen === 'duel-summary'
       ? 'friends'
@@ -722,151 +223,174 @@ export default function App() {
       <Embers />
       {screen !== 'auth' && screen !== 'preview' && (
         <NavBar
-          currentUser={currentUser}
+          currentUser={auth.user}
           activeScreen={navActiveScreen}
-          onNavigate={handleNavigate}
-          onLogout={handleLogout}
+          onNavigate={navigate}
+          onLogout={auth.logout}
           onSecretFound={() => setShowMischief(true)}
         />
       )}
       {showMischief && (
-        <MischiefModal
-          onClose={() => setShowMischief(false)}
-          onSuggest={() => {
-            setShowMischief(false);
-            setScreen('suggest');
-          }}
-        />
+        <Suspense fallback={null}>
+          <MischiefModal
+            onClose={() => setShowMischief(false)}
+            onSuggest={() => {
+              setShowMischief(false);
+              setScreen('suggest');
+            }}
+          />
+        </Suspense>
       )}
-      {screen !== 'auth' && screen !== 'question' && incomingDuelInvites.length > 0 && (
-        <DuelInviteBanner invite={incomingDuelInvites[0]} onAccept={handleAcceptDuel} onDecline={handleDeclineDuel} />
+      {screen !== 'auth' && screen !== 'question' && duels.incomingInvites.length > 0 && (
+        <DuelInviteBanner invite={duels.incomingInvites[0]} onAccept={duels.accept} onDecline={duels.decline} />
       )}
-      {duelNotice && (
-        <div className="duel-notice-banner" onClick={() => setDuelNotice(null)}>
-          {duelNotice}
+      {duels.notice && (
+        <div className="duel-notice-banner" onClick={duels.dismissNotice}>
+          {duels.notice}
         </div>
       )}
-      <AchievementToast
-        achievement={achievementQueue[0]}
-        onDismiss={() => setAchievementQueue((prev) => prev.slice(1))}
-      />
+      <AchievementToast achievement={toasts.current} onDismiss={toasts.dismiss} />
       {screen === 'auth' && (
         <AuthScreen
-          onAuthenticated={handleAuthenticated}
+          onAuthenticated={auth.authenticate}
           onTryPreview={() => setScreen('preview')}
           startInMode={cameFromPreview ? 'register' : undefined}
         />
       )}
       {screen === 'preview' && (
-        <PreviewScreen
-          onDone={() => {
-            setCameFromPreview(true);
-            setScreen('auth');
-          }}
-        />
+        <Suspense fallback={screenFallback}>
+          <PreviewScreen
+            onDone={() => {
+              setCameFromPreview(true);
+              setScreen('auth');
+            }}
+          />
+        </Suspense>
       )}
-      {screen === 'start' && currentUser && (
+      {screen === 'start' && auth.user && (
         <StartScreen
           categories={categories}
-          currentUser={currentUser}
-          onStart={handleStart}
+          currentUser={auth.user}
+          onStart={startRun}
           error={startError}
-          token={authToken}
-          onOpenChallenge={handleOpenChallenge}
+          token={auth.token}
+          onOpenChallenge={openChallenge}
         />
       )}
-      {screen === 'leaderboard' && <LeaderboardScreen categories={categories} token={authToken} />}
-      {screen === 'achievements' && <AchievementsScreen token={authToken} />}
+      {screen === 'leaderboard' && (
+        <Suspense fallback={screenFallback}>
+          <LeaderboardScreen categories={categories} token={auth.token} />
+        </Suspense>
+      )}
+      {screen === 'achievements' && (
+        <Suspense fallback={screenFallback}>
+          <AchievementsScreen token={auth.token} />
+        </Suspense>
+      )}
       {screen === 'settings' && (
-        <SettingsScreen
-          theme={currentUser?.theme ?? DEFAULT_HOUSE}
-          onSelectTheme={handleSelectTheme}
-          token={authToken}
-          onViewOwnProfile={() => handleViewProfile(currentUser.username)}
-        />
+        <Suspense fallback={screenFallback}>
+          <SettingsScreen
+            theme={auth.user?.theme ?? DEFAULT_HOUSE}
+            onSelectTheme={auth.selectTheme}
+            token={auth.token}
+            onViewOwnProfile={() => viewProfile(auth.user.username)}
+          />
+        </Suspense>
       )}
       {screen === 'profile' && viewingProfile && (
-        <ProfileScreen
-          username={viewingProfile}
-          token={authToken}
-          onBack={() => setScreen(profileReturnScreen)}
-        />
+        <Suspense fallback={screenFallback}>
+          <ProfileScreen
+            username={viewingProfile}
+            token={auth.token}
+            onBack={() => setScreen(profileReturnScreen)}
+          />
+        </Suspense>
       )}
       {screen === 'challenge' && challengeCode && (
-        <ChallengeScreen
-          code={challengeCode}
-          token={authToken}
-          onPlay={handleStartChallenge}
-          onCancel={() => setScreen('start')}
-        />
+        <Suspense fallback={screenFallback}>
+          <ChallengeScreen
+            code={challengeCode}
+            token={auth.token}
+            onPlay={startChallengeRun}
+            onCancel={() => setScreen('start')}
+          />
+        </Suspense>
       )}
-      {screen === 'suggest' && <SuggestQuestionScreen categories={categories} token={authToken} />}
-      {screen === 'admin-suggestions' && currentUser?.is_admin && (
-        <AdminSuggestionsScreen categories={categories} token={authToken} />
+      {screen === 'suggest' && (
+        <Suspense fallback={screenFallback}>
+          <SuggestQuestionScreen categories={categories} token={auth.token} />
+        </Suspense>
+      )}
+      {screen === 'admin-suggestions' && auth.user?.is_admin && (
+        <Suspense fallback={screenFallback}>
+          <AdminSuggestionsScreen categories={categories} token={auth.token} />
+        </Suspense>
       )}
       {screen === 'friends' && (
-        <FriendsPanel
-          token={authToken}
-          pendingDuels={pendingDuels}
-          onAcceptDuel={handleAcceptDuel}
-          onDeclineDuel={handleDeclineDuel}
-          onChallenge={handleChallenge}
-          onViewProfile={handleViewProfile}
-        />
+        <Suspense fallback={screenFallback}>
+          <FriendsPanel
+            token={auth.token}
+            pendingDuels={duels.pendingDuels}
+            onAcceptDuel={duels.accept}
+            onDeclineDuel={duels.decline}
+            onChallenge={duels.openLobby}
+            onViewProfile={viewProfile}
+          />
+        </Suspense>
       )}
       {screen === 'duel-lobby' && (
-        <DuelLobbyScreen
-          opponentUsername={duelLobbyOpponent}
-          categories={categories}
-          outgoingDuel={outgoingDuel}
-          error={duelLobbyError}
-          onSend={handleSendDuel}
-          onLeave={handleLeaveDuelLobby}
-        />
+        <Suspense fallback={screenFallback}>
+          <DuelLobbyScreen
+            opponentUsername={duels.lobbyOpponent}
+            categories={categories}
+            outgoingDuel={duels.outgoing}
+            error={duels.lobbyError}
+            onSend={duels.invite}
+            onLeave={duels.leaveLobby}
+          />
+        </Suspense>
       )}
       {screen === 'question' && question && (
         <>
           {session.mode === 'duel' && (
             <DuelOpponentStrip
-              opponentUsername={duelOpponentUsername}
-              live={opponentLive}
-              incomingReaction={duelReaction}
-              onReact={(reaction) =>
-                sendSocketEvent({ type: 'duel:react', duel_id: session.duelId, reaction })
-              }
+              opponentUsername={duels.opponentUsername}
+              live={duels.opponentLive}
+              incomingReaction={duels.reaction}
+              onReact={duels.react}
             />
           )}
           <QuestionCard
             key={session.id}
             question={question}
             timeLimitMs={session.timeLimitMs}
-            issuedAt={issuedAt}
+            issuedAt={run.issuedAt}
             timingMode={session.timingMode}
             sessionCreatedAt={session.createdAt}
             mode={session.mode}
-            streak={streak}
-            strikes={strikes}
+            streak={run.streak}
+            strikes={run.strikes}
             maxStrikes={session.maxStrikes}
-            totalScore={totalScore}
+            totalScore={run.totalScore}
             feedback={feedback}
-            submitPending={submitPending}
+            submitPending={run.submitPending}
             lifelinesEnabled={session.lifelinesEnabled}
-            lifelinesUsed={lifelinesUsed}
-            hiddenChoices={hiddenChoices}
-            onFiftyFifty={handleFiftyFifty}
-            onSkip={handleSkip}
-            onSubmit={handleSubmit}
+            lifelinesUsed={run.lifelinesUsed}
+            hiddenChoices={run.hiddenChoices}
+            onFiftyFifty={run.fiftyFifty}
+            onSkip={run.skip}
+            onSubmit={run.submit}
           />
           {answerError && (
             <div className="answer-error" role="alert">
               <p className="answer-error-message">{answerError.message}</p>
               <div className="answer-error-actions">
                 {answerError.retryable && (
-                  <button type="button" className="primary-button" onClick={handleRetryAnswer} disabled={submitPending}>
-                    {submitPending ? 'Trying…' : 'Try again'}
+                  <button type="button" className="primary-button" onClick={run.retry} disabled={run.submitPending}>
+                    {run.submitPending ? 'Trying…' : 'Try again'}
                   </button>
                 )}
-                <button type="button" className="secondary-button" onClick={handleAbandonRun}>
+                <button type="button" className="secondary-button" onClick={leaveRun}>
                   Leave this run
                 </button>
               </div>
@@ -881,39 +405,41 @@ export default function App() {
               correctAnswer={feedback.correctAnswer}
               explanation={feedback.explanation}
               isLast={feedback.sessionComplete}
-              onContinue={handleContinue}
+              onContinue={run.continueToNext}
             />
           )}
         </>
       )}
       {screen === 'summary' && (
         <SessionSummary
-          totalScore={totalScore}
+          totalScore={run.totalScore}
           mode={session.mode}
           category={session.category}
           canonSource={session.canonSource}
           difficulty={session.difficulty}
-          bestStreak={bestStreak}
-          correctCount={correctCount}
-          answeredCount={answeredCount}
-          runCorrectness={runCorrectness}
-          house={currentUser?.theme ?? DEFAULT_HOUSE}
-          entries={leaderboard}
-          scope={leaderboardScope}
-          window={leaderboardWindow}
-          onScopeChange={(scope) => fetchLeaderboard(scope, leaderboardWindow)}
-          onWindowChange={(window) => fetchLeaderboard(leaderboardScope, window)}
-          onPlayAgain={handlePlayAgain}
+          bestStreak={run.bestStreak}
+          correctCount={run.correctCount}
+          answeredCount={run.answeredCount}
+          runCorrectness={run.runCorrectness}
+          house={auth.user?.theme ?? DEFAULT_HOUSE}
+          entries={leaderboard.entries}
+          scope={leaderboard.scope}
+          window={leaderboard.window}
+          onScopeChange={(scope) => leaderboard.load(session, scope, leaderboard.window)}
+          onWindowChange={(window) => leaderboard.load(session, leaderboard.scope, window)}
+          onPlayAgain={leaveRun}
         />
       )}
       {screen === 'duel-summary' && (
-        <DuelSummaryScreen
-          yourScore={totalScore}
-          opponentUsername={duelOpponentUsername}
-          result={duelResult}
-          house={currentUser?.theme ?? DEFAULT_HOUSE}
-          onDone={handleDuelDone}
-        />
+        <Suspense fallback={screenFallback}>
+          <DuelSummaryScreen
+            yourScore={run.totalScore}
+            opponentUsername={duels.opponentUsername}
+            result={duels.result}
+            house={auth.user?.theme ?? DEFAULT_HOUSE}
+            onDone={duels.done}
+          />
+        </Suspense>
       )}
       <div className="colophon">
         <p>
@@ -931,7 +457,9 @@ export default function App() {
         </p>
       </div>
       {showFeedback && (
-        <FeedbackModal onClose={() => setShowFeedback(false)} token={authToken} page={screen} />
+        <Suspense fallback={null}>
+          <FeedbackModal onClose={() => setShowFeedback(false)} token={auth.token} page={screen} />
+        </Suspense>
       )}
     </div>
   );

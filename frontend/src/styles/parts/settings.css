@@ -1,0 +1,59 @@
+/* --- settings: the house-binding picker --- */
+.house-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.house-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem;
+  font-family: var(--font-display);
+  color: var(--text-muted-on-surface);
+  font-size: 0.85rem;
+}
+
+.house-swatch-chip {
+  width: 52px;
+  height: 68px;
+  border-radius: 3px 6px 6px 3px;
+  position: relative;
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.5), inset 2px 0 0 rgba(255, 255, 255, 0.08);
+  transition: transform 160ms ease;
+}
+
+.house-swatch-spine {
+  position: absolute;
+  inset: 6px auto 6px 8px;
+  width: 3px;
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+.house-swatch-device {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  opacity: 0.9;
+}
+
+.house-swatch.is-active .house-swatch-chip {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.6);
+}
+
+.house-swatch.is-active {
+  color: var(--text-on-surface);
+  font-weight: 600;
+}
+
+.house-swatch:hover .house-swatch-chip {
+  transform: translateY(-2px);
+}

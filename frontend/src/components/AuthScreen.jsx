@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Plate from './Plate.jsx';
-import { login, register } from '../api/client.js';
+import { login, register } from '../api/auth.js';
 
 // Read once at module load, not per-render — the query string doesn't change while this
 // screen is mounted, and reading it in useState's initializer avoids stale-closure issues.

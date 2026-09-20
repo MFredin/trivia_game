@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
-import { getChallenge } from '../api/client.js';
+import { getChallenge } from '../api/challenges.js';
 
 export default function ChallengeScreen({ code, token, onPlay, onCancel }) {
   const [challenge, setChallenge] = useState(null);

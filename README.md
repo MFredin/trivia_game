@@ -156,23 +156,39 @@ inside a light card on the Friends screen; a house accent color applied directly
 dark page) and two mobile-only layout bugs. See `docs/stack-audit-2026-09.md` and
 `docs/design-audit-2026-09.md` for the full findings.
 
-### Phase 6 — Bigger Swings
+### Phase 6 — Bigger Swings ✅ four of six shipped
 
 | Feature | Category | Why |
 |---|---|---|
 | Tournament brackets | Gameplay | Multi-round elimination duels among a friend group, run over a few days — cheaper to build now than when first scoped, since private challenge links already solved "give N players the identical seeded question set" |
-| Lifelines (50-50, skip) | Gameplay | Adds strategic depth to Classic mode; needs server-side handling to keep the anti-cheat model intact |
-| Canned duel reactions | Social | Lightweight reactions during a live duel, without the moderation burden of free-text chat |
+| Lifelines (50-50, skip) ✅ | Gameplay | Adds strategic depth to Classic mode; needs server-side handling to keep the anti-cheat model intact |
+| Canned duel reactions ✅ | Social | Lightweight reactions during a live duel, without the moderation burden of free-text chat |
 | Seasonal content bundles | Content | Timed to real-world anniversaries (book/film release dates) — a good scheduled-retention hook |
-| Mobile & accessibility pass | Technical | The design audit caught two mobile-only layout bugs by sampling a handful of screens at phone width, not an exhaustive pass — most casual trivia traffic is mobile, and this still warrants a dedicated pass across every screen and real device testing, not just a viewport-width screenshot check |
-| Achievement showcase on profile | Retention | The profile page currently shows only an "X / 32 unlocked" count — surfacing a few actual unlocked badges would tie the profile and achievements systems together for near-zero new backend work (the data's already there) |
-| Featured weekly challenge | Retention | A system-generated private challenge (reusing that infra directly) auto-rotated weekly, giving a lighter-weight, fresher-content sibling to the fixed-forever Daily Challenge without the full Seasonal Content investment |
+| Mobile & accessibility pass ✅ | Technical | The design audit caught two mobile-only layout bugs by sampling a handful of screens at phone width, not an exhaustive pass — most casual trivia traffic is mobile, and this still warrants a dedicated pass across every screen and real device testing, not just a viewport-width screenshot check |
+| Achievement showcase on profile ✅ | Retention | The profile page currently shows only an "X / 32 unlocked" count — surfacing a few actual unlocked badges would tie the profile and achievements systems together for near-zero new backend work (the data's already there) |
+| Featured weekly challenge ✅ | Retention | A system-generated private challenge (reusing that infra directly) auto-rotated weekly, giving a lighter-weight, fresher-content sibling to the fixed-forever Daily Challenge without the full Seasonal Content investment |
+
+Still open from Phase 6: **tournament brackets** and **seasonal content bundles**. The mobile
+and accessibility pass shipped as part of the platform audit below rather than on its own.
+
+### Platform audit — September 2026 ✅ shipped
+
+A whole-codebase pass after Phase 6: closed an authorization gap on the session routes, added
+seven missing database indexes, split the frontend bundle (a release now costs a returning
+player 17 kB gzipped instead of 70 kB), gave the app a keyboard focus ring and WCAG-sized
+touch targets, added CI and the first integration tests, and broke the 2,375-line stylesheet
+into per-feature files. Findings, measurements and the two things deliberately left alone are
+written up in [`docs/platform-audit-2026-09.md`](docs/platform-audit-2026-09.md).
 
 ### Carried over, not yet scheduled
 
 - **Discord bot tie-in** — dropped for now, needs bot credentials to revisit
 - **Anomaly-detection shadow-flagging** — for bot-speed-but-legitimate answers slipping past the
   token-based anti-cheat
+- **`App.jsx` state extraction** — 938 lines holding 30+ `useState` calls; the run's state wants
+  to be a `useReducer`. Deliberately not attempted during the audit (see the write-up)
+- **Railway Config as Code migration** — `railway.toml` is deprecated in favour of
+  `.railway/railway.ts`; existing files work until 2026-12-01
 
 ## Running locally
 
@@ -204,6 +220,32 @@ cd frontend
 npm install
 npm run dev             # http://localhost:5173, proxies /api and /ws to the backend
 ```
+
+## Tests and checks
+
+CI runs all of these on every push to `main` and every pull request
+(`.github/workflows/ci.yml`). To run them yourself:
+
+```bash
+cd backend  && npm test          # unit tests, plus the session-flow integration tests
+cd frontend && npm run build     # catches anything that will not bundle
+cd frontend && npm run audit     # WCAG contrast across all five bindings, plus dead code
+cd frontend && npm run e2e       # a real browser: a solo run, a two-browser duel, a11y
+```
+
+The session-flow tests need a database and read `DATABASE_URL` from `backend/.env`. Without
+one they skip rather than fail, so `npm test` still works on a machine with no Postgres.
+
+`audit:contrast` exits non-zero if any gated pairing falls below its WCAG threshold — each
+house rebinds the role tokens, so a colour that reads well in one binding can fail in another.
+`audit:dead` reports unreferenced CSS classes and exports; it is a report to read, not a gate.
+
+`e2e` needs the API and the dev server running, and drives a real browser at phone width. The
+duel spec opens two of them. Registration is rate limited per IP (10 per 15 minutes), so a
+rapid re-run will be refused — the suite says so rather than timing out mysteriously.
+
+Where code goes is decided by [`ARCHITECTURE.md`](ARCHITECTURE.md); how changes get written
+and shipped by [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Deploying to Railway
 

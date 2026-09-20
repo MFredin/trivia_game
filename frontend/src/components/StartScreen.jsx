@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
 import HouseDevice from './HouseDevice.jsx';
-import { createChallenge, getFeaturedChallenge, getProfile } from '../api/client.js';
+import { createChallenge, getFeaturedChallenge } from '../api/challenges.js';
+import { getProfile } from '../api/profile.js';
 import { copyToClipboard } from '../lib/shareResult.js';
 import { HOUSES, DEFAULT_HOUSE } from '../constants/houses.js';
 

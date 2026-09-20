@@ -4,7 +4,8 @@ import Leaderboard from './Leaderboard.jsx';
 import DuelLeaderboard from './DuelLeaderboard.jsx';
 import HouseCupBoard from './HouseCupBoard.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
-import { getDuelLeaderboard, getHouseCup, getLeaderboard } from '../api/client.js';
+import { getDuelLeaderboard } from '../api/duels.js';
+import { getHouseCup, getLeaderboard } from '../api/leaderboard.js';
 
 const MODES = [
   { value: 'classic', label: 'Classic Quiz' },
@@ -71,6 +72,7 @@ export default function LeaderboardScreen({ categories, token }) {
                 <button
                   type="button"
                   className={`nav-btn ${window === 'current' ? 'is-active' : ''}`}
+                  aria-pressed={window === 'current'}
                   onClick={() => setWindow('current')}
                 >
                   {currentLabel}
@@ -78,6 +80,7 @@ export default function LeaderboardScreen({ categories, token }) {
                 <button
                   type="button"
                   className={`nav-btn ${window === 'all' ? 'is-active' : ''}`}
+                  aria-pressed={window === 'all'}
                   onClick={() => setWindow('all')}
                 >
                   All Time
@@ -88,6 +91,7 @@ export default function LeaderboardScreen({ categories, token }) {
             <button
               type="button"
               className={`nav-btn ${scope === 'global' ? 'is-active' : ''}`}
+              aria-pressed={scope === 'global'}
               onClick={() => setScope('global')}
             >
               Global
@@ -95,6 +99,7 @@ export default function LeaderboardScreen({ categories, token }) {
             <button
               type="button"
               className={`nav-btn ${scope === 'friends' ? 'is-active' : ''}`}
+              aria-pressed={scope === 'friends'}
               onClick={() => setScope('friends')}
             >
               Friends

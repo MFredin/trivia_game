@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import QuestionCard from './QuestionCard.jsx';
 import ResultReveal from './ResultReveal.jsx';
-import { startPreview, answerPreview } from '../api/client.js';
+import { answerPreview, startPreview } from '../api/preview.js';
 
 export default function PreviewScreen({ onDone }) {
   const [previewId, setPreviewId] = useState(null);
