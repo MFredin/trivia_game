@@ -70,3 +70,34 @@
   margin-bottom: 1rem;
   background: rgba(92, 26, 43, 0.08);
 }
+
+/* Four columns of generous padding do not fit a phone. The ledger was 376px wide inside a
+   294px plate at 390px, which pushed the page sideways — the same class of bug as the
+   question header, found by the same regression test.
+
+   Tightened rather than truncated: rank, player, score and segment all still show. A player
+   name is the one genuinely unbreakable token here, so it is allowed to break mid-word;
+   nothing else in the table can outgrow its column. */
+@media (max-width: 720px) {
+  .leaderboard-table {
+    table-layout: fixed;
+    font-size: 0.85rem;
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 0.7rem 0.45rem;
+  }
+
+  .leaderboard-table .rank {
+    width: 2.6rem;
+  }
+
+  .leaderboard-table .player {
+    overflow-wrap: anywhere;
+  }
+
+  .leaderboard-table .score {
+    width: 3.6rem;
+  }
+}

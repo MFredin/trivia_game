@@ -71,6 +71,21 @@ does not set the run's fifteen pieces of state itself.
 **A component gets its data through props.** A component that fetches its own data cannot be
 rendered anywhere else, and cannot be tested without a server.
 
+**Nothing may push the page sideways at phone width.** This is a hard rule, and
+`e2e/layout.test.mjs` enforces it on every screen at 390px and 430px. Two defaults are what
+break it, and both refuse to shrink below their content's max-content width:
+
+- A grid track written `1fr` is shorthand for `minmax(auto, 1fr)`. Write `minmax(0, 1fr)`
+  wherever a track holds content that can grow.
+- A flex item's `min-width` defaults to `auto`. Set `min-width: 0` on any flex child that
+  holds text or a row of its own, and let rows that can outgrow their space `flex-wrap`.
+
+This was not theoretical. The question screen's header — numeral, dial, streak, strikes — was
+one non-wrapping flex row in a `1fr` track. Every part of it grows during a run, so by question
+23 of a Gauntlet it was 457px inside a 350px card, dragging the whole spread off a 390px screen
+and clipping the question text mid-word. The same pass found two more: the leaderboard ledger
+and the add-a-friend form.
+
 **Screens not on the path to playing a quiz are lazily imported.** The shell, the entry screens
 and the run itself load eagerly; everything else is `lazy()` with its own `<Suspense>` boundary,
 so a chunk in flight cannot blank the nav or a run in progress.

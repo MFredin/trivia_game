@@ -61,14 +61,21 @@
   justify-content: flex-end;
 }
 
+/* Wraps, because `flex: 1` on the input only gives it the space left after the button, and
+   at phone width there is not enough: the button was pushed 30px past the plate. The button
+   drops under the field instead. */
 .friend-add-form {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.6rem;
   margin-bottom: 1.4rem;
 }
 
 .friend-add-input {
-  flex: 1;
+  /* min-width 0, not the `auto` a flex item defaults to, so the field can shrink to the room
+     available rather than holding the row open at its intrinsic width. */
+  flex: 1 1 12rem;
+  min-width: 0;
   background: #f6f1e6;
   border: 1px solid rgba(18, 21, 28, 0.18);
   border-radius: 3px;

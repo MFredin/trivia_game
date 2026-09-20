@@ -102,7 +102,11 @@
 .book-spread {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(150px, 0.62fr) 1fr;
+  /* minmax(0, ...) on both tracks, not `1fr`, which is shorthand for minmax(auto, 1fr): an
+     `auto` minimum refuses to shrink below the content's max-content width, so one wide child
+     drags the whole card past the viewport instead of being made to fit. That is what a deep
+     Gauntlet run did on a phone — see the mobile block below. */
+  grid-template-columns: minmax(150px, 0.62fr) minmax(0, 1fr);
   background: var(--parchment-100);
   background-image: var(--paper-grain);
   border-radius: 3px;
@@ -144,7 +148,7 @@
 
 @media (max-width: 720px) {
   .book-spread {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .book-spread-leaf.right::before {
@@ -186,11 +190,31 @@
      so far and the section labels are dropped here only: the run's cumulative score is
      already visible at the end of every question in the reveal, and at the end of the run
      in the summary, so nothing is lost by not repeating it in this cramped a space. */
+  /* Wrapping, and allowed to shrink. This row holds the numeral, the dial, the streak and —
+     in Gauntlet and Survival — the strikes, and every one of those grows during a run: the
+     numeral is a Roman numeral of a 300-question mode (CCLXXXVIII by the end), and the streak
+     carries up to six pips beside its number. Laid out as a single non-wrapping row it reached
+     457px inside a 350px card and pushed the whole spread off a 390px screen, clipping the
+     question text at the edge. It now breaks onto a second line rather than forcing width. */
   .book-spread--tabbed .qcard-margin {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.6rem;
+    gap: 0.5rem 0.6rem;
+    min-width: 0;
+  }
+
+  /* A flex item's default min-width is auto, which is the same refusal-to-shrink as the grid
+     track above, one level down. */
+  .book-spread--tabbed .qcard-margin > * {
+    min-width: 0;
+  }
+
+  /* Pips wrap under their own label rather than widening the row they sit in. */
+  .book-spread--tabbed .streak-pips {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .book-spread--tabbed .qcard-margin > .screen-eyebrow,

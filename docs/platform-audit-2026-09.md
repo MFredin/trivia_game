@@ -192,6 +192,31 @@ not an HTTP concern, and a 199-line handler was hiding it.
 The dead-code scan found one thing on its first committed run: a `.tab-btn` touch-target rule
 added speculatively in the first pass that nothing in the app uses.
 
+## Reported after the audit: horizontal overflow at phone width
+
+Found by playing, not by the audit — which is itself a finding, because the accessibility pass
+measured touch targets and accessible names on every screen and never asked whether anything
+stuck out past the viewport.
+
+The question screen's header row (numeral, dial, streak, strikes) was a single non-wrapping
+flex row inside a `1fr` grid track. `1fr` is shorthand for `minmax(auto, 1fr)`, and an `auto`
+minimum will not shrink below its content's max-content width — so as the row's content grew
+during a run, it dragged the whole card with it. Gauntlet showed it first because it is the
+mode where everything grows at once: 300 questions produce long Roman numerals, a streak
+carries up to six pips, and it is one of only two modes that show strikes at all. By question
+23 the row was 457px inside a 350px card, pushing the spread to 545px on a 390px screen and
+clipping the question text mid-word.
+
+Fixed with `minmax(0, 1fr)` on the grid tracks, `flex-wrap` and `min-width: 0` on the row and
+its children. Writing the regression test first then found two more instances of the same
+mistake that no one had reported: the leaderboard ledger (376px of table in a 294px plate) and
+the add-a-friend form (its button 30px past the plate edge).
+
+`e2e/layout.test.mjs` now asserts that nothing extends past the viewport on any screen at 390px
+and 430px, including a question screen built up to the worst state a Gauntlet run can reach.
+The rule and the two CSS defaults behind it are written into
+[`ARCHITECTURE.md`](../ARCHITECTURE.md).
+
 ## Checks that came back clean
 
 - No N+1 query patterns.
