@@ -29,9 +29,10 @@
   cursor: pointer;
 }
 
-/* The house device sits in the nav as silver chrome, never house colour — same rule as
-   the rest of the running header. */
-.running-title .house-device {
+/* The brand mark sits in the nav as silver chrome, never house colour — same rule as
+   the rest of the running header, and the same reason: this is the app's own identity,
+   not the signed-in player's house. */
+.running-title .brand-mark {
   color: var(--silver-200);
   flex: none;
 }

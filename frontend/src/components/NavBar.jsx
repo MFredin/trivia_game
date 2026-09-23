@@ -1,6 +1,5 @@
 import { useRef } from 'react';
-import HouseDevice from './HouseDevice.jsx';
-import { DEFAULT_HOUSE } from '../constants/houses.js';
+import BrandMark from './BrandMark.jsx';
 
 const LINKS = [
   { screen: 'start', label: 'Home' },
@@ -44,7 +43,7 @@ export default function NavBar({ currentUser, activeScreen, onNavigate, onLogout
           onNavigate('start');
         }}
       >
-        <HouseDevice house={currentUser?.theme ?? DEFAULT_HOUSE} size={30} />
+        <BrandMark size={30} />
         The Restricted Section
       </button>
       {currentUser && (
