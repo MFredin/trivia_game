@@ -41,9 +41,17 @@
   text-align: center;
 }
 
+/* The modal sits on parchment, like .plate and .book-spread-leaf — .explanation's base
+   color is --ash-300, calibrated for the dark page, so left unset here it read as a
+   near-invisible warm grey on the Mischief Managed reveal's parchment background. */
 .modal-plate .explanation {
   margin: 0 0 1.5rem;
   max-width: none;
+  color: var(--text-muted-on-surface);
+}
+
+.modal-plate .explanation b {
+  color: var(--text-on-surface);
 }
 
 .modal-actions {
