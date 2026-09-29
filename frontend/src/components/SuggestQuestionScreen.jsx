@@ -130,14 +130,16 @@ export default function SuggestQuestionScreen({ categories, token }) {
           ))}
           <div className="start-form-field">
             <span className="field-label">Applies to</span>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginRight: '1.2rem' }}>
-              <input type="checkbox" checked={books} onChange={(e) => setBooks(e.target.checked)} />
-              Books
-            </label>
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-              <input type="checkbox" checked={movies} onChange={(e) => setMovies(e.target.checked)} />
-              Movies
-            </label>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '1.2rem' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <input type="checkbox" checked={books} onChange={(e) => setBooks(e.target.checked)} />
+                Books
+              </label>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <input type="checkbox" checked={movies} onChange={(e) => setMovies(e.target.checked)} />
+                Movies
+              </label>
+            </div>
           </div>
           <div className="start-form-field">
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
