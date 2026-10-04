@@ -36,8 +36,10 @@ whole bank for every other question asking about the same fact (e.g. every quest
 that touches "Percy Weasley" + "job"/"Ministry") to catch the bank contradicting itself, which
 is a much stronger signal than my own memory of the books alone. This is not a claim that every
 one of the 2,927 questions was individually fact-checked — at this volume that's not a one-pass
-job — but every number/superlative question was, and the cross-reference method surfaced two
-confirmed, book-contradicted errors that a pure memory-based skim would likely have missed.
+job — but every number/superlative question was, and the cross-reference method surfaced a
+confirmed, book-contradicted error (`CHR-033`, §4.1) that a pure memory-based skim would likely
+have missed — the same method's second initial hit, on `CHR-146`, turned out on review to be a
+miss, not a catch (§4.2).
 
 ## Summary
 
@@ -46,12 +48,13 @@ confirmed, book-contradicted errors that a pure memory-based skim would likely h
 | 1 | Exact/near-identical duplicate questions | 0 | — | — |
 | 2 | Correct answer also listed as its own distractor | 0 | — | — |
 | 3 | Malformed entries (missing fields, wrong distractor count, duplicate distractors, invalid tier/tag enum) | 0 | — | — |
-| 4 | Factual-correctness / ambiguity concerns (judgment call, not auto-fixed) | 3 | 0 (by design — see "What to actually change") | 3 |
+| 4 | Factual-correctness / ambiguity concerns (judgment call, not auto-fixed) | 2 | 0 (by design — see "What to actually change") | 2 |
 
 **No edits were made to `question-bank-full-draft.json`.** Categories 1–3 are the ones this
 audit was authorized to fix mechanically, and all three came back clean on this bank — there is
-nothing there to fix. Category 4 is explicitly "report, don't fix," so those three findings are
-below for a human (likely whoever clears `needs_factcheck`) to resolve.
+nothing there to fix. Category 4 is explicitly "report, don't fix," so those findings are below
+for a human (likely whoever clears `needs_factcheck`) to resolve. A third finding originally
+reported here (`CHR-146`) was retracted after review — see §4.2 — leaving two.
 
 Also checked and clean, as a side effect of the above: no duplicate `id`s (2,927 unique ids);
 every row has exactly 3 distractors, no row has a distractor duplicated within itself; every
@@ -132,18 +135,20 @@ answer, which makes the confusion look like two different real Percy/Ministry-re
 got conflated into one question. Recommend either correcting `CHR-033`'s `correct_answer` to
 match the other four, or removing it as redundant with `LOC-208`/`HIS-097`.
 
-### 4.2 `CHR-146` — Percy's Head Boy year is off by one — High confidence
+### 4.2 `CHR-146` — retracted; the bank's answer is correct
 
 **Question:** "In which of Harry's school years does Percy Weasley become Head Boy?"
 **Stated correct answer:** "Harry's third year"
 
-Canon: Percy becomes Head Boy at the start of *Chamber of Secrets* — Harry's **second** year
-(Mrs. Weasley's letter in the opening chapter mentions it directly). This also doesn't square
-with this bank's own `CHR-087` ("What special position does Percy Weasley already hold when
-Harry begins his first year?" → "Prefect"): Percy holds Prefect, not yet Head Boy, during
-Harry's first year, and prefects are named in fifth year and typically hold the title through
-graduation — consistent with Head Boy starting the very next year (Harry's second), not the
-third. Recommend changing the answer to "Harry's second year."
+This was originally flagged here as wrong ("canon places it in Harry's second year"). That
+flag was itself a factual error, caught on review: Percy's Ministry job under Barty Crouch Sr.
+is already running throughout *Goblet of Fire* (Harry's fourth year) — a central GoF plot
+thread — which means Percy's final (seventh) year at Hogwarts, when Head Boy is awarded, has to
+be the year immediately before that: Harry's **third** year, *Prisoner of Azkaban* (also the
+year Gryffindor wins the Quidditch Cup). Percy is still a Prefect, not yet Head Boy, during
+*Chamber of Secrets* (Harry's second year) — prefects hold that title for multiple years before
+graduation, so "named a prefect in fifth year" does not imply "Head Boy the very next year," the
+reasoning the original flag rested on. `CHR-146`'s stored answer needs no change.
 
 ### 4.3 `SPL-141` — Correct answer doesn't actually answer the question asked — High confidence, different kind of issue
 
