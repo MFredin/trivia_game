@@ -11,10 +11,11 @@ import { duelReactionLabel } from '../../constants/duelReactions.js';
  * a feature that needs another calls its API rather than reaching into its state. Before the
  * split, the `duel:started` socket handler set fifteen pieces of run state by hand.
  *
- * The socket also carries achievement unlocks, which are not a duel concern; they are handed
- * straight out through `onAchievement` rather than parked here.
+ * The socket also carries achievement unlocks and new Owl Post messages, which are not a duel
+ * concern; they are handed straight out through `onAchievement` and `onOwlPost` rather than
+ * parked here.
  */
-export function useDuels({ authToken, currentUser, run, onScreen, onStartError, onAchievement }) {
+export function useDuels({ authToken, currentUser, run, onScreen, onStartError, onAchievement, onOwlPost }) {
   // The two run entry points this hook uses, pulled out because `run` itself is a fresh object
   // literal every render and would churn every callback below that listed it as a dependency.
   const { begin: beginRun, clear: clearRun, session: runSession } = run;
@@ -104,6 +105,10 @@ export function useDuels({ authToken, currentUser, run, onScreen, onStartError, 
       }
       case 'achievement:unlocked': {
         onAchievement(event.achievement);
+        break;
+      }
+      case 'owlpost:message': {
+        onOwlPost?.(event);
         break;
       }
       default:

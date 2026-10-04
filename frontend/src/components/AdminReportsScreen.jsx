@@ -19,6 +19,7 @@ function Standing({ report }) {
   const chips = [];
   if (report.standing.banned) chips.push('Banned');
   if (report.standing.suspended_until) chips.push(`Suspended until ${day(report.standing.suspended_until)}`);
+  if (report.standing.muted_until) chips.push(`Muted until ${day(report.standing.muted_until)}`);
   if (report.standing.must_rename) chips.push('Must choose a new name');
   const { actioned, other_open: otherOpen, suspensions } = report.history;
   if (actioned > 0) chips.push(`${actioned} earlier action${actioned === 1 ? '' : 's'} in 6 months`);
@@ -38,7 +39,9 @@ function Standing({ report }) {
 
 function suggestionText(report) {
   const labels = report.suggestion.actions.map((a) =>
-    a === 'suspend' ? `suspend ${report.suggestion.days} day${report.suggestion.days === 1 ? '' : 's'}` : MODERATION_ACTION_BY_ID[a].label.toLowerCase(),
+    a === 'suspend' || a === 'mute'
+      ? `${a} ${report.suggestion.days} day${report.suggestion.days === 1 ? '' : 's'}`
+      : MODERATION_ACTION_BY_ID[a].label.toLowerCase(),
   );
   return labels.join(' and ');
 }
@@ -133,6 +136,22 @@ export default function AdminReportsScreen({ token }) {
                         {r.status !== 'open' && ` · ${r.resolution ?? (r.status === 'actioned' ? 'Action taken' : 'Dismissed')}`}
                       </p>
                       {r.details && <p className="report-row-details">&ldquo;{r.details}&rdquo;</p>}
+                      {r.evidence && (
+                        <details className="report-evidence">
+                          <summary>Conversation sent with this report ({r.evidence.length} owls)</summary>
+                          <ol className="report-evidence-list">
+                            {r.evidence.map((m, i) => (
+                              <li key={i}>
+                                <span className="report-evidence-who">{m.sender_username}</span> {m.body}
+                                <time className="report-evidence-time" dateTime={m.created_at}>
+                                  {' '}
+                                  {new Date(m.created_at).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+                                </time>
+                              </li>
+                            ))}
+                          </ol>
+                        </details>
+                      )}
                       {r.reason === 'offensive_bio' && r.reported_bio && (
                         <p className="report-row-bio">
                           <span className="report-row-bio-label">Their bio</span> {r.reported_bio}

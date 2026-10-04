@@ -3,9 +3,11 @@ import { pool } from '../db/pool.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { REPORT_REASONS, REPORT_DETAILS_MAX, REPORT_OUTCOMES } from '../lib/reportReasons.js';
-import { HISTORY_DAYS, SUSPENSION_DAYS, actionsFor, checkActionSet, suggestNext } from '../lib/moderation.js';
+import { HISTORY_DAYS, SUSPENSION_DAYS, TIMED_ACTIONS, actionsFor, checkActionSet, suggestNext } from '../lib/moderation.js';
 import { displayNameSql } from '../lib/displayName.js';
 import { applyModeration } from '../services/moderation.js';
+import { snapshotConversation } from '../services/owlPost.js';
+import { EVIDENCE_MESSAGES } from '../lib/owlPost.js';
 
 const NOTE_MIN = 10;
 const NOTE_MAX = 1000;
@@ -19,7 +21,7 @@ router.use(requireAuth);
 const reportRateLimit = rateLimit({ max: 10, windowMs: 60 * 60 * 1000, keyFn: (req) => `report:${req.userId}` });
 
 router.post('/', reportRateLimit, async (req, res) => {
-  const { username, reason, details } = req.body ?? {};
+  const { username, reason, details, include_messages: includeMessages } = req.body ?? {};
   if (typeof username !== 'string' || username.trim().length === 0) {
     return res.status(400).json({ error: 'invalid_username' });
   }
@@ -33,13 +35,19 @@ router.post('/', reportRateLimit, async (req, res) => {
   if (!target) return res.status(404).json({ error: 'user_not_found' });
   if (target.id === req.userId) return res.status(400).json({ error: 'cannot_report_yourself' });
 
+  // A report made from inside a conversation carries the recent messages with it, copied now. That
+  // is all a moderator ever sees of anyone's Owl Post: they do not browse inboxes, they read what
+  // was reported. Only if the reporter asked, and only their own conversation with this player.
+  const evidence =
+    includeMessages === true ? await snapshotConversation(req.userId, target.id, EVIDENCE_MESSAGES) : null;
+
   // Reporting someone twice while the first is still open is a no-op that still answers 201: the
   // reporter's view is "sent", and nothing about the queue should be learnable from the retry.
   await pool.query(
-    `INSERT INTO reports (reporter_id, reported_id, reason, details)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO reports (reporter_id, reported_id, reason, details, evidence)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (reporter_id, reported_id) WHERE status = 'open' DO NOTHING`,
-    [req.userId, target.id, reason, details?.trim() || null],
+    [req.userId, target.id, reason, details?.trim() || null, evidence && evidence.length > 0 ? JSON.stringify(evidence) : null],
   );
   return res.status(201).json({ ok: true });
 });
@@ -56,7 +64,8 @@ router.get('/', requireAdmin, async (req, res) => {
             (reported.deleted_at IS NOT NULL) AS reported_deleted,
             reported.bio AS reported_bio, reported.is_admin AS reported_is_admin,
             reported.suspended_until AS reported_suspended_until, reported.banned_at AS reported_banned_at,
-            reported.must_rename AS reported_must_rename,
+            reported.must_rename AS reported_must_rename, reported.muted_until AS reported_muted_until,
+            r.evidence,
             h.actioned, h.other_open, s.suspensions
      FROM reports r
      JOIN users reporter ON reporter.id = r.reporter_id
@@ -82,6 +91,7 @@ router.get('/', requireAdmin, async (req, res) => {
       suspended_until: r.reported_suspended_until && r.reported_suspended_until > new Date() ? r.reported_suspended_until : null,
       banned: Boolean(r.reported_banned_at),
       must_rename: r.reported_must_rename,
+      muted_until: r.reported_muted_until && r.reported_muted_until > new Date() ? r.reported_muted_until : null,
     };
     // Nothing can be done to a deleted account or an admin; the screen shows why rather than a
     // button that would only be refused.
@@ -95,6 +105,7 @@ router.get('/', requireAdmin, async (req, res) => {
       created_at: r.created_at,
       reviewed_at: r.reviewed_at,
       reporter_username: r.reporter_username,
+      evidence: r.evidence ?? null,
       reported_username: r.reported_username,
       reported_bio: r.reported_bio,
       standing,
@@ -137,7 +148,7 @@ router.post('/:id/action', requireAdmin, async (req, res) => {
     adminId: req.userId,
     reportId: Number(req.params.id),
     actions,
-    days: actions.includes('suspend') ? days : null,
+    days: actions.some((a) => TIMED_ACTIONS.includes(a)) ? days : null,
     note: text,
   });
   if (result.error) return res.status(result.error.status).json(result.error.body);

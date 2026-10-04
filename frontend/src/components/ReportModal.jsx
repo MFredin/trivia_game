@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
+import Checkbox from './Checkbox.jsx';
 import { REPORT_DETAILS_MAX, REPORT_REASONS } from '../constants/reportReasons.js';
 
 /**
@@ -7,9 +8,11 @@ import { REPORT_DETAILS_MAX, REPORT_REASONS } from '../constants/reportReasons.j
  * can scan; the note is optional. Once sent, the dialog offers to block them too — the two are
  * often wanted together, but reporting must never silently do it.
  */
-export default function ReportModal({ username, onSubmit, onBlock, onClose }) {
+export default function ReportModal({ username, conversation = false, onSubmit, onBlock, onClose }) {
   const [reason, setReason] = useState(null);
   const [details, setDetails] = useState('');
+  // From inside a conversation, the recent messages go with the report unless the reporter says no.
+  const [includeMessages, setIncludeMessages] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(null);
   const [sent, setSent] = useState(false);
@@ -23,7 +26,7 @@ export default function ReportModal({ username, onSubmit, onBlock, onClose }) {
     setPending(true);
     setError(null);
     try {
-      await onSubmit({ username, reason, details: details.trim() || undefined });
+      await onSubmit({ username, reason, details: details.trim() || undefined, includeMessages: conversation && includeMessages });
       setSent(true);
     } catch (err) {
       setError(err.code === 'too_many_attempts' ? 'You have sent a lot of reports — try again later.' : 'Could not send that. Try again.');
@@ -85,6 +88,18 @@ export default function ReportModal({ username, onSubmit, onBlock, onClose }) {
             onChange={(e) => setDetails(e.target.value)}
           />
         </label>
+        {conversation && (
+          <label className="privacy-option" htmlFor="report-include-messages">
+            <Checkbox id="report-include-messages" checked={includeMessages} onChange={(e) => setIncludeMessages(e.target.checked)} />
+            <span>
+              <span className="privacy-option-label">Include the recent messages</span>
+              <span className="privacy-option-note">
+                The last 20 owls in this conversation are copied into the report, so a moderator can see what was said.
+                Moderators cannot read your Owl Post otherwise.
+              </span>
+            </span>
+          </label>
+        )}
         {error && (
           <div className="error-banner" role="alert">
             {error}

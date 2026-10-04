@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { changePassword, deleteAccount, renameUser, updateFriendsVisibility } from '../../api/account.js';
+import { setOwlPostMode } from '../../api/owlpost.js';
 
 /**
  * The changes a player makes to their own account from Settings. Each one reports the account
@@ -11,6 +12,7 @@ import { changePassword, deleteAccount, renameUser, updateFriendsVisibility } fr
  */
 export function useAccount({ token, user, onUserChanged, onDeleted }) {
   const [privacyError, setPrivacyError] = useState(null);
+  const [owlPostError, setOwlPostError] = useState(null);
 
   const setFriendsVisibility = useCallback(
     async (value) => {
@@ -23,6 +25,22 @@ export function useAccount({ token, user, onUserChanged, onDeleted }) {
       } catch {
         onUserChanged(previous);
         setPrivacyError('Could not save that setting. Try again.');
+      }
+    },
+    [token, user, onUserChanged],
+  );
+
+  const setOwlPost = useCallback(
+    async (mode) => {
+      setOwlPostError(null);
+      const previous = user;
+      onUserChanged({ ...user, owl_post: mode });
+      try {
+        const data = await setOwlPostMode(mode, token);
+        onUserChanged(data.user);
+      } catch {
+        onUserChanged(previous);
+        setOwlPostError('Could not save that setting. Try again.');
       }
     },
     [token, user, onUserChanged],
@@ -49,5 +67,5 @@ export function useAccount({ token, user, onUserChanged, onDeleted }) {
     [token, onUserChanged],
   );
 
-  return { rename, setFriendsVisibility, privacyError, updatePassword, removeAccount };
+  return { rename, setOwlPost, owlPostError, setFriendsVisibility, privacyError, updatePassword, removeAccount };
 }

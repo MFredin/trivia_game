@@ -59,31 +59,46 @@ function tokens(text, { punctuationIsLetter }) {
 const LINK = /(https?:|www\.|[a-z0-9-]+\.(com|net|org|io|gg|me|co|ly|app|xyz|tv|dev|info|link|page|site|online|store|shop|ru|cn|tk)\b|discord\.|t\.me)/i;
 const EMAIL = /\S+@\S+/;
 
+const BIO_ERRORS = {
+  invalid: 'invalid_bio',
+  too_long: 'bio_too_long',
+  has_link: 'bio_has_link',
+  not_allowed: 'bio_not_allowed',
+};
+
 /**
- * Checks a bio. `{ ok: true, value }` with the text as it should be stored (trimmed, whitespace
- * collapsed to single spaces, control characters removed), or `{ ok: false, error }`. An empty
- * bio is valid and means "no bio".
+ * Checks a piece of text a player is about to put in front of other players — a bio, an Owl Post
+ * message. `{ ok: true, value }` with the text as it should be stored (trimmed, whitespace
+ * collapsed to single spaces, control characters removed), or `{ ok: false, reason }` where reason
+ * is 'invalid', 'too_long', 'has_link' or 'not_allowed'. Empty is valid; whether empty is
+ * acceptable is for the caller to say.
  */
-export function checkBio(input) {
-  if (typeof input !== 'string') return { ok: false, error: 'invalid_bio' };
+export function checkText(input, max) {
+  if (typeof input !== 'string') return { ok: false, reason: 'invalid' };
   const value = input
     // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if ([...value].length > BIO_MAX_LENGTH) return { ok: false, error: 'bio_too_long' };
+  if ([...value].length > max) return { ok: false, reason: 'too_long' };
   if (value === '') return { ok: true, value: '' };
 
-  if (LINK.test(value) || EMAIL.test(value) || /@/.test(value)) return { ok: false, error: 'bio_has_link' };
+  if (LINK.test(value) || EMAIL.test(value) || /@/.test(value)) return { ok: false, reason: 'has_link' };
   // A phone number however it is punctuated: seven or more digits once the separators go.
   // A range of years ("fan 1999-2024") is ordinary in a bio and is not one.
   const withoutYears = value.replace(/\b(?:19|20)\d{2}\s*[-–]\s*(?:19|20)\d{2}\b/g, ' ');
-  if (/\d(?:[\s().+-]*\d){6,}/.test(withoutYears)) return { ok: false, error: 'bio_has_link' };
+  if (/\d(?:[\s().+-]*\d){6,}/.test(withoutYears)) return { ok: false, reason: 'has_link' };
 
   const blocked = blockedTerms();
   const readings = [tokens(value, { punctuationIsLetter: true }), tokens(value, { punctuationIsLetter: false })];
-  if (readings.some((words) => words.some((t) => blocked.has(t)))) return { ok: false, error: 'bio_not_allowed' };
+  if (readings.some((words) => words.some((t) => blocked.has(t)))) return { ok: false, reason: 'not_allowed' };
 
   return { ok: true, value };
+}
+
+/** A bio: the text rules above, at 140 characters, with errors named for the bio. */
+export function checkBio(input) {
+  const result = checkText(input, BIO_MAX_LENGTH);
+  return result.ok ? result : { ok: false, error: BIO_ERRORS[result.reason] };
 }

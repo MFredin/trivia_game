@@ -72,7 +72,10 @@ export async function register(page, username = uniqueName()) {
 const ACCOUNT_MENU_ITEMS = ['Settings', 'Edit profile', 'My profile', 'Log out'];
 
 export async function navigateTo(page, label) {
-  if (ACCOUNT_MENU_ITEMS.includes(label)) {
+  if (label === 'Owl Post') {
+    // The envelope in the running header, named with its unread count when there is one.
+    await page.getByRole('button', { name: /^Owl Post/ }).click();
+  } else if (ACCOUNT_MENU_ITEMS.includes(label)) {
     await page.getByRole('button', { name: 'Account menu' }).click();
     await page.getByRole('menuitem', { name: label }).click();
   } else {

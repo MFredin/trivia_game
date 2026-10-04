@@ -6,11 +6,11 @@ const when = (iso) => new Date(iso).toLocaleDateString(undefined, { day: 'numeri
 
 function actionLabel(a) {
   const base = MODERATION_ACTION_BY_ID[a.action]?.label ?? a.action;
-  return a.action === 'suspend' ? `${base} ${a.days} day${a.days === 1 ? '' : 's'}` : base;
+  return a.action === 'suspend' || a.action === 'mute' ? `${base} ${a.days} day${a.days === 1 ? '' : 's'}` : base;
 }
 
 function status(a) {
-  if (a.action !== 'suspend' && a.action !== 'ban') return null;
+  if (a.action !== 'suspend' && a.action !== 'ban' && a.action !== 'mute') return null;
   if (a.lifted_at) return 'Lifted';
   if (a.active) return 'In force';
   return 'Ended';

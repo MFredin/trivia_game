@@ -44,7 +44,7 @@ router.get('/actions', requireAdmin, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT ma.id, ma.batch_id, ma.action, ma.note, ma.days, ma.expires_at, ma.created_at, ma.lifted_at,
             ${displayNameSql('target')} AS username, admin.username AS admin_username,
-            (ma.lifted_at IS NULL AND (ma.action = 'ban' OR (ma.action = 'suspend' AND ma.expires_at > now()))) AS active
+            (ma.lifted_at IS NULL AND (ma.action = 'ban' OR (ma.action IN ('suspend', 'mute') AND ma.expires_at > now()))) AS active
      FROM moderation_actions ma
      JOIN users target ON target.id = ma.user_id
      JOIN users admin ON admin.id = ma.admin_id

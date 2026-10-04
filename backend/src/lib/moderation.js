@@ -4,9 +4,14 @@
 // The aim is a ladder rather than a switch: a first offence of most kinds is a warning and a fix,
 // a second is a suspension, a repeat is a ban — and the moderator sees that history, with a
 // suggestion, on the report itself. They are free to ignore it. A suggestion is not a rule.
-export const MODERATION_ACTIONS = ['warn', 'force_rename', 'clear_bio', 'reset_avatar', 'remove_scores', 'suspend', 'ban'];
+export const MODERATION_ACTIONS = ['warn', 'force_rename', 'clear_bio', 'reset_avatar', 'remove_scores', 'mute', 'suspend', 'ban'];
 
+// Suspensions and mutes run for one of these many days.
 export const SUSPENSION_DAYS = [1, 7, 30];
+
+// A mute stops a player sending Owl Post and nothing else. It is the step between a warning and a
+// suspension for the thing messaging makes possible: harassing one person at a time.
+export const TIMED_ACTIONS = ['suspend', 'mute'];
 
 // Actions that end in the player being locked out: they cannot read a notice, so they are told at
 // the login screen instead, and these rows are created already acknowledged.
@@ -21,7 +26,7 @@ export const HISTORY_DAYS = 180;
 const LADDERS = {
   offensive_name: [['warn'], ['force_rename', 'warn'], ['suspend'], ['ban']],
   offensive_bio: [['clear_bio', 'warn'], ['clear_bio', 'suspend'], ['suspend'], ['ban']],
-  harassment: [['warn'], ['suspend'], ['suspend'], ['ban']],
+  harassment: [['warn'], ['mute'], ['suspend'], ['ban']],
   impersonation: [['force_rename', 'warn'], ['suspend'], ['ban']],
   cheating: [['remove_scores', 'warn'], ['remove_scores', 'suspend'], ['ban']],
   other: [['warn'], ['suspend'], ['ban']],
@@ -41,7 +46,12 @@ export function actionsFor(reason) {
 export function suggestNext(reason, { priorActioned = 0, priorSuspensions = 0 } = {}) {
   const ladder = LADDERS[reason] ?? LADDERS.other;
   const actions = ladder[Math.min(priorActioned, ladder.length - 1)];
-  const days = actions.includes('suspend') ? SUSPENSION_DAYS[Math.min(priorSuspensions, SUSPENSION_DAYS.length - 1)] : null;
+  // A suspension lengthens with each earlier one; a first mute is a week.
+  const days = actions.includes('suspend')
+    ? SUSPENSION_DAYS[Math.min(priorSuspensions, SUSPENSION_DAYS.length - 1)]
+    : actions.includes('mute')
+      ? SUSPENSION_DAYS[1]
+      : null;
   return { actions, days };
 }
 
@@ -51,7 +61,7 @@ export function checkActionSet(actions, days) {
   if (!actions.every((a) => MODERATION_ACTIONS.includes(a))) return 'invalid_action';
   if (new Set(actions).size !== actions.length) return 'invalid_action';
   if (actions.includes('ban') && actions.includes('suspend')) return 'ban_and_suspend';
-  if (actions.includes('suspend') && !SUSPENSION_DAYS.includes(days)) return 'invalid_days';
+  if (actions.some((a) => TIMED_ACTIONS.includes(a)) && !SUSPENSION_DAYS.includes(days)) return 'invalid_days';
   return null;
 }
 
@@ -61,12 +71,16 @@ const LABELS = {
   clear_bio: 'bio cleared',
   reset_avatar: 'avatar reset',
   remove_scores: 'scores removed',
+  mute: 'muted',
   ban: 'banned',
 };
 
 /** "Warned; suspended 7 days" — a report's outcome in words. */
 export function describeResolution(actions, days) {
-  const parts = actions.map((a) => (a === 'suspend' ? `suspended ${days} day${days === 1 ? '' : 's'}` : LABELS[a]));
+  const parts = actions.map((a) => {
+    const span = `${days} day${days === 1 ? '' : 's'}`;
+    return a === 'suspend' ? `suspended ${span}` : a === 'mute' ? `muted ${span}` : LABELS[a];
+  });
   const text = parts.join('; ');
   return text.charAt(0).toUpperCase() + text.slice(1);
 }

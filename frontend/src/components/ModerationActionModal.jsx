@@ -40,7 +40,7 @@ export default function ModerationActionModal({ report, suspensionDays, onApply,
   const summary = useMemo(
     () =>
       chosen
-        .map((a) => (a === 'suspend' ? `Suspend ${days} day${days === 1 ? '' : 's'}` : MODERATION_ACTION_BY_ID[a].label))
+        .map((a) => (a === 'suspend' || a === 'mute' ? `${MODERATION_ACTION_BY_ID[a].label} ${days} day${days === 1 ? '' : 's'}` : MODERATION_ACTION_BY_ID[a].label))
         .join(' + '),
     [chosen, days],
   );
@@ -52,7 +52,7 @@ export default function ModerationActionModal({ report, suspensionDays, onApply,
     setPending(true);
     setError(null);
     try {
-      await onApply({ actions: chosen, days: chosen.includes('suspend') ? days : undefined, note: note.trim() });
+      await onApply({ actions: chosen, days: chosen.includes('suspend') || chosen.includes('mute') ? days : undefined, note: note.trim() });
     } catch (err) {
       setError(
         err.code === 'cannot_moderate_admin'
@@ -92,9 +92,9 @@ export default function ModerationActionModal({ report, suspensionDays, onApply,
         })}
       </fieldset>
 
-      {chosen.includes('suspend') && (
+      {(chosen.includes('suspend') || chosen.includes('mute')) && (
         <label className="start-form-field action-days" htmlFor="suspend-days">
-          <span className="field-label">Suspend for</span>
+          <span className="field-label">{chosen.includes('suspend') ? 'Suspend' : 'Mute'} for</span>
           <select id="suspend-days" value={days} onChange={(e) => update(chosen, Number(e.target.value))}>
             {suspensionDays.map((d) => (
               <option key={d} value={d}>

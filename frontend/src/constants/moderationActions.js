@@ -7,6 +7,7 @@ const MODERATION_ACTIONS = [
   { id: 'clear_bio', label: 'Clear bio', effect: 'Removes their bio.' },
   { id: 'reset_avatar', label: 'Reset avatar', effect: 'Puts their avatar back to the default.' },
   { id: 'remove_scores', label: 'Remove scores', effect: 'Takes all their completed runs off the leaderboards. Nothing is deleted, and it can be undone in the database.' },
+  { id: 'mute', label: 'Mute', effect: 'Stops them sending Owl Post for 1, 7 or 30 days. They can still play, and still read what they are sent.' },
   { id: 'suspend', label: 'Suspend', effect: 'Locks them out for 1, 7 or 30 days. They are shown your note when they try to sign in.' },
   { id: 'ban', label: 'Ban', effect: 'Locks them out until a moderator lifts it, and stops the same email address being used to register again.' },
 ];
@@ -31,12 +32,13 @@ const ACTION_PHRASE = {
   clear_bio: 'Your bio has been removed.',
   reset_avatar: 'Your avatar has been reset.',
   remove_scores: 'Your scores have been removed from the leaderboards.',
+  mute: (days) => `You cannot send Owl Post for ${days} day${days === 1 ? '' : 's'}.`,
   suspend: (days) => `Your account is suspended for ${days} day${days === 1 ? '' : 's'}.`,
   ban: 'Your account has been banned.',
 };
 
 /** A starting point for the note the player will read — written for them, and editable. */
 export function suggestedNote(reason, actions, days) {
-  const phrases = actions.map((a) => (a === 'suspend' ? ACTION_PHRASE.suspend(days) : ACTION_PHRASE[a]));
+  const phrases = actions.map((a) => (typeof ACTION_PHRASE[a] === 'function' ? ACTION_PHRASE[a](days) : ACTION_PHRASE[a]));
   return [REASON_PHRASE[reason] ?? REASON_PHRASE.other, ...phrases].join(' ');
 }

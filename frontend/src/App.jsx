@@ -19,6 +19,7 @@ import { useProfile } from './features/social/useProfile.js';
 import { useSafety } from './features/safety/useSafety.js';
 import { useProfileEditor } from './features/profile/useProfileEditor.js';
 import { useModerationNotices } from './features/moderation/useModerationNotices.js';
+import { useOwlPost } from './features/owlpost/useOwlPost.js';
 import { restrictionMessage } from './features/moderation/restrictionMessage.js';
 import ModerationNoticeModal from './components/ModerationNoticeModal.jsx';
 import RenameModal from './components/RenameModal.jsx';
@@ -40,6 +41,7 @@ const DuelSummaryScreen = lazy(() => import('./components/DuelSummaryScreen.jsx'
 const AchievementsScreen = lazy(() => import('./components/AchievementsScreen.jsx'));
 const SettingsScreen = lazy(() => import('./components/SettingsScreen.jsx'));
 const EditProfileScreen = lazy(() => import('./components/EditProfileScreen.jsx'));
+const OwlPostScreen = lazy(() => import('./components/OwlPostScreen.jsx'));
 const MischiefModal = lazy(() => import('./components/MischiefModal.jsx'));
 const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScreen.jsx'));
 const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
@@ -79,6 +81,8 @@ const initialAppState = {
   // A one-line message from something that just happened elsewhere (a block made on a profile
   // that has since closed), shown until it is clicked away.
   notice: null,
+  // The Owl Post conversation open on that screen, if any (null is the inbox).
+  owlWith: null,
   startError: null,
   apiBuild: null,
   showMischief: false,
@@ -137,6 +141,10 @@ function appReducer(state, action) {
         };
       }
       return { ...state, screen: state.profileReturnScreen };
+    case 'owlpost/opened':
+      return { ...state, screen: 'owl-post', owlWith: action.username ?? null, startError: null };
+    case 'owlpost/closed':
+      return { ...state, owlWith: null };
     case 'notice/shown':
       return { ...state, notice: action.message };
     case 'notice/dismissed':
@@ -191,6 +199,7 @@ export default function App() {
     apiBuild,
     showMischief,
     notice,
+    owlWith,
   } = state;
 
   // Stable identities for the two callbacks `useDuels` calls directly (a socket event can fire
@@ -246,6 +255,7 @@ export default function App() {
   );
 
   const run = useRun({ authToken: auth.token, onComplete: finishRun });
+  const owl = useOwlPost({ token: auth.token, active: screen === 'owl-post', withUsername: owlWith });
   const duels = useDuels({
     authToken: auth.token,
     currentUser: auth.user,
@@ -253,6 +263,7 @@ export default function App() {
     onScreen: dispatchScreen,
     onStartError: dispatchStartError,
     onAchievement: toasts.push,
+    onOwlPost: owl.handleSocketEvent,
   });
 
   useSecretPhrase(SECRET_PHRASE, useCallback(() => dispatch({ type: 'mischief/opened' }), []));
@@ -340,7 +351,17 @@ export default function App() {
   };
 
   const navigate = (target) => {
-    dispatch({ type: 'navigated', screen: target });
+    // The envelope always opens the inbox, not whichever conversation was last open.
+    if (target === 'owl-post') dispatch({ type: 'owlpost/opened', username: null });
+    else dispatch({ type: 'navigated', screen: target });
+  };
+
+  const openOwlThread = (username) => dispatch({ type: 'owlpost/opened', username });
+
+  const blockFromOwlPost = async (username) => {
+    await safety.block(username);
+    dispatch({ type: 'owlpost/closed' });
+    dispatch({ type: 'notice/shown', message: `Blocked ${username}. You can undo this in Settings.` });
   };
 
   const blockFromProfile = async (username) => {
@@ -374,6 +395,7 @@ export default function App() {
         <NavBar
           currentUser={auth.user}
           activeScreen={navActiveScreen}
+          unreadOwls={owl.unread}
           onNavigate={navigate}
           onViewProfile={viewProfile}
           onLogout={auth.logout}
@@ -452,6 +474,20 @@ export default function App() {
           />
         </Suspense>
       )}
+      {screen === 'owl-post' && auth.user && (
+        <Suspense fallback={screenFallback}>
+          <OwlPostScreen
+            user={auth.user}
+            owl={owl}
+            withUsername={owlWith}
+            onOpen={openOwlThread}
+            onClose={() => dispatch({ type: 'owlpost/closed' })}
+            onViewProfile={viewProfile}
+            onBlock={blockFromOwlPost}
+            onReport={safety.report}
+          />
+        </Suspense>
+      )}
       {screen === 'edit-profile' && auth.user && (
         <Suspense fallback={screenFallback}>
           <EditProfileScreen user={auth.user} editor={profileEditor} onViewProfile={viewProfile} />
@@ -465,6 +501,7 @@ export default function App() {
             ownVisibility={auth.user?.friends_visibility}
             onBack={() => dispatch({ type: 'profile/closed' })}
             onChallenge={duels.openLobby}
+            onSendOwl={openOwlThread}
             onViewProfile={viewProfile}
             onEditProfile={() => navigate('edit-profile')}
             onChangeVisibility={() => navigate('settings')}
@@ -506,6 +543,7 @@ export default function App() {
             onAcceptDuel={duels.accept}
             onDeclineDuel={duels.decline}
             onChallenge={duels.openLobby}
+            onMessage={openOwlThread}
             onViewProfile={viewProfile}
           />
         </Suspense>

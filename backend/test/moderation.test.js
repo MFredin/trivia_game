@@ -38,8 +38,8 @@ test('moderation', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
       return (await call('/reports', { token: admin.token })).body.reports.find((x) => x.reported_username === target.username);
     })() };
     assert.equal(second.history.actioned, 1, 'the earlier action is on the record');
-    assert.deepEqual(second.suggestion.actions, ['suspend'], 'so the suggestion climbs the ladder');
-    assert.equal(second.suggestion.days, 1);
+    assert.deepEqual(second.suggestion.actions, ['mute'], 'so the suggestion climbs the ladder');
+    assert.equal(second.suggestion.days, 7);
   });
 
   await t.test('only an admin may act, and only with a valid, explained set of actions', async () => {
