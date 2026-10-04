@@ -147,7 +147,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 //
 // Idempotent on purpose: if this session already has a served, unanswered question it comes
 // back unchanged, keeping its original issued_at. That makes the call safe to retry after a
-// dropped response without handing out a fresh 20 seconds.
+// dropped response without handing out a fresh 30 seconds.
 router.post('/:id/next', requireAuth, async (req, res) => {
   try {
     const session = await loadOwnedSession(req, res);
