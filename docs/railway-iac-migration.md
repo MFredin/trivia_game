@@ -94,6 +94,31 @@ If `railway config plan` (step 4 below) shows a way to express either of these t
 the docs as fetched here, trust the CLI's plan output over this document -- it's talking to
 the real, current SDK.
 
+## Why this file declares a partial (read before running `plan`)
+
+A Railway IaC file with no `partial` export is read as the definition of the **entire project**:
+anything it does not list is planned for deletion. The `devoted-nurturing` project contains
+three things, and this file declares only one:
+
+| In the Railway project | Declared in `.railway/railway.ts`? | Managed by |
+| --- | --- | --- |
+| `trivia_game` (backend API) | Yes | This file |
+| `incredible-blessing` (frontend, serves the web app) | No | Dashboard + `frontend/railway.toml` |
+| `Postgres` (production database) | No | Dashboard |
+
+So the file exports `partial = "trivia_game"`. A named partial only manages, and can only delete,
+resources it owns; resources it does not declare are left alone. **Do not remove that export.**
+
+Two consequences:
+
+- **The first `railway config plan` must show no `Delete` lines.** If it lists a delete for
+  `incredible-blessing` or `Postgres`, stop and do not apply: it means the partial export is
+  missing or was not picked up.
+- **The frontend service is a separate, later migration.** `frontend/railway.toml` is also
+  Config as Code and hits the same 2026-12-01 cutoff. When you migrate it, add the frontend as a
+  second `service(...)` in this same file (it belongs to the same partial). Leave `Postgres`
+  undeclared; there is no reason for this file to manage the database.
+
 ## Remaining manual steps (run these yourself, in order)
 
 These need the real `railway` CLI, authenticated against the real account, which this sandbox
@@ -116,7 +141,8 @@ doesn't have. Run them from your own machine or a CI job that has both.
    planner. In particular, expect it to say something about `builder`/`restartPolicy` (see
    above) and possibly about `source` (this file deliberately omits `source` since the service
    is already linked via the dashboard -- confirm the plan doesn't try to unlink or relink it).
-   Review the full diff carefully. Adjust `.railway/railway.ts` and re-run `plan` until the
+   Review the full diff carefully. **The plan must contain no `Delete` lines** (see "Why this
+   file declares a partial" above). Adjust `.railway/railway.ts` and re-run `plan` until the
    diff is exactly what you intend.
 
 5. **`railway config apply`** -- only once the plan from step 4 looks right. **This changes
@@ -141,7 +167,8 @@ doesn't have. Run them from your own machine or a CI job that has both.
    `devoted-nurturing` project's `production` environment. Only you can create this (it's tied
    to your Railway account) -- generate it from the Railway dashboard under the project's
    Settings -> Tokens, or with `railway login` + the project linked, however the CLI/dashboard
-   currently exposes project tokens. Until this secret exists, both jobs in the workflow skip
+   currently exposes project tokens. **Only add this after step 5 has succeeded and a clean `plan` shows no `Delete` lines:** once the
+   secret exists, merging any change under `.railway/` applies it automatically. Until this secret exists, both jobs in the workflow skip
    themselves (they're guarded on `secrets.RAILWAY_TOKEN != ''`) rather than failing, so this
    workflow stays quiet — not red — on every PR that touches `.railway/**` until you get to it.
 

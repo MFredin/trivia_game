@@ -10,6 +10,14 @@ import { defineRailway, project, service } from "railway/iac";
 // Project and service names below were confirmed against the real Railway project via the
 // Railway API (list-projects / list-services), not guessed: project "devoted-nurturing",
 // service "trivia_game" (source repo MFredin/trivia_game, root directory "backend").
+// IMPORTANT -- do not remove this export. Without a named partial, Railway treats this file as
+// the definition of the WHOLE project and plans to DELETE every service or database it does
+// not list. This project also contains the frontend service ("incredible-blessing") and the
+// "Postgres" database, neither of which is declared below. With a named partial, this file
+// only ever manages (and can only ever delete) resources it owns, and everything else in the
+// project is left alone. See docs/railway-iac-migration.md, "Why this file declares a partial".
+export const partial = "trivia_game";
+
 export default defineRailway(() => {
   const backend = service("trivia_game", {
     // `source` is deliberately omitted. This service is already linked to the
