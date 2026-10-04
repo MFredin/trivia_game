@@ -6,6 +6,7 @@ import { USER_COLUMNS, userView } from '../lib/userView.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { deleteAccount } from '../services/accountDeletion.js';
+import { isReservedUsername } from '../lib/usernames.js';
 
 const router = express.Router();
 
@@ -21,6 +22,30 @@ async function passwordMatches(userId, password) {
   const { rows } = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
   return Boolean(rows[0]?.password_hash) && verifyPassword(password, rows[0].password_hash);
 }
+
+// Choosing a new name, which a player may only do after a moderator has made them: renaming is
+// otherwise not offered, because a name that can be changed at will is a name that can be changed
+// to dodge a report.
+router.patch('/username', async (req, res) => {
+  const { rows: current } = await pool.query('SELECT must_rename FROM users WHERE id = $1', [req.userId]);
+  if (!current[0]?.must_rename) return res.status(403).json({ error: 'rename_not_required' });
+
+  const raw = req.body?.username;
+  const username = typeof raw === 'string' ? raw.trim() : '';
+  if (username.length === 0 || username.length > 40 || isReservedUsername(username) || /^player-\d+-/.test(username)) {
+    return res.status(400).json({ error: 'invalid_username' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `UPDATE users SET username = $1, must_rename = false WHERE id = $2 RETURNING ${USER_COLUMNS}`,
+      [username, req.userId],
+    );
+    return res.json({ user: userView(rows[0]) });
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'username_taken' });
+    throw err;
+  }
+});
 
 router.patch('/privacy', async (req, res) => {
   const { friends_visibility: visibility } = req.body ?? {};

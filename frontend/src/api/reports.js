@@ -8,6 +8,12 @@ export function getReports(status, token) {
   return request(`/reports?status=${status}`, {}, token);
 }
 
-export function resolveReport(id, outcome, token, { clearBio = false } = {}) {
-  return request(`/reports/${id}/resolve`, { method: 'POST', body: JSON.stringify({ outcome, clear_bio: clearBio }) }, token);
+// Closing a report with no action against the player.
+export function dismissReport(id, token) {
+  return request(`/reports/${id}/resolve`, { method: 'POST', body: JSON.stringify({ outcome: 'dismissed' }) }, token);
+}
+
+// Taking action against the reported player. `note` is what they will be told.
+export function takeAction(id, { actions, days, note }, token) {
+  return request(`/reports/${id}/action`, { method: 'POST', body: JSON.stringify({ actions, days, note }) }, token);
 }

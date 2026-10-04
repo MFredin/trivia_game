@@ -70,13 +70,41 @@ withdraws a duel invite waiting between the two.
 Enforcement lives in `backend/src/services/blocks.js` (`notBlockedSql`, `isBlockedEitherWay`,
 `blockUser`) and is tested in `backend/test/blocks.test.js`.
 
-## Reporting
+## Reporting and moderation
 
-Five fixed reasons plus an optional 500-character note; ten reports an hour per player; one open
-report per reporter per player. Admins review them on the Reports screen (avatar menu) and mark
-them *action taken* or *dismissed*. **There is no automatic sanction** — "action taken" records
-that an admin did something (for example setting `is_admin`/deleting through the database); the
-app has no suspend feature. The reported player is never told.
+Five-plus-one fixed report reasons (offensive name, offensive bio, harassment, impersonation, cheating,
+other) plus an optional 500-character note; ten reports an hour per player; one open report per reporter
+per player. The reported player is never told who reported them.
+
+A report on the admin **Reports** screen shows the player's record — standing now, how many earlier
+reports ended in action (last 180 days), suspensions, other open reports — and a **suggested** next step
+from a ladder per report type (`backend/src/lib/moderation.js`): a first offence is usually a warning plus
+a fix, a repeat a suspension (1 → 7 → 30 days as they accumulate), a further repeat a ban. It is a
+suggestion; the moderator ticks what they want. Every action says what it does on the screen.
+
+| Action | Effect |
+|---|---|
+| Warn | A notice the player must acknowledge before using the app again. |
+| Force rename | Neutral name now; the player must choose a new one (the only time the app allows a rename). |
+| Clear bio / Reset avatar | Removes the bio / puts the avatar back to default. |
+| Remove scores | Holds every completed run off the leaderboards (the existing review flag). Nothing is deleted. |
+| Suspend 1 / 7 / 30 days | Locks out every way in at once; the login screen shows the moderator's note and the end date. |
+| Ban | Locks out until lifted, and the email can no longer register (see below). |
+| Dismiss | Closes the report with no action. |
+
+Every action needs a **note written for the player** (prefilled from the report type and the actions,
+editable) — nothing is applied silently — and is recorded in `moderation_actions`, with who, when and
+why. A suspension or ban can be **lifted** from the Action log; overlapping suspensions are recomputed,
+so lifting one leaves the other. Admins cannot be moderated, and nobody can moderate themselves.
+
+**Ban evasion.** Deleting an account normally frees its email. For a banned account a SHA-256 hash of the
+email is kept (`banned_emails`) and survives deletion, so the address cannot be registered again; a
+registration attempt gets the same "already in use" answer as any collision. The hash is removed if the
+ban is lifted. This is the one place the app keeps something past account deletion, which the privacy
+policy needs to say.
+
+Not here: **appeals** beyond the existing Submit Feedback form, **muting** (arrives with messaging), and
+automatic sanctions — the suggestions are advice, never actions.
 
 ## Deleting an account
 
