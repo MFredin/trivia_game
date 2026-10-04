@@ -30,7 +30,10 @@ router.get('/', optionalAuth, async (req, res) => {
   const cached = getCached(cacheKey);
   if (cached) return res.json(cached);
 
-  const conditions = [`gs.mode = $1`, `gs.status = 'completed'`];
+  // Phase 2 anti-cheat (docs/anti-cheat-architecture.md): a shadow-flagged run is excluded from
+  // this PUBLIC board only — it still shows up in the player's own session/profile data, and
+  // it is never auto-banned, just held back pending a human look.
+  const conditions = [`gs.mode = $1`, `gs.status = 'completed'`, `gs.flagged_for_review = false`];
   const params = [mode];
 
   // category and difficulty are the two run attributes that can be genuinely NULL (a player
@@ -113,7 +116,7 @@ router.get('/house-cup', async (req, res) => {
     `WITH best_per_user AS (
        SELECT DISTINCT ON (gs.user_id) gs.user_id, gs.total_score
        FROM game_sessions gs
-       WHERE gs.status = 'completed'
+       WHERE gs.status = 'completed' AND gs.flagged_for_review = false
        ORDER BY gs.user_id, gs.total_score DESC
      )
      SELECT u.theme, SUM(b.total_score) AS total_score, COUNT(*) AS players
