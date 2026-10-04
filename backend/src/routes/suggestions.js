@@ -4,6 +4,7 @@ import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { getAllQuestions, invalidateQuestionCache } from '../repo/questions.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { DESIGN_TIERS } from '../lib/designTiers.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
@@ -99,7 +100,7 @@ router.get('/mine', requireAuth, async (req, res) => {
 router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   const status = ['pending', 'approved', 'rejected'].includes(req.query.status) ? req.query.status : 'pending';
   const { rows } = await pool.query(
-    `SELECT sq.*, u.username AS submitted_by_username
+    `SELECT sq.*, ${displayNameSql('u')} AS submitted_by_username
      FROM suggested_questions sq
      JOIN users u ON u.id = sq.suggested_by
      WHERE sq.status = $1

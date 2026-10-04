@@ -6,7 +6,7 @@
 .running-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem 1.4rem;
   margin: -0.5rem -0.25rem 2.2rem;
@@ -41,6 +41,29 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.3rem;
+  /* Before the account menu on a wide screen. The menu is first in the markup so that on a
+     phone it can sit beside the wordmark; `order` is what puts it last here. */
+  order: 1;
+}
+
+.running-title {
+  margin-right: auto;
+}
+
+.running-account {
+  order: 2;
+}
+
+@media (max-width: 720px) {
+  /* The links get a row of their own, under the wordmark and the avatar. */
+  .running-account {
+    order: 1;
+  }
+
+  .running-nav {
+    order: 2;
+    flex-basis: 100%;
+  }
 }
 
 .running-nav button {

@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/', requireAuth, async (req, res) => {
       : `(ae.user_id = $1 OR ae.user_id IN (SELECT friend_user_id FROM friendships WHERE user_id = $1 AND status = 'accepted'))`;
 
   const { rows } = await pool.query(
-    `SELECT u.username, ae.type, ae.payload, ae.created_at
+    `SELECT ${displayNameSql('u')} AS username, ae.type, ae.payload, ae.created_at
      FROM activity_events ae
      JOIN users u ON u.id = ae.user_id
      WHERE ${condition}

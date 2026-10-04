@@ -264,3 +264,60 @@ CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels (opponent_id, status);
 -- index has to read rows belonging to everyone else to find the ones it wants.
 CREATE INDEX IF NOT EXISTS idx_activity_events_user_created
   ON activity_events (user_id, created_at DESC);
+
+-- ---------------------------------------------------------------------------
+-- Social profiles
+-- ---------------------------------------------------------------------------
+
+-- The sigil a player chose for their avatar (see lib/avatars.js for the allowed ids). NULL is
+-- the default and means "draw my initial", so no existing account needs a backfill.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
+
+-- Who may see this player's list of friends on their profile: 'everyone', 'friends' or
+-- 'only_me' (see lib/friendsVisibility.js). Defaults to friends-only for every account,
+-- existing ones included — the list exposes other people's names, so nobody should have to find
+-- the setting before their friends stop being listed to strangers.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS friends_visibility TEXT NOT NULL DEFAULT 'friends';
+
+-- A player blocking another. One row per direction a player has chosen; the app treats a block
+-- as mutual in effect (neither can see, add, challenge or react to the other — services/blocks.js)
+-- but only the blocker's row exists, so only the blocker can lift it and the blocked player
+-- cannot tell it is there.
+CREATE TABLE IF NOT EXISTS blocks (
+  blocker_id INTEGER NOT NULL REFERENCES users(id),
+  blocked_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (blocker_id, blocked_id),
+  CHECK (blocker_id <> blocked_id)
+);
+
+-- The primary key serves "who have I blocked"; "who has blocked me" starts from the other end.
+CREATE INDEX IF NOT EXISTS idx_blocks_blocked ON blocks (blocked_id);
+
+-- Reports on a player, for an admin to read. Free text is capped by the route, and the reason is
+-- one of a fixed list (lib/reportReasons.js) so the queue can be scanned rather than read.
+-- A report is never shown to the reported player.
+CREATE TABLE IF NOT EXISTS reports (
+  id SERIAL PRIMARY KEY,
+  reporter_id INTEGER NOT NULL REFERENCES users(id),
+  reported_id INTEGER NOT NULL REFERENCES users(id),
+  reason TEXT NOT NULL,
+  details TEXT,
+  status TEXT NOT NULL DEFAULT 'open',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reviewed_by INTEGER REFERENCES users(id),
+  reviewed_at TIMESTAMPTZ
+);
+
+-- One open report per reporter per player: pressing Report twice must not put two rows in the
+-- queue, and repeating a report is not a way to make it louder.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_open_report_per_pair
+  ON reports (reporter_id, reported_id) WHERE status = 'open';
+
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status, created_at);
+
+-- Set when a player deletes their account (services/accountDeletion.js). The row is KEPT, with
+-- every piece of personal data on it removed, because other players' history points at it —
+-- the other side of a duel, a challenge leaderboard, the question they once suggested. Anywhere
+-- that history is shown, a row with this set is displayed as "Deleted player".
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;

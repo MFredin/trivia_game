@@ -9,6 +9,7 @@ import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
 import { evaluateAchievements } from '../services/achievements.js';
 import { featuredChallengeSpec } from '../lib/featuredChallenge.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
@@ -111,7 +112,7 @@ router.get('/:code', requireAuth, async (req, res) => {
   const { rows: challengeRows } = await pool.query(
     // LEFT JOIN, not JOIN: the featured weekly challenge has no creator, and an inner join
     // would make it unreachable by its own code.
-    `SELECT c.*, u.username AS created_by_username
+    `SELECT c.*, ${displayNameSql('u')} AS created_by_username
      FROM challenges c
      LEFT JOIN users u ON u.id = c.created_by
      WHERE c.code = $1`,
@@ -123,7 +124,7 @@ router.get('/:code', requireAuth, async (req, res) => {
   // Same top-score-per-user dedup pattern the main leaderboard uses — a player who replays
   // a challenge code only counts once, at their best attempt.
   const { rows: leaderboard } = await pool.query(
-    `SELECT DISTINCT ON (gs.user_id) u.username, gs.total_score, gs.completed_at
+    `SELECT DISTINCT ON (gs.user_id) ${displayNameSql('u')} AS username, gs.total_score, gs.completed_at
      FROM game_sessions gs
      JOIN users u ON u.id = gs.user_id
      WHERE gs.challenge_id = $1 AND gs.status = 'completed'

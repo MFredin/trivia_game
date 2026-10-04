@@ -67,8 +67,17 @@ export async function register(page, username = uniqueName()) {
   return username;
 }
 
+// Settings, the profile and Log out live behind the avatar menu; everything else is a link in
+// the running header.
+const ACCOUNT_MENU_ITEMS = ['Settings', 'My profile', 'Log out'];
+
 export async function navigateTo(page, label) {
-  await page.locator('.running-nav button', { hasText: new RegExp(`^${label}$`) }).first().click();
+  if (ACCOUNT_MENU_ITEMS.includes(label)) {
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: label }).click();
+  } else {
+    await page.locator('.running-nav button', { hasText: new RegExp(`^${label}$`) }).first().click();
+  }
   await page.waitForTimeout(600);
 }
 

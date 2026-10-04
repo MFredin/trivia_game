@@ -3,6 +3,10 @@ import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
 import { ACHIEVEMENTS } from '../lib/achievements.js';
 import { computeStreaks } from '../lib/streaks.js';
+import { isOnline } from '../lib/presenceRegistry.js';
+import { deriveStatus } from '../lib/friendStatus.js';
+import { canSeeFriends } from '../lib/friendsVisibility.js';
+import { isBlockedEitherWay, notBlockedSql } from '../services/blocks.js';
 
 const router = express.Router();
 
@@ -10,17 +14,52 @@ const router = express.Router();
 // summary and the Achievements screen remains the place you go to see everything.
 const ACHIEVEMENT_SHOWCASE_SIZE = 6;
 
+const FRIENDS_PAGE_SIZE = 30;
+
+// How the viewer stands towards the profile's owner, in the same words the member lists use,
+// plus 'self'. One query for both directional rows; the profile and its friends list both need it.
+async function relationshipOf(viewerId, user) {
+  if (viewerId === user.id) return 'self';
+  const { rows } = await pool.query(
+    `SELECT f_out.status AS outgoing_status, f_in.status AS incoming_status
+     FROM (SELECT 1) one
+     LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = $2
+     LEFT JOIN friendships f_in ON f_in.user_id = $2 AND f_in.friend_user_id = $1`,
+    [viewerId, user.id],
+  );
+  return deriveStatus(rows[0]);
+}
+
+async function findProfileUser(username) {
+  const { rows } = await pool.query(
+    'SELECT id, username, theme, avatar, created_at, friends_visibility FROM users WHERE username = $1 AND deleted_at IS NULL',
+    [username],
+  );
+  return rows[0] ?? null;
+}
+
+const mayListFriends = (user, relationship) =>
+  canSeeFriends({
+    visibility: user.friends_visibility,
+    isSelf: relationship === 'self',
+    isFriend: relationship === 'friends',
+  });
+
 // Viewable by any logged-in player — the same openness the All Members directory already
 // has. Everything here is read-only and derived from data the app already records; no new
 // schema for this screen at all.
 router.get('/:username', requireAuth, async (req, res) => {
-  const { rows: userRows } = await pool.query('SELECT id, username, theme FROM users WHERE username = $1', [
-    req.params.username,
-  ]);
-  const user = userRows[0];
-  if (!user) return res.status(404).json({ error: 'user_not_found' });
+  const user = await findProfileUser(req.params.username);
+  if (!user || (await isBlockedEitherWay(req.userId, user.id))) return res.status(404).json({ error: 'user_not_found' });
 
-  const [runStats, answerStats, favoriteCategory, duelStats, achievementStats, dateRows] = await Promise.all([
+  const relationship = await relationshipOf(req.userId, user);
+  const friendsVisible = mayListFriends(user, relationship);
+
+  const [friendCount, runStats, answerStats, favoriteCategory, duelStats, achievementStats, dateRows] = await Promise.all([
+    // The count is only worked out for a viewer allowed to see the list: a number is a leak too.
+    friendsVisible
+      ? pool.query(`SELECT count(*) AS n FROM friendships WHERE user_id = $1 AND status = 'accepted'`, [user.id])
+      : null,
     pool.query(
       `SELECT count(*) FILTER (WHERE status = 'completed') AS total_completed,
               max(best_streak) AS max_best_streak,
@@ -87,6 +126,11 @@ router.get('/:username', requireAuth, async (req, res) => {
   return res.json({
     username: user.username,
     theme: user.theme,
+    avatar: user.avatar ?? null,
+    member_since: user.created_at,
+    online: isOnline(user.id),
+    relationship,
+    friends: { visible: friendsVisible, count: friendsVisible ? Number(friendCount.rows[0].n) : null },
     total_completed: Number(runStats.rows[0].total_completed),
     total_questions_answered: totalAnswered,
     accuracy_pct: totalAnswered > 0 ? Math.round((correctAnswered / totalAnswered) * 1000) / 10 : null,
@@ -100,6 +144,47 @@ router.get('/:username', requireAuth, async (req, res) => {
     achievements_total: ACHIEVEMENTS.length,
     current_day_streak: streaks.current,
     longest_day_streak: streaks.longest,
+  });
+});
+
+// Everyone this player is friends with, for the Friends plate on their profile. A viewer who
+// may not see the list gets a 200 saying so — not a 404 — because the profile itself is open and
+// the page needs to know to render "private", not "missing".
+router.get('/:username/friends', requireAuth, async (req, res) => {
+  const user = await findProfileUser(req.params.username);
+  if (!user || (await isBlockedEitherWay(req.userId, user.id))) return res.status(404).json({ error: 'user_not_found' });
+
+  const relationship = await relationshipOf(req.userId, user);
+  if (!mayListFriends(user, relationship)) {
+    return res.json({ visible: false, friends: [], total: null, has_more: false });
+  }
+
+  const limit = Math.min(Math.max(Number(req.query.limit) || FRIENDS_PAGE_SIZE, 1), 100);
+  const offset = Math.max(Number(req.query.offset) || 0, 0);
+
+  const [{ rows }, { rows: countRows }] = await Promise.all([
+    pool.query(
+      `SELECT u.id, u.username, u.avatar, u.theme
+       FROM friendships f
+       JOIN users u ON u.id = f.friend_user_id
+       WHERE f.user_id = $1 AND f.status = 'accepted' AND ${notBlockedSql('$4', 'u.id')}
+       ORDER BY u.username
+       LIMIT $2 OFFSET $3`,
+      [user.id, limit, offset, req.userId],
+    ),
+    pool.query(
+      `SELECT count(*) AS n FROM friendships f
+       WHERE f.user_id = $1 AND f.status = 'accepted' AND ${notBlockedSql('$2', 'f.friend_user_id')}`,
+      [user.id, req.userId],
+    ),
+  ]);
+  const total = Number(countRows[0].n);
+
+  return res.json({
+    visible: true,
+    friends: rows.map((r) => ({ username: r.username, avatar: r.avatar ?? null, theme: r.theme, online: isOnline(r.id) })),
+    total,
+    has_more: offset + rows.length < total,
   });
 });
 

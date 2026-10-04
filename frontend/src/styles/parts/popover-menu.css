@@ -1,0 +1,59 @@
+/* --- the small menus that open from a button: a profile's "more", the account menu --- */
+.popover-menu-root {
+  position: relative;
+  display: inline-flex;
+}
+
+.popover-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 40;
+  min-width: 13rem;
+  max-width: calc(100vw - 2rem);
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem;
+  background: var(--parchment-100);
+  color: var(--text-on-surface);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgba(var(--gilt-rgb), 0.7),
+    0 14px 30px -10px rgba(0, 0, 0, 0.7);
+}
+
+.popover-menu--right {
+  right: 0;
+}
+
+.popover-menu--left {
+  left: 0;
+}
+
+.popover-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0 0.8rem;
+  background: none;
+  border: none;
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.popover-menu-item:hover,
+.popover-menu-item:focus-visible {
+  background: rgba(var(--wash-rgb), 0.2);
+}
+
+.popover-menu-item.is-danger {
+  color: var(--oxblood-600);
+}
+
+.popover-menu-item .icon {
+  flex: none;
+}

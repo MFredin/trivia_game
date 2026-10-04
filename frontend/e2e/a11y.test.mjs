@@ -24,7 +24,9 @@ async function auditScreen(page) {
         const id = `${el.tagName.toLowerCase()}.${cls || '-'}`;
         if (skip.includes(id)) continue;
         if (r.width < min || r.height < min) small.push(`${id} ${Math.round(r.width)}x${Math.round(r.height)}`);
-        const name = (el.getAttribute('aria-label') || el.textContent || el.value || '').trim();
+        // A field's accessible name is its <label>, which neither textContent nor value reports.
+        const labelText = [...(el.labels ?? [])].map((l) => l.textContent).join(' ');
+        const name = (el.getAttribute('aria-label') || labelText || el.textContent || el.value || '').trim();
         if (!name) unnamed.push(id);
       }
       return { small: [...new Set(small)], unnamed: [...new Set(unnamed)] };

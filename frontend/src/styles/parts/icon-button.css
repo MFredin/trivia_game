@@ -1,0 +1,86 @@
+/* --- icon buttons: the compact controls on member rows and profiles ---
+   Three variants, picked by what the control does, not by where it sits: primary is the one
+   gilded action on a row (challenge, accept); secondary is everything else; danger is for
+   things that cannot be undone with a click (block, remove). All sit on parchment. */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  /* 44px square at minimum, however small the glyph: WCAG 2.5.8 and a thumb. */
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.icon-button--labelled {
+  padding: 0 1rem;
+}
+
+.icon-button:disabled {
+  cursor: default;
+}
+
+.icon-button--secondary {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-on-surface);
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  box-shadow: 0 2px 6px -2px rgba(18, 21, 28, 0.28);
+}
+
+.icon-button--secondary:hover:not(:disabled) {
+  border-color: var(--rubric);
+}
+
+.icon-button--secondary:disabled {
+  color: var(--text-muted-on-surface);
+  background: rgba(18, 21, 28, 0.04);
+  box-shadow: none;
+}
+
+.icon-button--primary {
+  background: linear-gradient(180deg, var(--leaf-hi) 0%, var(--leaf) 55%, var(--leaf-lo) 100%);
+  color: var(--leaf-text);
+  border: 1px solid var(--leaf-edge);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.icon-button--primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.icon-button--danger {
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--oxblood-600);
+  border: 1px solid var(--oxblood-600);
+}
+
+.icon-button--danger:hover:not(:disabled) {
+  background: rgba(122, 32, 32, 0.08);
+}
+
+.icon-button .icon {
+  flex: none;
+}
+
+/* The word beside the glyph, only where the screen has the room for it: a row of three
+   labelled buttons does not fit a phone, and the glyph plus a tooltip carries it there. */
+.icon-button-label--wide {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .icon-button--wide-label {
+    padding: 0 0.9rem;
+  }
+
+  .icon-button-label--wide {
+    display: inline;
+  }
+}

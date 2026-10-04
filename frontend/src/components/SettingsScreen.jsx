@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
 import { HOUSES } from '../constants/houses.js';
+import AvatarPicker from './AvatarPicker.jsx';
+import PrivacySettings from './PrivacySettings.jsx';
+import BlockedPlayers from './BlockedPlayers.jsx';
+import PasswordSettings from './PasswordSettings.jsx';
+import DeleteAccountSection from './DeleteAccountSection.jsx';
 import { getInviteCode } from '../api/auth.js';
 
-export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnProfile }) {
+export default function SettingsScreen({ user, onSelectTheme, token, onViewOwnProfile, account, safety }) {
+  const theme = user.theme;
   const [inviteCode, setInviteCode] = useState(null);
   const [copyLabel, setCopyLabel] = useState('Copy link');
 
@@ -70,6 +76,18 @@ export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnP
           ))}
         </div>
       </Plate>
+      <AvatarPicker user={user} onSelect={account.setAvatar} error={account.avatarError} />
+      <PrivacySettings
+        value={user.friends_visibility}
+        onChange={account.setFriendsVisibility}
+        error={account.privacyError}
+      />
+      <BlockedPlayers
+        blocked={safety.blocked}
+        loaded={safety.loaded}
+        loadError={safety.loadError}
+        onUnblock={safety.unblock}
+      />
       <Plate>
         <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
           Your Invite Link
@@ -97,6 +115,8 @@ export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnP
           </button>
         </Plate>
       )}
+      <PasswordSettings onChangePassword={account.updatePassword} />
+      <DeleteAccountSection username={user.username} onDelete={account.removeAccount} />
     </div>
   );
 }

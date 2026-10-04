@@ -1,5 +1,6 @@
 import { verifyAuthToken } from '../lib/authTokens.js';
 import { pool } from '../db/pool.js';
+import { isActiveUser } from '../repo/users.js';
 
 function extractToken(req) {
   const header = req.headers.authorization;
@@ -7,16 +8,28 @@ function extractToken(req) {
   return header.slice('Bearer '.length);
 }
 
-export function requireAuth(req, res, next) {
+// A valid signature is not enough: tokens last thirty days and cannot be revoked, so a deleted
+// account's token still verifies. Checking the account is live is what makes deletion take effect
+// at once rather than whenever the token happens to expire.
+export async function requireAuth(req, res, next) {
   const userId = verifyAuthToken(extractToken(req));
   if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  try {
+    if (!(await isActiveUser(userId))) return res.status(401).json({ error: 'unauthorized' });
+  } catch (err) {
+    return next(err);
+  }
   req.userId = userId;
   next();
 }
 
-export function optionalAuth(req, res, next) {
+export async function optionalAuth(req, res, next) {
   const userId = verifyAuthToken(extractToken(req));
-  req.userId = userId ?? null;
+  try {
+    req.userId = userId && (await isActiveUser(userId)) ? userId : null;
+  } catch (err) {
+    return next(err);
+  }
   next();
 }
 

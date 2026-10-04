@@ -63,5 +63,9 @@ export function useAuth({ onAuthenticated, onLoggedOut }) {
     }
   }, [token]);
 
-  return { token, user, checked, authenticate, logout, selectTheme };
+  // For changes the server has already accepted (avatar, privacy): take its copy of the account
+  // as the truth rather than patching fields here and hoping the two agree.
+  const updateUser = useCallback((nextUser) => setUser(nextUser), []);
+
+  return { token, user, checked, authenticate, logout, selectTheme, updateUser };
 }

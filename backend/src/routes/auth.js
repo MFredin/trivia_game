@@ -5,6 +5,8 @@ import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { signAuthToken } from '../lib/authTokens.js';
 import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
+import { USER_COLUMNS, userView } from '../lib/userView.js';
+import { isReservedUsername } from '../lib/usernames.js';
 
 const router = express.Router();
 
@@ -15,16 +17,12 @@ const VALID_THEMES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'mon
 // gameplay traffic is never affected. Keyed by IP; see lib/rateLimiter.js for the tradeoffs.
 const authRateLimit = rateLimit({ max: 10, windowMs: 15 * 60 * 1000 });
 
-function userView(row) {
-  return { id: row.id, username: row.username, email: row.email, theme: row.theme, is_admin: row.is_admin };
-}
-
 router.post('/register', authRateLimit, async (req, res) => {
   const { email, username, password, invite_code } = req.body ?? {};
   if (typeof email !== 'string' || !EMAIL_RE.test(email)) {
     return res.status(400).json({ error: 'invalid_email' });
   }
-  if (typeof username !== 'string' || username.trim().length === 0 || username.length > 40) {
+  if (typeof username !== 'string' || username.trim().length === 0 || username.length > 40 || isReservedUsername(username)) {
     return res.status(400).json({ error: 'invalid_username' });
   }
   if (typeof password !== 'string' || password.length < 8) {
@@ -36,7 +34,7 @@ router.post('/register', authRateLimit, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)
-       RETURNING id, username, email, theme, is_admin`,
+       RETURNING ${USER_COLUMNS}`,
       [username.trim(), email.toLowerCase().trim(), passwordHash],
     );
     const user = rows[0];
@@ -75,7 +73,7 @@ router.post('/login', authRateLimit, async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    'SELECT id, username, email, password_hash, theme, is_admin FROM users WHERE email = $1',
+    `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = $1`,
     [email.toLowerCase().trim()],
   );
   const user = rows[0];
@@ -87,7 +85,7 @@ router.post('/login', authRateLimit, async (req, res) => {
 });
 
 router.get('/me', requireAuth, async (req, res) => {
-  const { rows } = await pool.query('SELECT id, username, email, theme, is_admin FROM users WHERE id = $1', [
+  const { rows } = await pool.query(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [
     req.userId,
   ]);
   if (rows.length === 0) return res.status(404).json({ error: 'user_not_found' });
@@ -122,7 +120,7 @@ router.patch('/theme', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'invalid_theme' });
   }
   const { rows } = await pool.query(
-    'UPDATE users SET theme = $1 WHERE id = $2 RETURNING id, username, email, theme, is_admin',
+    `UPDATE users SET theme = $1 WHERE id = $2 RETURNING ${USER_COLUMNS}`,
     [theme, req.userId],
   );
   return res.json({ user: userView(rows[0]) });

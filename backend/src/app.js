@@ -14,6 +14,9 @@ import profileRouter from './routes/profile.js';
 import challengesRouter from './routes/challenges.js';
 import activityRouter from './routes/activity.js';
 import feedbackRouter from './routes/feedback.js';
+import accountRouter from './routes/account.js';
+import blocksRouter from './routes/blocks.js';
+import reportsRouter from './routes/reports.js';
 
 export function createApp() {
   const app = express();
@@ -55,6 +58,9 @@ export function createApp() {
   app.use('/api/challenges', challengesRouter);
   app.use('/api/activity', activityRouter);
   app.use('/api/feedback', feedbackRouter);
+  app.use('/api/account', accountRouter);
+  app.use('/api/blocks', blocksRouter);
+  app.use('/api/reports', reportsRouter);
 
   // Mounted after every route, as Express requires for error-handling middleware. No-op
   // unless SENTRY_DSN is set — see lib/sentry.js. Reports and then hands off to the default
