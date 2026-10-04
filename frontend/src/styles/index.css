@@ -30,3 +30,4 @@
 @import './parts/lifelines.css';
 @import './parts/loading.css';
 @import './parts/a11y.css';
+@import './parts/error-boundary.css';

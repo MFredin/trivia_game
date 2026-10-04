@@ -1,0 +1,17 @@
+/* --- the fallback plate a render crash shows instead of a white screen --- */
+.error-boundary-plate {
+  max-width: 420px;
+  margin: 3.5rem auto;
+  text-align: center;
+}
+
+.error-boundary-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+}
+
+.error-boundary-message {
+  margin: 0 0 1.4rem;
+  font-family: var(--font-body);
+  color: var(--text-muted-on-surface);
+}
