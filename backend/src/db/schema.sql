@@ -107,6 +107,15 @@ ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS best_streak INTEGER NOT NULL 
 -- the thing that knows a lifeline is gone. One of each per run.
 ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS lifelines_used TEXT[] NOT NULL DEFAULT '{}';
 
+-- Phase 2 anti-cheat (docs/anti-cheat-architecture.md): a completed run whose own answers look
+-- implausible (perfect accuracy at the hardest tier plus near-minimum response times
+-- throughout) is shadow-flagged here rather than penalized. A flagged run keeps playing, keeps
+-- its score, and still shows up in the player's own history — only the PUBLIC leaderboard query
+-- excludes it, pending a human glance. flag_reason is free text for that manual look, not a
+-- machine-read code.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS flagged_for_review BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS flag_reason TEXT;
+
 CREATE INDEX IF NOT EXISTS idx_game_sessions_leaderboard
   ON game_sessions (mode, status, total_score DESC);
 
