@@ -6,7 +6,9 @@
 #
 # Requires a RAILWAY_TOKEN repo secret (a Railway project token scoped to the target
 # environment) -- see docs/railway-iac-migration.md for how to create and add it. Until that
-# secret exists, both jobs below will fail; that's expected and is called out there too.
+# secret exists, both jobs below skip themselves (rather than failing) via the
+# `secrets.RAILWAY_TOKEN != ''` guard, so this workflow doesn't turn every unrelated PR that
+# happens to touch .railway/** red before the token is ever added.
 name: Railway config
 on:
   pull_request:
@@ -20,7 +22,7 @@ permissions:
   id-token: write
 jobs:
   plan:
-    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository && secrets.RAILWAY_TOKEN != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +31,7 @@ jobs:
           command: plan
           railway-token: ${{ secrets.RAILWAY_TOKEN }}
   apply:
-    if: github.event.action == 'closed' && github.event.pull_request.merged && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.action == 'closed' && github.event.pull_request.merged && github.event.pull_request.head.repo.full_name == github.repository && secrets.RAILWAY_TOKEN != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

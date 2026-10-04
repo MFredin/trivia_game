@@ -141,8 +141,9 @@ doesn't have. Run them from your own machine or a CI job that has both.
    `devoted-nurturing` project's `production` environment. Only you can create this (it's tied
    to your Railway account) -- generate it from the Railway dashboard under the project's
    Settings -> Tokens, or with `railway login` + the project linked, however the CLI/dashboard
-   currently exposes project tokens. Until this secret exists, both jobs in the workflow will
-   fail when triggered; that's expected and not a sign anything else is broken.
+   currently exposes project tokens. Until this secret exists, both jobs in the workflow skip
+   themselves (they're guarded on `secrets.RAILWAY_TOKEN != ''`) rather than failing, so this
+   workflow stays quiet — not red — on every PR that touches `.railway/**` until you get to it.
 
 After step 8, the loop is closed: a future change to `.railway/railway.ts` gets a `plan`
 comment-equivalent on its PR (via the `railwayapp/config@v1` action) and an automatic `apply`
