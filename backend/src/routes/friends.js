@@ -12,7 +12,7 @@ router.use(requireAuth);
 
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.theme
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.friend_user_id
      WHERE f.user_id = $1 AND f.status = 'accepted'
@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
 // Requests I've RECEIVED, awaiting my accept/decline.
 router.get('/requests', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.theme
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.user_id
      WHERE f.friend_user_id = $1 AND f.status = 'pending'
@@ -39,7 +39,7 @@ router.get('/requests', async (req, res) => {
 // Requests I've SENT, still awaiting the other person.
 router.get('/requests/sent', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.theme
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.friend_user_id
      WHERE f.user_id = $1 AND f.status = 'pending'
@@ -62,6 +62,7 @@ function memberView(row) {
     id: row.id,
     username: row.username,
     avatar: row.avatar ?? null,
+    avatar_style: row.avatar_style ?? {},
     theme: row.theme,
     online: isOnline(row.id),
     status: deriveStatus(row),
@@ -75,7 +76,7 @@ router.get('/search', async (req, res) => {
   if (q.length < 2) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
@@ -96,7 +97,7 @@ router.get('/online', async (req, res) => {
   if (onlineIds.length === 0) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
@@ -121,7 +122,7 @@ router.get('/members', async (req, res) => {
   const total = Number(countRows[0].total);
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1

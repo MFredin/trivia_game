@@ -69,7 +69,7 @@ export async function register(page, username = uniqueName()) {
 
 // Settings, the profile and Log out live behind the avatar menu; everything else is a link in
 // the running header.
-const ACCOUNT_MENU_ITEMS = ['Settings', 'My profile', 'Log out'];
+const ACCOUNT_MENU_ITEMS = ['Settings', 'Edit profile', 'My profile', 'Log out'];
 
 export async function navigateTo(page, label) {
   if (ACCOUNT_MENU_ITEMS.includes(label)) {

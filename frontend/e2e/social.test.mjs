@@ -21,18 +21,40 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
     assert.equal(await page.locator('.running-nav button', { hasText: /^Settings$/ }).count(), 0, 'and no longer a link');
   });
 
-  await t.test('picking a sigil changes the avatar everywhere', async () => {
-    await navigateTo(page, 'Settings');
-    const initialBefore = await page.locator('.account-trigger .avatar-initial').count();
-    assert.equal(initialBefore, 1, 'a new account wears its initial');
+  await t.test('dressing the avatar and writing a bio is saved together, and the bio filter says why it refuses', async () => {
+    await navigateTo(page, 'Edit profile');
+    assert.equal(await page.locator('.account-trigger svg text').count(), 1, 'a new account wears its initial');
+    assert.equal(await page.getByRole('button', { name: 'Save changes' }).isDisabled(), true, 'nothing to save yet');
 
     await page.getByRole('button', { name: 'Key', exact: true }).click();
-    await page.waitForSelector('.account-trigger svg');
-    assert.equal(await page.locator('.account-trigger .avatar-initial').count(), 0, 'the nav now shows the sigil');
+    await page.getByRole('button', { name: 'Hexagon' }).click();
+    await page.getByRole('button', { name: 'Violet' }).click();
+    assert.equal(await page.locator('.account-trigger svg text').count(), 1, 'the nav keeps the saved avatar until Save');
+
+    // Earned choices are shown, locked, with what earns them — and cannot be picked.
+    const locked = page.getByRole('button', { name: /^Gilt, locked/ });
+    assert.equal(await locked.isDisabled(), true);
+
+    await page.getByLabel('Short bio').fill('Find me at www.example.com');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await page.waitForSelector('#profile-bio-help ~ .error-banner');
+    assert.match(await page.textContent('#profile-bio-help ~ .error-banner'), /cannot contain links/i);
+
+    await page.getByLabel('Short bio').fill('Ravenclaw since 2001.');
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await page.getByText('Saved.').waitFor();
+    await page.waitForFunction(() => document.querySelectorAll('.account-trigger svg text').length === 0);
     assert.equal(await page.getByRole('button', { name: 'Key', exact: true }).getAttribute('aria-pressed'), 'true');
   });
 
+  await t.test('your profile shows the bio', async () => {
+    await navigateTo(page, 'My profile');
+    await page.waitForSelector('.profile-bio');
+    assert.match(await page.textContent('.profile-bio'), /Ravenclaw since 2001/);
+  });
+
   await t.test('the friends list defaults to friends-only, and can be changed', async () => {
+    await navigateTo(page, 'Settings');
     assert.equal(await page.getByLabel('Friends only').isChecked(), true);
     await page.getByLabel('Only me').check();
     await navigateTo(page, 'My profile');
@@ -71,9 +93,9 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
   });
 
   // Anything the browser complained about that this test did not provoke on purpose: a wrong
-  // current password is meant to be refused (400), and once the account is gone 401s are the
+  // current password and a bio with a link are meant to be refused (400), and once the account is gone 401s are the
   // point. Chromium logs each failed request twice — once as the response, once to the console.
-  const provoked = [/http 400 PATCH .*\/account\/password/, /http 401 /, /status of 40[01]/];
+  const provoked = [/http 400 PATCH .*\/account\/(password|profile)/, /http 401 /, /status of 40[01]/];
   assert.deepEqual(
     problems.filter((p) => !provoked.some((re) => re.test(p))),
     [],

@@ -16,14 +16,14 @@ async function findUser(username) {
 // block that announces itself invites the retaliation it exists to prevent.
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.username, u.avatar, u.theme, b.created_at
+    `SELECT u.username, u.avatar, u.avatar_style, u.theme, b.created_at
      FROM blocks b
      JOIN users u ON u.id = b.blocked_id
      WHERE b.blocker_id = $1
      ORDER BY b.created_at DESC`,
     [req.userId],
   );
-  return res.json({ blocked: rows.map((r) => ({ username: r.username, avatar: r.avatar ?? null, theme: r.theme })) });
+  return res.json({ blocked: rows.map((r) => ({ username: r.username, avatar: r.avatar ?? null, avatar_style: r.avatar_style ?? {}, theme: r.theme })) });
 });
 
 router.post('/', async (req, res) => {

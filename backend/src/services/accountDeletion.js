@@ -9,7 +9,7 @@ import { DELETED_PLAYER_NAME } from '../lib/displayName.js';
  * The row is not removed: duels, challenge leaderboards and the other player's history all point
  * at it, and deleting it would either fail on those references or erase things that belong to
  * other people. Instead everything that identifies the player is removed or overwritten — name,
- * email, password, avatar, invite code, friendships, blocks, achievements, activity — and what is
+ * email, password, avatar, bio and profile choices, invite code, friendships, blocks, achievements, activity — and what is
  * left is a numbered husk that other players see as "Deleted player" (lib/displayName.js).
  *
  * Their runs and scores stay, un-attributed. A name is also written INTO other players' rows (the
@@ -35,7 +35,8 @@ export async function deleteAccount(userId) {
 
     await client.query(
       `UPDATE users
-       SET username = $2, email = NULL, password_hash = NULL, invite_code = NULL, avatar = NULL,
+       SET username = $2, email = NULL, password_hash = NULL, invite_code = NULL, avatar = NULL, avatar_style = '{}', bio = NULL,
+           favorite_book = NULL, favorite_subject = NULL, pinned_achievements = '{}',
            theme = 'monochrome', is_admin = false, friends_visibility = 'only_me', deleted_at = now()
        WHERE id = $1`,
       [userId, `deleted-${userId}-${crypto.randomBytes(4).toString('hex')}`],

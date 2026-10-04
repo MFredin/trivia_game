@@ -8,6 +8,6 @@ export function getReports(status, token) {
   return request(`/reports?status=${status}`, {}, token);
 }
 
-export function resolveReport(id, outcome, token) {
-  return request(`/reports/${id}/resolve`, { method: 'POST', body: JSON.stringify({ outcome }) }, token);
+export function resolveReport(id, outcome, token, { clearBio = false } = {}) {
+  return request(`/reports/${id}/resolve`, { method: 'POST', body: JSON.stringify({ outcome, clear_bio: clearBio }) }, token);
 }

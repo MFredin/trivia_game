@@ -39,7 +39,7 @@ export default function BlockedPlayers({ blocked, loaded, loadError, onUnblock }
           {blocked.map((b) => (
             <li key={b.username} className="friend-row">
               <span className="friend-name">
-                <Avatar username={b.username} avatar={b.avatar} house={b.theme} size={32} />
+                <Avatar username={b.username} avatar={b.avatar} style={b.avatar_style} house={b.theme} size={32} />
                 {b.username}
               </span>
               <button type="button" className="secondary-button" onClick={() => unblock(b.username)}>

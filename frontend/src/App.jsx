@@ -17,6 +17,7 @@ import { useAchievementToasts } from './features/achievements/useAchievementToas
 import { useAccount } from './features/account/useAccount.js';
 import { useProfile } from './features/social/useProfile.js';
 import { useSafety } from './features/safety/useSafety.js';
+import { useProfileEditor } from './features/profile/useProfileEditor.js';
 import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
@@ -34,6 +35,7 @@ const DuelLobbyScreen = lazy(() => import('./components/DuelLobbyScreen.jsx'));
 const DuelSummaryScreen = lazy(() => import('./components/DuelSummaryScreen.jsx'));
 const AchievementsScreen = lazy(() => import('./components/AchievementsScreen.jsx'));
 const SettingsScreen = lazy(() => import('./components/SettingsScreen.jsx'));
+const EditProfileScreen = lazy(() => import('./components/EditProfileScreen.jsx'));
 const MischiefModal = lazy(() => import('./components/MischiefModal.jsx'));
 const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScreen.jsx'));
 const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
@@ -205,6 +207,12 @@ export default function App() {
       auth.logout();
       dispatch({ type: 'notice/shown', message: 'Your account has been deleted.' });
     }, [auth.logout]),
+  });
+  const profileEditor = useProfileEditor({
+    token: auth.token,
+    user: auth.user,
+    active: screen === 'edit-profile',
+    onUserChanged: auth.updateUser,
   });
   const safety = useSafety({ token: auth.token, active: screen === 'settings' });
   const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
@@ -430,7 +438,13 @@ export default function App() {
             onSelectTheme={auth.selectTheme}
             token={auth.token}
             onViewOwnProfile={() => viewProfile(auth.user.username)}
+            onEditProfile={() => navigate('edit-profile')}
           />
+        </Suspense>
+      )}
+      {screen === 'edit-profile' && auth.user && (
+        <Suspense fallback={screenFallback}>
+          <EditProfileScreen user={auth.user} editor={profileEditor} onViewProfile={viewProfile} />
         </Suspense>
       )}
       {screen === 'profile' && viewingProfile && (
@@ -442,7 +456,7 @@ export default function App() {
             onBack={() => dispatch({ type: 'profile/closed' })}
             onChallenge={duels.openLobby}
             onViewProfile={viewProfile}
-            onEditProfile={() => navigate('settings')}
+            onEditProfile={() => navigate('edit-profile')}
             onChangeVisibility={() => navigate('settings')}
             onBlock={blockFromProfile}
             onReport={safety.report}
