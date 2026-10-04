@@ -50,7 +50,7 @@ router.get('/requests/sent', async (req, res) => {
 });
 
 async function findUserByUsername(username) {
-  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1', [username]);
+  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1 AND deleted_at IS NULL', [username]);
   return rows[0] ?? null;
 }
 
@@ -79,7 +79,7 @@ router.get('/search', async (req, res) => {
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id != $1 AND u.username ILIKE $2 AND ${notBlockedSql('$1', 'u.id')}
+     WHERE u.id != $1 AND u.deleted_at IS NULL AND u.username ILIKE $2 AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username
      LIMIT 20`,
     [req.userId, `%${q}%`],
@@ -100,7 +100,7 @@ router.get('/online', async (req, res) => {
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id = ANY($2::int[]) AND ${notBlockedSql('$1', 'u.id')}
+     WHERE u.id = ANY($2::int[]) AND u.deleted_at IS NULL AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username`,
     [req.userId, onlineIds],
   );
@@ -115,7 +115,7 @@ router.get('/members', async (req, res) => {
   const offset = Math.max(Number(req.query.offset) || 0, 0);
 
   const { rows: countRows } = await pool.query(
-    `SELECT count(*) AS total FROM users u WHERE u.id != $1 AND ${notBlockedSql('$1', 'u.id')}`,
+    `SELECT count(*) AS total FROM users u WHERE u.id != $1 AND u.deleted_at IS NULL AND ${notBlockedSql('$1', 'u.id')}`,
     [req.userId],
   );
   const total = Number(countRows[0].total);
@@ -125,7 +125,7 @@ router.get('/members', async (req, res) => {
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id != $1 AND ${notBlockedSql('$1', 'u.id')}
+     WHERE u.id != $1 AND u.deleted_at IS NULL AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username
      LIMIT $2 OFFSET $3`,
     [req.userId, limit, offset],

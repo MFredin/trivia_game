@@ -315,3 +315,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_one_open_report_per_pair
   ON reports (reporter_id, reported_id) WHERE status = 'open';
 
 CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status, created_at);
+
+-- Set when a player deletes their account (services/accountDeletion.js). The row is KEPT, with
+-- every piece of personal data on it removed, because other players' history points at it —
+-- the other side of a duel, a challenge leaderboard, the question they once suggested. Anywhere
+-- that history is shown, a row with this set is displayed as "Deleted player".
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;

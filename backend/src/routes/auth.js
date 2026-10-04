@@ -6,6 +6,7 @@ import { signAuthToken } from '../lib/authTokens.js';
 import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
+import { isReservedUsername } from '../lib/usernames.js';
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.post('/register', authRateLimit, async (req, res) => {
   if (typeof email !== 'string' || !EMAIL_RE.test(email)) {
     return res.status(400).json({ error: 'invalid_email' });
   }
-  if (typeof username !== 'string' || username.trim().length === 0 || username.length > 40) {
+  if (typeof username !== 'string' || username.trim().length === 0 || username.length > 40 || isReservedUsername(username)) {
     return res.status(400).json({ error: 'invalid_username' });
   }
   if (typeof password !== 'string' || password.length < 8) {

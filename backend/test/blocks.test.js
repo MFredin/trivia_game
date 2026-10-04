@@ -56,9 +56,18 @@ test('blocking and reporting', { skip: skip && 'DATABASE_URL not set' }, async (
 
     const all = await call('/friends/members?limit=100', { token: b.token });
     assert.ok(!all.body.results.some((m) => m.username === a.username), 'the directory');
-    const total = (await call('/friends/members?limit=1', { token: b.token })).body.total;
-    const direct = Number((await pool.query('SELECT count(*) FROM users WHERE id != $1', [b.id])).rows[0].count);
-    assert.equal(total, direct - 1, 'and its count');
+    // The directory's count has to leave the blocked player out as well as the list. Other test
+    // files add players to this same database while this one runs, so the two totals are read
+    // back to back and compared again if a player turned up between them.
+    const bystander = await newPlayer();
+    let agreed = false;
+    for (let attempt = 0; attempt < 5 && !agreed; attempt++) {
+      const mine = (await call('/friends/members?limit=1', { token: b.token })).body.total;
+      const theirs = (await call('/friends/members?limit=1', { token: bystander.token })).body.total;
+      // The bystander counts everyone but themself, a and b included; b counts everyone but b and a.
+      agreed = mine === theirs - 1;
+    }
+    assert.ok(agreed, 'and its count');
   });
 
   await t.test('is only reported to the player who made it', async () => {

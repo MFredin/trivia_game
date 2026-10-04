@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(requireAuth);
 
 async function findUser(username) {
-  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1', [username]);
+  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1 AND deleted_at IS NULL', [username]);
   return rows[0] ?? null;
 }
 

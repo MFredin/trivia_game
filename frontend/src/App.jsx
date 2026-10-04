@@ -197,7 +197,14 @@ export default function App() {
     onLoggedOut: useCallback(() => dispatch({ type: 'auth/logged_out' }), []),
   });
 
-  const account = useAccount({ token: auth.token, onUserChanged: auth.updateUser });
+  const account = useAccount({
+    token: auth.token,
+    onUserChanged: auth.updateUser,
+    onDeleted: useCallback(() => {
+      auth.logout();
+      dispatch({ type: 'notice/shown', message: 'Your account has been deleted.' });
+    }, [auth.logout]),
+  });
   const safety = useSafety({ token: auth.token, active: screen === 'settings' });
   const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
 

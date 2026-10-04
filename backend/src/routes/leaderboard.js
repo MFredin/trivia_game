@@ -6,6 +6,7 @@ import { getCached, setCached } from '../lib/leaderboardCache.js';
 import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { dailyKeyFor } from '../lib/questionSelection.js';
 import { optionalAuth } from '../middleware/auth.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
@@ -79,7 +80,7 @@ router.get('/', optionalAuth, async (req, res) => {
   // player once instead of letting one prolific player fill it with their own past attempts.
   const { rows } = await pool.query(
     `WITH ranked AS (
-       SELECT u.username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
+       SELECT ${displayNameSql('u')} AS username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
               gs.completed_at, (gs.completed_at - gs.created_at) AS duration,
               ROW_NUMBER() OVER (
                 PARTITION BY gs.user_id

@@ -32,7 +32,7 @@ async function relationshipOf(viewerId, user) {
 
 async function findProfileUser(username) {
   const { rows } = await pool.query(
-    'SELECT id, username, theme, avatar, created_at, friends_visibility FROM users WHERE username = $1',
+    'SELECT id, username, theme, avatar, created_at, friends_visibility FROM users WHERE username = $1 AND deleted_at IS NULL',
     [username],
   );
   return rows[0] ?? null;

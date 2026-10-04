@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
-import { updateAvatar, updateFriendsVisibility } from '../../api/account.js';
+import { changePassword, deleteAccount, updateAvatar, updateFriendsVisibility } from '../../api/account.js';
 
 /**
  * The changes a player makes to their own account from Settings. Each one reports the account
  * as the server now holds it through `onUserChanged`, so what Settings shows and what the rest
  * of the app shows (the nav, the profile) never come from two different copies.
  */
-export function useAccount({ token, onUserChanged }) {
+export function useAccount({ token, onUserChanged, onDeleted }) {
   const [avatarError, setAvatarError] = useState(null);
   const [privacyError, setPrivacyError] = useState(null);
 
@@ -36,5 +36,17 @@ export function useAccount({ token, onUserChanged }) {
     [token, onUserChanged],
   );
 
-  return { setAvatar, avatarError, setFriendsVisibility, privacyError };
+  // These two throw on failure, with the server's error code, so the form that asked can say
+  // which field was wrong — a wrong current password and a lost connection want different words.
+  const updatePassword = useCallback((fields) => changePassword(fields, token), [token]);
+
+  const removeAccount = useCallback(
+    async (password) => {
+      await deleteAccount(password, token);
+      onDeleted();
+    },
+    [token, onDeleted],
+  );
+
+  return { setAvatar, avatarError, setFriendsVisibility, privacyError, updatePassword, removeAccount };
 }

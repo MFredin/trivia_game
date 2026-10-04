@@ -5,6 +5,8 @@ import { HOUSES } from '../constants/houses.js';
 import AvatarPicker from './AvatarPicker.jsx';
 import PrivacySettings from './PrivacySettings.jsx';
 import BlockedPlayers from './BlockedPlayers.jsx';
+import PasswordSettings from './PasswordSettings.jsx';
+import DeleteAccountSection from './DeleteAccountSection.jsx';
 import { getInviteCode } from '../api/auth.js';
 
 export default function SettingsScreen({ user, onSelectTheme, token, onViewOwnProfile, account, safety }) {
@@ -113,6 +115,8 @@ export default function SettingsScreen({ user, onSelectTheme, token, onViewOwnPr
           </button>
         </Plate>
       )}
+      <PasswordSettings onChangePassword={account.updatePassword} />
+      <DeleteAccountSection username={user.username} onDelete={account.removeAccount} />
     </div>
   );
 }

@@ -22,7 +22,7 @@ router.post('/', reportRateLimit, async (req, res) => {
     return res.status(400).json({ error: 'invalid_details' });
   }
 
-  const { rows } = await pool.query('SELECT id FROM users WHERE username = $1', [username.trim()]);
+  const { rows } = await pool.query('SELECT id FROM users WHERE username = $1 AND deleted_at IS NULL', [username.trim()]);
   const target = rows[0];
   if (!target) return res.status(404).json({ error: 'user_not_found' });
   if (target.id === req.userId) return res.status(400).json({ error: 'cannot_report_yourself' });
