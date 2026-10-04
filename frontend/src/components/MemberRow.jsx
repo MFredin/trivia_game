@@ -50,7 +50,7 @@ export default function MemberRow({
           <IconButton icon="x" label="Decline" wideLabel onClick={onDecline} />
         )}
         {member.status === 'none' && onAdd && <IconButton icon="user-plus" label="Add friend" wideLabel onClick={onAdd} />}
-        {onMessage && <IconButton icon="mail" label="Send an owl" wideLabel onClick={onMessage} />}
+        {onMessage && <IconButton icon="owl" label="Send an owl" wideLabel onClick={onMessage} />}
         {onChallenge && <IconButton icon="flag" label="Challenge" variant="primary" wideLabel onClick={onChallenge} />}
         {onRemove && <IconButton icon="user-minus" label="Remove friend" wideLabel onClick={onRemove} />}
       </span>

@@ -4,13 +4,16 @@
    regardless of which house binding is active — house color is reserved for plates,
    buttons and corner brackets. */
 .running-header {
+  /* One number for the gap under the row, so the "you are here" underline can reach down to the
+     rule instead of floating above it. */
+  --header-pad: 0.9rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem 1.4rem;
   margin: -0.5rem -0.25rem 2.2rem;
-  padding: 0 0.25rem 0.9rem;
+  padding: 0 0.25rem var(--header-pad);
   border-bottom: 1px solid rgba(var(--silver-400-rgb), 0.4);
 }
 
@@ -83,7 +86,12 @@
   color: var(--silver-400);
   background: none;
   border: none;
-  padding: 0 0 0.65rem;
+  /* The 44px height comes from a11y.css; centring the text in it, with no padding under it, puts
+     the links on the same midline as the wordmark, the envelope and the avatar. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   position: relative;
 }
 
@@ -100,9 +108,29 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* On the header's rule, not above it. */
+  bottom: calc(var(--header-pad) * -1 - 1px);
   height: 2px;
   background: var(--silver-200);
+}
+
+/* The two account controls, the envelope and the avatar, are one pair: the same 44px circle with
+   the same silver ring, resting at a hairline, brighter under the pointer and solid on their own
+   screens. Their files carry only what is particular to each. */
+.running-account .owl-link,
+.running-account .account-trigger {
+  border: 2px solid rgba(var(--silver-400-rgb), 0.35);
+  border-radius: 50%;
+}
+
+.running-account .owl-link:hover,
+.running-account .account-trigger:hover {
+  border-color: rgba(var(--silver-400-rgb), 0.75);
+}
+
+.running-account .owl-link.on,
+.running-account .account-trigger.on {
+  border-color: var(--silver-200);
 }
 
 /* --- generic filter-toggle pills (leaderboard scope/window switches). Default styling sits on

@@ -34,7 +34,7 @@ export default function ProfileActions({ relationship, onAdd, onAccept, onDeclin
         variant={relationship === 'pending_received' ? 'secondary' : 'primary'}
         onClick={onChallenge}
       />
-      {relationship === 'friends' && <IconButton icon="mail" label="Send an owl" showLabel onClick={onSendOwl} />}
+      {relationship === 'friends' && <IconButton icon="owl" label="Send an owl" showLabel onClick={onSendOwl} />}
       {/* Everything that is not a first-class action lives behind one menu, so a profile
           does not open with Block and Report as loud as Challenge. */}
       <PopoverMenu

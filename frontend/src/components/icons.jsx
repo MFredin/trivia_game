@@ -17,7 +17,15 @@ const GLYPHS = {
     { d: 'M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8' },
   ],
   logout: [{ d: 'M10 4H5v16h5' }, { d: 'M10 12h10M16 8l4 4-4 4' }],
-  mail: [{ d: 'M3.5 6h17v12h-17z' }, { d: 'M3.5 7l8.5 6.5L20.5 7' }],
+  // Owl Post: an owl with its beak over a letter. An original drawing — round face, two small ear
+  // tufts, a beak — kept to a few strokes so it still reads at 22px.
+  owl: [
+    { d: 'M5.5 4.8 8.6 6.6c2-.6 4.8-.6 6.8 0l3.1-1.8V10c0 2.6-2.6 4-6.5 4s-6.5-1.4-6.5-4z' },
+    { d: 'M9.3 7.6a1.7 1.7 0 1 0 0 3.4 1.7 1.7 0 0 0 0-3.4zM14.7 7.6a1.7 1.7 0 1 0 0 3.4 1.7 1.7 0 0 0 0-3.4z' },
+    { d: 'M11 11.4h2L12 13z', fill: true },
+    { d: 'M4.5 14h15v7h-15z' },
+    { d: 'M4.5 14.5 12 19l7.5-4.5' },
+  ],
   lock: [{ d: 'M6 11h12v9H6z' }, { d: 'M8.5 11V8a3.5 3.5 0 0 1 7 0v3' }],
   edit: [{ d: 'M4 20h4L19 9l-4-4L4 16z' }, { d: 'M13.5 6.5l4 4' }],
   more: [
