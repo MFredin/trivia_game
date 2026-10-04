@@ -55,12 +55,17 @@ const CANON_OPTIONS = [
   { value: 'combined', label: 'Combined' },
 ];
 
+// Mirrors backend CHALLENGE_QUESTION_COUNT_OPTIONS (lib/modes.js) — a challenge link's length
+// is a fixed menu, not free text, same as category/difficulty.
+const CHALLENGE_QUESTION_COUNT_OPTIONS = [10, 15, 25, 30];
+
 export default function StartScreen({ categories, currentUser, onStart, error, token, onOpenChallenge }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
   const [canonSource, setCanonSource] = useState('combined');
   const [difficulty, setDifficulty] = useState('');
   const [dayStreak, setDayStreak] = useState(0);
+  const [challengeQuestionCount, setChallengeQuestionCount] = useState(10);
   const [challengeLink, setChallengeLink] = useState(null);
   const [creatingChallenge, setCreatingChallenge] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy link');
@@ -96,7 +101,10 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
   const handleCreateChallenge = async () => {
     setCreatingChallenge(true);
     try {
-      const data = await createChallenge({ category: category || null, canonSource, difficulty: difficulty || null }, token);
+      const data = await createChallenge(
+        { category: category || null, canonSource, difficulty: difficulty || null, questionCount: challengeQuestionCount },
+        token,
+      );
       setChallengeLink(`${window.location.origin}/?challenge=${data.code}`);
     } catch {
       // Silent — this is an optional secondary action; the "Create a Challenge Link" button
@@ -228,9 +236,27 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
                 </button>
               </div>
             ) : (
-              <button type="button" className="secondary-button" onClick={handleCreateChallenge} disabled={creatingChallenge}>
-                {creatingChallenge ? 'Creating…' : 'Create a Challenge Link'}
-              </button>
+              <>
+                <div className="start-form-field">
+                  <span className="field-label">Challenge length</span>
+                  <div className="seg-control">
+                    {CHALLENGE_QUESTION_COUNT_OPTIONS.map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        className={`seg ${challengeQuestionCount === count ? 'is-active' : ''}`}
+                        onClick={() => setChallengeQuestionCount(count)}
+                        aria-pressed={challengeQuestionCount === count}
+                      >
+                        {count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button type="button" className="secondary-button" onClick={handleCreateChallenge} disabled={creatingChallenge}>
+                  {creatingChallenge ? 'Creating…' : 'Create a Challenge Link'}
+                </button>
+              </>
             )}
           </div>
         )}

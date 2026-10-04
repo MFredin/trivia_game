@@ -10,7 +10,7 @@ const MAX_STREAK_PIPS = 6;
 
 // Only these modes deal out a fixed-length run — Blitz/Survival/Gauntlet play until the
 // clock or a miss ends things, so "of X" would be a made-up target rather than a real one.
-const FIXED_LENGTH = { classic: 10, daily: 10, duel: 10, challenge: 10 };
+const FIXED_LENGTH_MODES = new Set(['classic', 'daily', 'duel', 'challenge']);
 
 function CheckIcon() {
   return (
@@ -48,6 +48,7 @@ export default function QuestionCard({
   timingMode,
   sessionCreatedAt,
   mode,
+  questionCount,
   streak,
   strikes,
   maxStrikes,
@@ -126,7 +127,7 @@ export default function QuestionCard({
 
   const flipClass = flipPhase === 'out' ? 'is-turning-out' : flipPhase === 'in' ? 'is-turning-in' : '';
   const inputLocked = Boolean(feedback) || flipPhase !== 'idle' || Boolean(submitPending);
-  const total = FIXED_LENGTH[mode];
+  const total = FIXED_LENGTH_MODES.has(mode) ? questionCount : undefined;
   const pipCount = Math.min(streak, MAX_STREAK_PIPS);
 
   return (

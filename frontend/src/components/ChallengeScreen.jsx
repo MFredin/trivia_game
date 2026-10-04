@@ -70,7 +70,7 @@ export default function ChallengeScreen({ code, token, onPlay, onCancel }) {
           <Plate>
             <p className="explanation" style={{ margin: 0 }}>
               {[challenge.category, challenge.difficulty].filter(Boolean).join(' · ') || 'All categories · Any difficulty'}
-              {' — 10 questions, the same set for everyone who plays this link.'}
+              {` — ${challenge.question_count} questions, the same set for everyone who plays this link.`}
             </p>
           </Plate>
           <Plate>
