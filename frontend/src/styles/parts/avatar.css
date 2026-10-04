@@ -1,0 +1,74 @@
+/* --- avatars: a house-coloured disc carrying a sigil or an initial ---
+   Colours arrive inline from components/Avatar.jsx (the owner's own house, not the viewer's),
+   so this file is only shape: the disc, the stroke weight of the sigils, and the picker. */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--avatar-size, 40px);
+  height: var(--avatar-size, 40px);
+  border-radius: 50%;
+  /* A thin pale ring so a dark disc still reads as an object against the dark page, and a
+     soft drop so it lifts off parchment. */
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.16),
+    0 1px 3px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.avatar svg {
+  width: 58%;
+  height: 58%;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.avatar-initial {
+  font-family: var(--font-display);
+  font-size: calc(var(--avatar-size, 40px) * 0.5);
+  line-height: 1;
+}
+
+/* --- the picker in Settings --- */
+.avatar-picker-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.avatar-picker-preview .explanation {
+  margin: 0;
+}
+
+.avatar-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.4rem, 1fr));
+  gap: 0.5rem;
+}
+
+/* 44px+ target around a 40px disc; the ring carries "selected" so it does not depend on colour
+   alone — a thick rubric ring against the thin pale one every disc has. */
+.avatar-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.4rem;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.avatar-option:hover {
+  border-color: rgba(18, 21, 28, 0.25);
+}
+
+.avatar-option.is-active {
+  border-color: var(--rubric);
+  background: rgba(var(--wash-rgb), 0.14);
+}

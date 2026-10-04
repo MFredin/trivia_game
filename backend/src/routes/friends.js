@@ -10,7 +10,7 @@ router.use(requireAuth);
 
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username
+    `SELECT u.id, u.username, u.avatar, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.friend_user_id
      WHERE f.user_id = $1 AND f.status = 'accepted'
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
 // Requests I've RECEIVED, awaiting my accept/decline.
 router.get('/requests', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username
+    `SELECT u.id, u.username, u.avatar, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.user_id
      WHERE f.friend_user_id = $1 AND f.status = 'pending'
@@ -37,7 +37,7 @@ router.get('/requests', async (req, res) => {
 // Requests I've SENT, still awaiting the other person.
 router.get('/requests/sent', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username
+    `SELECT u.id, u.username, u.avatar, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.friend_user_id
      WHERE f.user_id = $1 AND f.status = 'pending'
@@ -55,6 +55,17 @@ async function findUserByUsername(username) {
 // Shared shape for every "list of other members, with my relationship to each" endpoint
 // (search, online, the full directory) — only how outgoing/incoming friendship rows resolve
 // to a single status the UI can switch on.
+function memberView(row) {
+  return {
+    id: row.id,
+    username: row.username,
+    avatar: row.avatar ?? null,
+    theme: row.theme,
+    online: isOnline(row.id),
+    status: deriveStatus(row),
+  };
+}
+
 function deriveStatus(row) {
   if (row.outgoing_status === 'accepted' || row.incoming_status === 'accepted') return 'friends';
   if (row.outgoing_status === 'pending') return 'pending_sent';
@@ -69,7 +80,7 @@ router.get('/search', async (req, res) => {
   if (q.length < 2) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
@@ -78,7 +89,7 @@ router.get('/search', async (req, res) => {
      LIMIT 20`,
     [req.userId, `%${q}%`],
   );
-  const results = rows.map((r) => ({ id: r.id, username: r.username, online: isOnline(r.id), status: deriveStatus(r) }));
+  const results = rows.map(memberView);
   return res.json({ results });
 });
 
@@ -90,7 +101,7 @@ router.get('/online', async (req, res) => {
   if (onlineIds.length === 0) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
@@ -98,7 +109,7 @@ router.get('/online', async (req, res) => {
      ORDER BY u.username`,
     [req.userId, onlineIds],
   );
-  const results = rows.map((r) => ({ id: r.id, username: r.username, status: deriveStatus(r) }));
+  const results = rows.map((r) => ({ ...memberView(r), online: true }));
   return res.json({ results });
 });
 
@@ -112,7 +123,7 @@ router.get('/members', async (req, res) => {
   const total = Number(countRows[0].total);
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.theme, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
@@ -121,7 +132,7 @@ router.get('/members', async (req, res) => {
      LIMIT $2 OFFSET $3`,
     [req.userId, limit, offset],
   );
-  const results = rows.map((r) => ({ id: r.id, username: r.username, online: isOnline(r.id), status: deriveStatus(r) }));
+  const results = rows.map(memberView);
   return res.json({ results, total, offset, limit, has_more: offset + results.length < total });
 });
 

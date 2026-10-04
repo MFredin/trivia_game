@@ -154,6 +154,10 @@ function build(house) {
     add(`house.ink on ${pname}`, hexrgb(hd.ink), p, 4.5, 'HouseCupBoard / ProfileScreen');
   }
   add('chip device on cover', hexrgb(hd.accent), hexrgb(hd.cover), 3.0, '.house-swatch-device');
+  // The avatar's glyph and initial sit on the disc's gradient, which runs cover to coverDeep.
+  for (const disc of [hd.cover, hd.coverDeep]) {
+    add('avatar mark on disc', hexrgb(hd.sigil), hexrgb(disc), 3.0, 'Avatar sigil / initial (meaningful)');
+  }
 
   // ornament — listed, never gated
   add('[orn] dial bezel on parchment', gilt, parch, null, 'decorative');

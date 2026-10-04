@@ -14,6 +14,7 @@ import { useRun } from './features/run/useRun.js';
 import { useDuels } from './features/duels/useDuels.js';
 import { useLeaderboard } from './features/leaderboard/useLeaderboard.js';
 import { useAchievementToasts } from './features/achievements/useAchievementToasts.js';
+import { useAccount } from './features/account/useAccount.js';
 import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
@@ -171,6 +172,8 @@ export default function App() {
     onAuthenticated: useCallback(() => dispatch({ type: 'auth/authenticated' }), []),
     onLoggedOut: useCallback(() => dispatch({ type: 'auth/logged_out' }), []),
   });
+
+  const account = useAccount({ token: auth.token, onUserChanged: auth.updateUser });
 
   const leaderboard = useLeaderboard({ authToken: auth.token });
   const toasts = useAchievementToasts();
@@ -371,10 +374,11 @@ export default function App() {
           <AchievementsScreen token={auth.token} />
         </Suspense>
       )}
-      {screen === 'settings' && (
+      {screen === 'settings' && auth.user && (
         <Suspense fallback={screenFallback}>
           <SettingsScreen
-            theme={auth.user?.theme ?? DEFAULT_HOUSE}
+            user={auth.user}
+            account={account}
             onSelectTheme={auth.selectTheme}
             token={auth.token}
             onViewOwnProfile={() => viewProfile(auth.user.username)}

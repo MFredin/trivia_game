@@ -264,3 +264,11 @@ CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels (opponent_id, status);
 -- index has to read rows belonging to everyone else to find the ones it wants.
 CREATE INDEX IF NOT EXISTS idx_activity_events_user_created
   ON activity_events (user_id, created_at DESC);
+
+-- ---------------------------------------------------------------------------
+-- Social profiles
+-- ---------------------------------------------------------------------------
+
+-- The sigil a player chose for their avatar (see lib/avatars.js for the allowed ids). NULL is
+-- the default and means "draw my initial", so no existing account needs a backfill.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
