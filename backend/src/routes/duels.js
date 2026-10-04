@@ -8,6 +8,7 @@ import { sendToUser } from '../lib/wsServer.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
 import { getCached, setCached } from '../lib/leaderboardCache.js';
+import { isBlockedEitherWay } from '../services/blocks.js';
 
 const router = express.Router();
 
@@ -51,6 +52,8 @@ router.post('/', async (req, res) => {
   const opponent = await findUserByUsername(opponent_username.trim());
   if (!opponent) return res.status(404).json({ error: 'user_not_found' });
   if (opponent.id === req.userId) return res.status(400).json({ error: 'cannot_duel_yourself' });
+  // Same answer as an unknown name, so an invite cannot be used to find out who blocked you.
+  if (await isBlockedEitherWay(req.userId, opponent.id)) return res.status(404).json({ error: 'user_not_found' });
 
   // A double-click (or re-visiting the Challenge flow before the invite's been answered)
   // shouldn't stack up repeat pending invites cluttering the recipient's screen — return the
@@ -190,6 +193,11 @@ router.post('/:id/accept', async (req, res) => {
     if (!duel) return res.status(404).json({ error: 'duel_not_found' });
     if (duel.opponent_id !== req.userId) return res.status(403).json({ error: 'forbidden' });
     if (duel.status !== 'pending') return res.status(409).json({ error: 'duel_not_pending' });
+    // Blocking withdraws pending invites, so this is only reachable by a block landing between
+    // the invite and the click; treat it as the invite never having existed.
+    if (await isBlockedEitherWay(duel.created_by, duel.opponent_id)) {
+      return res.status(404).json({ error: 'duel_not_found' });
+    }
 
     await pool.query(`UPDATE duels SET status = 'active', started_at = now() WHERE id = $1`, [duel.id]);
 

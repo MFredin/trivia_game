@@ -1,0 +1,71 @@
+/* --- reporting and moderation --- */
+.report-form {
+  text-align: left;
+}
+
+.report-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  color: var(--text-muted-on-surface);
+}
+
+.report-note textarea {
+  width: 100%;
+  min-height: 5rem;
+  background: #f6f1e6;
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  border-radius: 3px;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-on-surface);
+  resize: vertical;
+}
+
+.report-form .privacy-fieldset legend {
+  margin-bottom: 0.4rem;
+}
+
+.report-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.08);
+}
+
+.report-row:last-child {
+  border-bottom: none;
+}
+
+.report-row-text {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.report-row-title {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.report-row-reason {
+  font-weight: 400;
+  color: var(--text-muted-on-surface);
+}
+
+.report-row-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+}
+
+.report-row-details {
+  margin: 0.4rem 0 0;
+  font-style: italic;
+  overflow-wrap: anywhere;
+}

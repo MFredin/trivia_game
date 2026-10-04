@@ -16,6 +16,7 @@ import { useLeaderboard } from './features/leaderboard/useLeaderboard.js';
 import { useAchievementToasts } from './features/achievements/useAchievementToasts.js';
 import { useAccount } from './features/account/useAccount.js';
 import { useProfile } from './features/social/useProfile.js';
+import { useSafety } from './features/safety/useSafety.js';
 import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
@@ -36,6 +37,7 @@ const SettingsScreen = lazy(() => import('./components/SettingsScreen.jsx'));
 const MischiefModal = lazy(() => import('./components/MischiefModal.jsx'));
 const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScreen.jsx'));
 const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
+const AdminReportsScreen = lazy(() => import('./components/AdminReportsScreen.jsx'));
 const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
@@ -68,6 +70,9 @@ const initialAppState = {
   // Profiles opened from other profiles (a friend's chip), so Back walks back through them
   // rather than returning to the profile you are already on.
   profileHistory: [],
+  // A one-line message from something that just happened elsewhere (a block made on a profile
+  // that has since closed), shown until it is clicked away.
+  notice: null,
   startError: null,
   apiBuild: null,
   showMischief: false,
@@ -126,6 +131,10 @@ function appReducer(state, action) {
         };
       }
       return { ...state, screen: state.profileReturnScreen };
+    case 'notice/shown':
+      return { ...state, notice: action.message };
+    case 'notice/dismissed':
+      return { ...state, notice: null };
     case 'preview/entered':
       return { ...state, screen: 'preview' };
     case 'preview/done':
@@ -175,6 +184,7 @@ export default function App() {
     startError,
     apiBuild,
     showMischief,
+    notice,
   } = state;
 
   // Stable identities for the two callbacks `useDuels` calls directly (a socket event can fire
@@ -188,6 +198,7 @@ export default function App() {
   });
 
   const account = useAccount({ token: auth.token, onUserChanged: auth.updateUser });
+  const safety = useSafety({ token: auth.token, active: screen === 'settings' });
   const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
 
   const leaderboard = useLeaderboard({ authToken: auth.token });
@@ -310,6 +321,12 @@ export default function App() {
     dispatch({ type: 'navigated', screen: target });
   };
 
+  const blockFromProfile = async (username) => {
+    await safety.block(username);
+    dispatch({ type: 'profile/closed' });
+    dispatch({ type: 'notice/shown', message: `Blocked ${username}. You can undo this in Settings.` });
+  };
+
   const viewProfile = (username) => {
     dispatch({ type: 'profile/viewed', username });
   };
@@ -350,6 +367,12 @@ export default function App() {
       )}
       {screen !== 'auth' && screen !== 'question' && duels.incomingInvites.length > 0 && (
         <DuelInviteBanner invite={duels.incomingInvites[0]} onAccept={duels.accept} onDecline={duels.decline} />
+      )}
+      {notice && (
+        // Reuses the duel notice's look: a single dismissible line is all either one is.
+        <div className="duel-notice-banner" role="status" onClick={() => dispatch({ type: 'notice/dismissed' })}>
+          {notice}
+        </div>
       )}
       {duels.notice && (
         <div className="duel-notice-banner" onClick={duels.dismissNotice}>
@@ -394,6 +417,7 @@ export default function App() {
           <SettingsScreen
             user={auth.user}
             account={account}
+            safety={safety}
             onSelectTheme={auth.selectTheme}
             token={auth.token}
             onViewOwnProfile={() => viewProfile(auth.user.username)}
@@ -411,6 +435,8 @@ export default function App() {
             onViewProfile={viewProfile}
             onEditProfile={() => navigate('settings')}
             onChangeVisibility={() => navigate('settings')}
+            onBlock={blockFromProfile}
+            onReport={safety.report}
           />
         </Suspense>
       )}
@@ -432,6 +458,11 @@ export default function App() {
       {screen === 'admin-suggestions' && auth.user?.is_admin && (
         <Suspense fallback={screenFallback}>
           <AdminSuggestionsScreen categories={categories} token={auth.token} />
+        </Suspense>
+      )}
+      {screen === 'admin-reports' && auth.user?.is_admin && (
+        <Suspense fallback={screenFallback}>
+          <AdminReportsScreen token={auth.token} />
         </Suspense>
       )}
       {screen === 'friends' && (

@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
 import Avatar from './Avatar.jsx';
 import ProfileActions from './ProfileActions.jsx';
 import ProfileFriends from './ProfileFriends.jsx';
+import ConfirmModal from './ConfirmModal.jsx';
+import ReportModal from './ReportModal.jsx';
 import { HOUSES } from '../constants/houses.js';
 
 const HOUSE_BY_ID = Object.fromEntries(HOUSES.map((h) => [h.id, h]));
@@ -32,8 +35,12 @@ export default function ProfileScreen({
   onViewProfile,
   onEditProfile,
   onChangeVisibility,
+  onBlock,
+  onReport,
 }) {
   const { profile, error, friends, actionError } = view;
+  // Which dialog is open, if any. Local, because nothing outside this screen cares.
+  const [dialog, setDialog] = useState(null);
   const house = profile ? HOUSE_BY_ID[profile.theme] : null;
 
   return (
@@ -86,6 +93,9 @@ export default function ProfileScreen({
             onDecline={view.decline}
             onChallenge={() => onChallenge(profile.username)}
             onEdit={onEditProfile}
+            onRemove={() => setDialog('remove')}
+            onBlock={() => setDialog('block')}
+            onReport={() => setDialog('report')}
           />
           {actionError && (
             <div className="error-banner" role="alert">
@@ -158,6 +168,43 @@ export default function ProfileScreen({
             onChangeVisibility={onChangeVisibility}
           />
         </>
+      )}
+
+      {profile && dialog === 'remove' && (
+        <ConfirmModal
+          eyebrow="Remove Friend"
+          title={`Remove ${profile.username}?`}
+          confirmLabel="Remove friend"
+          onConfirm={async () => {
+            await view.remove();
+            setDialog(null);
+          }}
+          onCancel={() => setDialog(null)}
+        >
+          <p>You will no longer be friends. You can send a new request later.</p>
+        </ConfirmModal>
+      )}
+      {profile && dialog === 'block' && (
+        <ConfirmModal
+          eyebrow="Block Player"
+          title={`Block ${profile.username}?`}
+          confirmLabel="Block"
+          onConfirm={() => onBlock(profile.username)}
+          onCancel={() => setDialog(null)}
+        >
+          <p>
+            You will be removed from each other&rsquo;s friends. They will not be able to find you, add you, challenge
+            you or see your profile — and they are not told. You can undo this in Settings.
+          </p>
+        </ConfirmModal>
+      )}
+      {profile && dialog === 'report' && (
+        <ReportModal
+          username={profile.username}
+          onSubmit={onReport}
+          onBlock={() => setDialog('block')}
+          onClose={() => setDialog(null)}
+        />
       )}
     </div>
   );

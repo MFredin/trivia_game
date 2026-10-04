@@ -3,6 +3,7 @@ import { verifyAuthToken } from './authTokens.js';
 import { markOnline, markOffline, getSockets } from './presenceRegistry.js';
 import { isDuelReaction, allowReaction } from './duelReactions.js';
 import { pool } from '../db/pool.js';
+import { isBlockedEitherWay } from '../services/blocks.js';
 
 // The largest frame worth parsing. A reaction is a few dozen bytes; anything approaching this
 // is not one, and refusing it early keeps a malformed or hostile client from handing us a
@@ -75,6 +76,9 @@ async function handleClientFrame(ws, raw) {
   if (!participants.includes(ws.userId)) return;
   const opponentId = participants.find((id) => id !== ws.userId);
   if (!opponentId) return;
+  // A duel that was already running when one player blocked the other carries on, but nothing
+  // is relayed between them: a reaction is the only message a player can send another here.
+  if (await isBlockedEitherWay(ws.userId, opponentId)) return;
 
   const { rows: userRows } = await pool.query('SELECT username FROM users WHERE id = $1', [ws.userId]);
 

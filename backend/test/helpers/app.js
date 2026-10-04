@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { WebSocket } from 'ws';
 
 // What the route-level tests share: a real app on a real port against the real database, and
 // players created straight in the database so the register rate limiter stays out of the way
@@ -13,7 +14,9 @@ export const skip = !process.env.DATABASE_URL;
 export async function boot() {
   const { createApp } = await import('../../src/app.js');
   ({ pool } = await import('../../src/db/pool.js'));
+  const { attachWebSocketServer } = await import('../../src/lib/wsServer.js');
   server = http.createServer(createApp());
+  attachWebSocketServer(server);
   await new Promise((resolve) => server.listen(0, resolve));
   base = `http://127.0.0.1:${server.address().port}/api`;
   return { pool };
@@ -58,3 +61,17 @@ export async function befriend(a, b) {
     [a.id, b.id],
   );
 }
+
+// A connected, authenticated socket that collects every frame it is sent.
+export async function connectSocket(player) {
+  const ws = new WebSocket(`ws://127.0.0.1:${server.address().port}/ws?token=${player.token}`);
+  const frames = [];
+  ws.on('message', (raw) => frames.push(JSON.parse(raw.toString())));
+  await new Promise((resolve, reject) => {
+    ws.once('open', resolve);
+    ws.once('error', reject);
+  });
+  return { ws, frames, close: () => ws.close() };
+}
+
+export const settle = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));

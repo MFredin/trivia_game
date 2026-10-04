@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getProfile, getProfileFriends } from '../../api/profile.js';
-import { acceptFriendRequest, addFriend, declineFriendRequest } from '../../api/friends.js';
+import { acceptFriendRequest, addFriend, declineFriendRequest, removeFriend } from '../../api/friends.js';
 
 const FRIENDS_PAGE_SIZE = 30;
 
@@ -89,5 +89,12 @@ export function useProfile({ username, token }) {
         () => declineFriendRequest(username, token),
         () => setRelationship('none'),
       ),
+    // Throws on failure instead of using `run`: it is called from a confirmation dialog, which
+    // is where a failure should be shown.
+    remove: async () => {
+      await removeFriend(username, token);
+      setRelationship('none');
+      getProfile(username, token).then(setProfile).catch(() => {});
+    },
   };
 }

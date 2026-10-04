@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { getOnlineUserIds, isOnline } from '../lib/presenceRegistry.js';
 import { evaluateAchievements } from '../services/achievements.js';
 import { deriveStatus } from '../lib/friendStatus.js';
+import { isBlockedEitherWay, notBlockedSql } from '../services/blocks.js';
 
 const router = express.Router();
 
@@ -78,7 +79,7 @@ router.get('/search', async (req, res) => {
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id != $1 AND u.username ILIKE $2
+     WHERE u.id != $1 AND u.username ILIKE $2 AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username
      LIMIT 20`,
     [req.userId, `%${q}%`],
@@ -99,7 +100,7 @@ router.get('/online', async (req, res) => {
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id = ANY($2::int[])
+     WHERE u.id = ANY($2::int[]) AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username`,
     [req.userId, onlineIds],
   );
@@ -113,7 +114,10 @@ router.get('/members', async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
   const offset = Math.max(Number(req.query.offset) || 0, 0);
 
-  const { rows: countRows } = await pool.query('SELECT count(*) AS total FROM users WHERE id != $1', [req.userId]);
+  const { rows: countRows } = await pool.query(
+    `SELECT count(*) AS total FROM users u WHERE u.id != $1 AND ${notBlockedSql('$1', 'u.id')}`,
+    [req.userId],
+  );
   const total = Number(countRows[0].total);
 
   const { rows } = await pool.query(
@@ -121,7 +125,7 @@ router.get('/members', async (req, res) => {
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id != $1
+     WHERE u.id != $1 AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username
      LIMIT $2 OFFSET $3`,
     [req.userId, limit, offset],
@@ -139,6 +143,9 @@ router.post('/', async (req, res) => {
   const target = await findUserByUsername(username.trim());
   if (!target) return res.status(404).json({ error: 'user_not_found' });
   if (target.id === req.userId) return res.status(400).json({ error: 'cannot_friend_yourself' });
+  // Answered exactly as an unknown name is, so a request cannot be used to find out who has
+  // blocked you.
+  if (await isBlockedEitherWay(req.userId, target.id)) return res.status(404).json({ error: 'user_not_found' });
 
   const { rows: reverseRows } = await pool.query(
     `SELECT status FROM friendships WHERE user_id = $1 AND friend_user_id = $2`,

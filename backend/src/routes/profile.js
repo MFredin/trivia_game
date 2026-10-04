@@ -6,6 +6,7 @@ import { computeStreaks } from '../lib/streaks.js';
 import { isOnline } from '../lib/presenceRegistry.js';
 import { deriveStatus } from '../lib/friendStatus.js';
 import { canSeeFriends } from '../lib/friendsVisibility.js';
+import { isBlockedEitherWay, notBlockedSql } from '../services/blocks.js';
 
 const router = express.Router();
 
@@ -49,7 +50,7 @@ const mayListFriends = (user, relationship) =>
 // schema for this screen at all.
 router.get('/:username', requireAuth, async (req, res) => {
   const user = await findProfileUser(req.params.username);
-  if (!user) return res.status(404).json({ error: 'user_not_found' });
+  if (!user || (await isBlockedEitherWay(req.userId, user.id))) return res.status(404).json({ error: 'user_not_found' });
 
   const relationship = await relationshipOf(req.userId, user);
   const friendsVisible = mayListFriends(user, relationship);
@@ -151,7 +152,7 @@ router.get('/:username', requireAuth, async (req, res) => {
 // the page needs to know to render "private", not "missing".
 router.get('/:username/friends', requireAuth, async (req, res) => {
   const user = await findProfileUser(req.params.username);
-  if (!user) return res.status(404).json({ error: 'user_not_found' });
+  if (!user || (await isBlockedEitherWay(req.userId, user.id))) return res.status(404).json({ error: 'user_not_found' });
 
   const relationship = await relationshipOf(req.userId, user);
   if (!mayListFriends(user, relationship)) {
@@ -166,12 +167,16 @@ router.get('/:username/friends', requireAuth, async (req, res) => {
       `SELECT u.id, u.username, u.avatar, u.theme
        FROM friendships f
        JOIN users u ON u.id = f.friend_user_id
-       WHERE f.user_id = $1 AND f.status = 'accepted'
+       WHERE f.user_id = $1 AND f.status = 'accepted' AND ${notBlockedSql('$4', 'u.id')}
        ORDER BY u.username
        LIMIT $2 OFFSET $3`,
-      [user.id, limit, offset],
+      [user.id, limit, offset, req.userId],
     ),
-    pool.query(`SELECT count(*) AS n FROM friendships WHERE user_id = $1 AND status = 'accepted'`, [user.id]),
+    pool.query(
+      `SELECT count(*) AS n FROM friendships f
+       WHERE f.user_id = $1 AND f.status = 'accepted' AND ${notBlockedSql('$2', 'f.friend_user_id')}`,
+      [user.id, req.userId],
+    ),
   ]);
   const total = Number(countRows[0].n);
 

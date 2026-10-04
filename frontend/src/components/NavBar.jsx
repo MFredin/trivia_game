@@ -71,6 +71,16 @@ export default function NavBar({ currentUser, activeScreen, onNavigate, onLogout
               Admin
             </button>
           )}
+          {currentUser.is_admin && (
+            <button
+              type="button"
+              className={activeScreen === 'admin-reports' ? 'on' : ''}
+              aria-current={activeScreen === 'admin-reports' ? 'page' : undefined}
+              onClick={() => onNavigate('admin-reports')}
+            >
+              Reports
+            </button>
+          )}
           <button type="button" onClick={onLogout}>
             Log out
           </button>

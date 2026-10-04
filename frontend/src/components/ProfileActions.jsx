@@ -1,4 +1,6 @@
 import IconButton from './IconButton.jsx';
+import Icon from './icons.jsx';
+import PopoverMenu from './PopoverMenu.jsx';
 
 /**
  * What the viewer can do about this player, which depends on how they already stand: someone
@@ -6,7 +8,7 @@ import IconButton from './IconButton.jsx';
  * Challenge is offered to everyone but yourself, because the duel lobby never required a
  * friendship — only a username.
  */
-export default function ProfileActions({ relationship, onAdd, onAccept, onDecline, onChallenge, onEdit }) {
+export default function ProfileActions({ relationship, onAdd, onAccept, onDecline, onChallenge, onEdit, onRemove, onBlock, onReport }) {
   if (relationship === 'self') {
     return (
       <div className="profile-actions">
@@ -31,6 +33,21 @@ export default function ProfileActions({ relationship, onAdd, onAccept, onDeclin
         showLabel
         variant={relationship === 'pending_received' ? 'secondary' : 'primary'}
         onClick={onChallenge}
+      />
+      {/* Everything that is not a first-class action lives behind one menu, so a profile
+          does not open with Block and Report as loud as Challenge. */}
+      <PopoverMenu
+        label="More actions"
+        triggerClassName="icon-button icon-button--secondary"
+        trigger={<Icon name="more" />}
+        align="left"
+        items={[
+          ...(relationship === 'friends'
+            ? [{ key: 'remove', label: 'Remove friend', icon: 'user-minus', onSelect: onRemove }]
+            : []),
+          { key: 'block', label: 'Block', icon: 'ban', danger: true, onSelect: onBlock },
+          { key: 'report', label: 'Report', icon: 'alert', danger: true, onSelect: onReport },
+        ]}
       />
     </div>
   );
