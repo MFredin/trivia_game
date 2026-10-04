@@ -126,7 +126,7 @@ export default function PreviewScreen({ onDone }) {
       </p>
       <QuestionCard
         question={question}
-        timeLimitMs={20000}
+        timeLimitMs={30000}
         issuedAt={issuedAt}
         timingMode="per_question"
         sessionCreatedAt={issuedAt}

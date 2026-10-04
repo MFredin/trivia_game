@@ -137,6 +137,7 @@ export default function App() {
           category: data.category,
           canonSource: data.canon_source,
           difficulty: data.difficulty,
+          questionCount: data.question_count,
           timeLimitMs: data.time_limit_ms,
           timingMode: data.timing_mode,
           maxStrikes: data.max_strikes,
@@ -170,6 +171,7 @@ export default function App() {
         category: data.category,
         canonSource: data.canon_source,
         difficulty: data.difficulty,
+        questionCount: data.question_count,
         timeLimitMs: data.time_limit_ms,
         timingMode: data.timing_mode,
         maxStrikes: data.max_strikes,
@@ -368,6 +370,7 @@ export default function App() {
             timingMode={session.timingMode}
             sessionCreatedAt={session.createdAt}
             mode={session.mode}
+            questionCount={session.questionCount}
             streak={run.streak}
             strikes={run.strikes}
             maxStrikes={session.maxStrikes}

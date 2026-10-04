@@ -1,9 +1,12 @@
 import { request } from './request.js';
 
-export function createChallenge({ category, canonSource, difficulty }, token) {
+export function createChallenge({ category, canonSource, difficulty, questionCount }, token) {
   return request(
     '/challenges',
-    { method: 'POST', body: JSON.stringify({ category, canon_source: canonSource, difficulty }) },
+    {
+      method: 'POST',
+      body: JSON.stringify({ category, canon_source: canonSource, difficulty, question_count: questionCount }),
+    },
     token,
   );
 }

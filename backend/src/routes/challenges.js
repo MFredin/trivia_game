@@ -2,7 +2,7 @@ import express from 'express';
 import crypto from 'node:crypto';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
-import { MODES } from '../lib/modes.js';
+import { MODES, CHALLENGE_QUESTION_COUNT_OPTIONS } from '../lib/modes.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { getAllQuestions } from '../repo/questions.js';
@@ -13,13 +13,16 @@ import { featuredChallengeSpec } from '../lib/featuredChallenge.js';
 const router = express.Router();
 
 router.post('/', requireAuth, async (req, res) => {
-  const { category, canon_source, difficulty } = req.body ?? {};
+  const { category, canon_source, difficulty, question_count } = req.body ?? {};
   const canonSource = canon_source ?? 'combined';
   if (!['books', 'movies', 'combined'].includes(canonSource)) {
     return res.status(400).json({ error: 'invalid_canon_source' });
   }
   if (difficulty && !OBSCURITY_TIERS.includes(difficulty)) {
     return res.status(400).json({ error: 'invalid_difficulty' });
+  }
+  if (question_count != null && !CHALLENGE_QUESTION_COUNT_OPTIONS.includes(question_count)) {
+    return res.status(400).json({ error: 'invalid_question_count' });
   }
 
   // Collisions are astronomically unlikely at 4 random bytes — the same tradeoff as
@@ -28,10 +31,10 @@ router.post('/', requireAuth, async (req, res) => {
     const code = crypto.randomBytes(4).toString('hex');
     try {
       const { rows } = await pool.query(
-        `INSERT INTO challenges (code, created_by, category, canon_source, obscurity_filter)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO challenges (code, created_by, category, canon_source, obscurity_filter, question_count)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING code`,
-        [code, req.userId, category ?? null, canonSource, difficulty ?? null],
+        [code, req.userId, category ?? null, canonSource, difficulty ?? null, question_count ?? null],
       );
       await evaluateAchievements(req.userId);
       return res.status(201).json({ code: rows[0].code });
@@ -136,6 +139,7 @@ router.get('/:code', requireAuth, async (req, res) => {
     category: challenge.category,
     canon_source: challenge.canon_source,
     difficulty: challenge.obscurity_filter,
+    question_count: challenge.question_count ?? MODES.challenge.questionCount,
     leaderboard: leaderboard.map((r) => ({ username: r.username, total_score: r.total_score, completed_at: r.completed_at })),
   });
 });
@@ -159,7 +163,7 @@ router.post('/:code/start', requireAuth, async (req, res) => {
       challenge.category,
       challenge.canon_source,
       challenge.obscurity_filter,
-      modeConfig.questionCount,
+      challenge.question_count ?? modeConfig.questionCount,
       modeConfig.timeLimitMs,
       challenge.id,
       window,

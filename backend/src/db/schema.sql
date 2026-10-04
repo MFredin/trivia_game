@@ -153,8 +153,8 @@ CREATE INDEX IF NOT EXISTS idx_suggested_questions_status
 
 -- A player-created quiz with a locked category/difficulty and a shared seed — like Daily
 -- Challenge, but spun up on demand and shared via a code instead of waiting for tomorrow.
--- question_count/time_limit_ms aren't stored here; every challenge runs at Classic's fixed
--- config, the same way duel_id sessions do.
+-- time_limit_ms isn't stored here; every challenge runs at Classic's fixed time limit, the
+-- same way duel_id sessions do. question_count IS overridable — see the ALTER below.
 CREATE TABLE IF NOT EXISTS challenges (
   id SERIAL PRIMARY KEY,
   code TEXT UNIQUE NOT NULL,
@@ -177,6 +177,11 @@ ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS challenge_id INTEGER REFERENC
 -- makes that creation safe when two players ask at the same moment.
 ALTER TABLE challenges ALTER COLUMN created_by DROP NOT NULL;
 ALTER TABLE challenges ADD COLUMN IF NOT EXISTS featured_week TEXT UNIQUE;
+
+-- A challenge creator can pick how many questions the link runs (see MODES.challenge's
+-- comment in lib/modes.js) — NULL on existing rows and the featured weekly challenge means
+-- "use the mode default."
+ALTER TABLE challenges ADD COLUMN IF NOT EXISTS question_count INTEGER;
 
 -- "Alice just beat her personal best" — a small, friends-scoped activity feed. Never pushed
 -- (no toast, no badge); it's a tab a player opens when they're curious, on the Friends screen.
