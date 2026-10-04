@@ -1,0 +1,41 @@
+# Plans Railway Infrastructure as Code changes on every PR that touches .railway/**, and
+# applies them once that PR merges to main -- the "plan on PR, apply on merge" pattern from
+# https://docs.railway.com/infrastructure-as-code. This only ever runs when .railway/**
+# changes; it does not touch anything else in the deploy pipeline (see .github/workflows/ci.yml
+# for the test/build gate that runs on every push and PR).
+#
+# Requires a RAILWAY_TOKEN repo secret (a Railway project token scoped to the target
+# environment) -- see docs/railway-iac-migration.md for how to create and add it. Until that
+# secret exists, both jobs below will fail; that's expected and is called out there too.
+name: Railway config
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - ".railway/**"
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+  id-token: write
+jobs:
+  plan:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: railwayapp/config@v1
+        with:
+          command: plan
+          railway-token: ${{ secrets.RAILWAY_TOKEN }}
+  apply:
+    if: github.event.action == 'closed' && github.event.pull_request.merged && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - uses: railwayapp/config@v1
+        with:
+          command: apply
+          railway-token: ${{ secrets.RAILWAY_TOKEN }}
