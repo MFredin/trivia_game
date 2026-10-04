@@ -20,10 +20,13 @@ test('what a moderator is offered and advised', async (t) => {
   });
 
   await t.test('a repeat escalates, and suspensions lengthen with each one', () => {
-    assert.deepEqual(suggestNext('harassment', { priorActioned: 1, priorSuspensions: 0 }), { actions: ['suspend'], days: 1 });
+    // Harassment is the offence messaging makes possible, so the step after a warning is a mute:
+    // the player keeps playing but cannot write to anyone.
+    assert.deepEqual(suggestNext('harassment', { priorActioned: 1 }), { actions: ['mute'], days: 7 });
+    assert.deepEqual(suggestNext('harassment', { priorActioned: 2, priorSuspensions: 0 }), { actions: ['suspend'], days: 1 });
     assert.deepEqual(suggestNext('harassment', { priorActioned: 2, priorSuspensions: 1 }), { actions: ['suspend'], days: 7 });
     assert.equal(suggestNext('harassment', { priorActioned: 2, priorSuspensions: 5 }).days, 30);
-    assert.equal(suggestNext('harassment').days, null, 'no length unless suspending');
+    assert.equal(suggestNext('harassment').days, null, 'no length unless suspending or muting');
   });
 
   await t.test('the actions offered put the relevant ones first and leave nothing out of reach', () => {
@@ -41,6 +44,8 @@ test('what a moderator is offered and advised', async (t) => {
     assert.equal(checkActionSet(['ban', 'suspend'], 7), 'ban_and_suspend');
     assert.equal(checkActionSet(['suspend'], 3), 'invalid_days');
     assert.equal(checkActionSet(['suspend'], undefined), 'invalid_days');
+    assert.equal(checkActionSet(['mute'], 5), 'invalid_days', 'a mute is timed like a suspension');
+    assert.equal(checkActionSet(['mute', 'warn'], 7), null);
     assert.equal(checkActionSet(['warn', 'clear_bio'], null), null);
     for (const days of SUSPENSION_DAYS) assert.equal(checkActionSet(['suspend', 'warn'], days), null);
   });
@@ -49,6 +54,7 @@ test('what a moderator is offered and advised', async (t) => {
     assert.equal(describeResolution(['warn'], null), 'Warned');
     assert.equal(describeResolution(['clear_bio', 'warn'], null), 'Bio cleared; warned');
     assert.equal(describeResolution(['suspend'], 1), 'Suspended 1 day');
+    assert.equal(describeResolution(['mute', 'warn'], 7), 'Muted 7 days; warned');
     assert.equal(describeResolution(['remove_scores', 'suspend'], 7), 'Scores removed; suspended 7 days');
   });
 

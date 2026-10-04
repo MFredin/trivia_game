@@ -1,7 +1,11 @@
 import { request } from './request.js';
 
-export function reportPlayer({ username, reason, details }, token) {
-  return request('/reports', { method: 'POST', body: JSON.stringify({ username, reason, details }) }, token);
+export function reportPlayer({ username, reason, details, includeMessages }, token) {
+  return request(
+    '/reports',
+    { method: 'POST', body: JSON.stringify({ username, reason, details, include_messages: includeMessages }) },
+    token,
+  );
 }
 
 export function getReports(status, token) {

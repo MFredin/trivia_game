@@ -88,6 +88,7 @@ suggestion; the moderator ticks what they want. Every action says what it does o
 | Force rename | Neutral name now; the player must choose a new one (the only time the app allows a rename). |
 | Clear bio / Reset avatar | Removes the bio / puts the avatar back to default. |
 | Remove scores | Holds every completed run off the leaderboards (the existing review flag). Nothing is deleted. |
+| Mute 1 / 7 / 30 days | Stops them sending Owl Post. They can still play and read. |
 | Suspend 1 / 7 / 30 days | Locks out every way in at once; the login screen shows the moderator's note and the end date. |
 | Ban | Locks out until lifted, and the email can no longer register (see below). |
 | Dismiss | Closes the report with no action. |
@@ -103,8 +104,41 @@ registration attempt gets the same "already in use" answer as any collision. The
 ban is lifted. This is the one place the app keeps something past account deletion, which the privacy
 policy needs to say.
 
-Not here: **appeals** beyond the existing Submit Feedback form, **muting** (arrives with messaging), and
-automatic sanctions — the suggestions are advice, never actions.
+Not here: **appeals** beyond the existing Submit Feedback form, and automatic sanctions — the suggestions are advice, never actions.
+
+## Owl Post
+
+Short messages between **friends**, and nobody else. The largest safety surface in the app, so it is
+the most constrained.
+
+- **Friends only, one to one.** A stranger, a blocked player, a player who has Owl Post off, and an
+  unknown name are all the same `404 user_not_found`, so the routes cannot be used to find out who has
+  blocked you or who has an account. Blocking ends the friendship and so ends the conversation for both.
+- **Plain text, 500 characters**, through the same filter as bios (`lib/bioFilter.js`): no links, emails,
+  handles or phone numbers, and the blocklist through the usual disguises. Line breaks are collapsed.
+- **Rate limited per sender:** 20 a minute and 300 a day, and the same message to the same person twice
+  within a minute is refused.
+- **A switch.** Each player can turn Owl Post **off** in Settings: they cannot send or receive, and their
+  old conversations stay readable. (This is per player. There is no operator-wide kill switch yet.)
+- **Retention: 90 days.** Messages are deleted by an hourly sweep after that, wherever they sit. "Delete
+  for me" hides a message from one player only, since the other still has their copy.
+- **Deleting an account removes its messages**, both those it sent and those it received.
+- **Live delivery** over the existing WebSocket (`owlpost:message`), to the recipient only. The unread
+  count is also re-read every minute so a dropped socket cannot leave it wrong.
+
+**What moderators can see.** Nothing, by default. Moderators do not browse inboxes. A player reporting
+from inside a conversation can choose (on by default) to **include the last 20 messages**, which are
+copied into the report at that moment (`reports.evidence`) — both sides, whatever either has deleted for
+themselves — and shown to the moderator with the report. That is the only way a private message reaches
+a moderator, and it is the reporter's choice. The privacy policy should say exactly this.
+
+**Mute.** A moderator action (1, 7 or 30 days) that stops a player *sending* Owl Post. They can still
+play and still read. Harassment's ladder is warn → mute → suspend → ban. A mute is lifted from the Action
+log like a suspension.
+
+**The age question.** Free-text messaging between young players is a larger COPPA concern than bios. If
+the attorney review (`docs/legal/`) has not settled a minimum age, hold Owl Post back at launch rather
+than ship it.
 
 ## Deleting an account
 

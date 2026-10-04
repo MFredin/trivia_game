@@ -386,3 +386,38 @@ CREATE TABLE IF NOT EXISTS banned_emails (
   email_hash TEXT PRIMARY KEY,
   banned_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ---------------------------------------------------------------------------
+-- Owl Post: messages between friends
+-- ---------------------------------------------------------------------------
+
+-- 'friends' (the default: friends may send this player owls) or 'off' (no one may, and they may not
+-- send). muted_until is set by a moderator (lib/moderation.js): a muted player can read but not send.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS owl_post TEXT NOT NULL DEFAULT 'friends';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS muted_until TIMESTAMPTZ;
+
+-- One row per message, between two players. "Delete for me" sets the matching flag rather than
+-- removing the row, because the other player still has their copy; the row itself goes after the
+-- retention period (services/owlPost.js) or when either account is deleted.
+CREATE TABLE IF NOT EXISTS messages (
+  id BIGSERIAL PRIMARY KEY,
+  sender_id INTEGER NOT NULL REFERENCES users(id),
+  recipient_id INTEGER NOT NULL REFERENCES users(id),
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  read_at TIMESTAMPTZ,
+  deleted_by_sender BOOLEAN NOT NULL DEFAULT false,
+  deleted_by_recipient BOOLEAN NOT NULL DEFAULT false,
+  CHECK (sender_id <> recipient_id)
+);
+
+-- A conversation is the pair, whichever way round: both directions read from one index.
+CREATE INDEX IF NOT EXISTS idx_messages_pair
+  ON messages (LEAST(sender_id, recipient_id), GREATEST(sender_id, recipient_id), id DESC);
+CREATE INDEX IF NOT EXISTS idx_messages_unread ON messages (recipient_id) WHERE read_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_messages_created ON messages (created_at);
+
+-- When a report is made from inside a conversation, the recent messages are copied here at that
+-- moment: what a moderator is shown, so they never have to read anyone's inbox, and so the evidence
+-- cannot be tidied away by deleting the messages afterwards.
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS evidence JSONB;

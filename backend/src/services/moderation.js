@@ -3,7 +3,7 @@ import { pool } from '../db/pool.js';
 import { getSockets } from '../lib/presenceRegistry.js';
 import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
 import { hashEmail } from '../lib/emailHash.js';
-import { LOCKOUT_ACTIONS, describeResolution } from '../lib/moderation.js';
+import { LOCKOUT_ACTIONS, TIMED_ACTIONS, describeResolution } from '../lib/moderation.js';
 
 const fail = (error, status = 400) => ({ error: { status, body: { error } } });
 
@@ -69,6 +69,13 @@ export async function applyModeration({ adminId, reportId, actions, days, note }
            WHERE user_id = $1 AND status = 'completed' AND flagged_for_review = false`,
           [targetId],
         );
+      } else if (action === 'mute') {
+        // Stops sending Owl Post, nothing else: the player can still play, and still read.
+        const { rows } = await client.query(
+          `UPDATE users SET muted_until = now() + make_interval(days => $2) WHERE id = $1 RETURNING muted_until`,
+          [targetId, days],
+        );
+        expiresAt = rows[0].muted_until;
       } else if (action === 'suspend') {
         const { rows } = await client.query(
           `UPDATE users SET suspended_until = now() + make_interval(days => $2) WHERE id = $1 RETURNING suspended_until`,
@@ -89,7 +96,7 @@ export async function applyModeration({ adminId, reportId, actions, days, note }
         `INSERT INTO moderation_actions
            (batch_id, user_id, report_id, admin_id, action, note, days, expires_at, email_hash, acknowledged_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-        [batchId, targetId, reportId, adminId, action, note, action === 'suspend' ? days : null, expiresAt, emailHash, lockout ? new Date() : null],
+        [batchId, targetId, reportId, adminId, action, note, TIMED_ACTIONS.includes(action) ? days : null, expiresAt, emailHash, lockout ? new Date() : null],
       );
     }
 
@@ -124,7 +131,7 @@ export async function liftAction({ adminId, actionId }) {
     await client.query('BEGIN');
     const { rows } = await client.query(
       `SELECT id, user_id, action, email_hash FROM moderation_actions
-       WHERE id = $1 AND action IN ('suspend', 'ban') AND lifted_at IS NULL FOR UPDATE`,
+       WHERE id = $1 AND action IN ('suspend', 'ban', 'mute') AND lifted_at IS NULL FOR UPDATE`,
       [actionId],
     );
     const row = rows[0];
@@ -139,6 +146,8 @@ export async function liftAction({ adminId, actionId }) {
       `UPDATE users SET
          suspended_until = (SELECT max(expires_at) FROM moderation_actions
                             WHERE user_id = $1 AND action = 'suspend' AND lifted_at IS NULL AND expires_at > now()),
+         muted_until = (SELECT max(expires_at) FROM moderation_actions
+                        WHERE user_id = $1 AND action = 'mute' AND lifted_at IS NULL AND expires_at > now()),
          banned_at = CASE WHEN EXISTS (SELECT 1 FROM moderation_actions
                                        WHERE user_id = $1 AND action = 'ban' AND lifted_at IS NULL)
                           THEN banned_at ELSE NULL END

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import BrandMark from './BrandMark.jsx';
 import AccountMenu from './AccountMenu.jsx';
+import OwlPostLink from './OwlPostLink.jsx';
 
 const LINKS = [
   { screen: 'start', label: 'Home' },
@@ -16,7 +17,7 @@ const ACCOUNT_SCREENS = ['settings', 'edit-profile', 'admin-suggestions', 'admin
 const TAP_COUNT_TO_TRIGGER = 7;
 const TAP_RESET_MS = 1500;
 
-export default function NavBar({ currentUser, activeScreen, onNavigate, onViewProfile, onLogout, onSecretFound }) {
+export default function NavBar({ currentUser, activeScreen, unreadOwls, onNavigate, onViewProfile, onLogout, onSecretFound }) {
   // The mobile-friendly half of the Marauder's Map easter egg (see App.jsx for the
   // keydown-phrase half, which needs a physical keyboard). Tapping the wordmark itself
   // — the "tap the build number 7 times" pattern — works identically on touch, mouse, or
@@ -56,6 +57,7 @@ export default function NavBar({ currentUser, activeScreen, onNavigate, onViewPr
               the links drop to their own row, it stays beside the wordmark; the stylesheet
               puts it after them on a wide screen. */}
           <div className="running-account">
+            <OwlPostLink unread={unreadOwls} active={activeScreen === 'owl-post'} onOpen={() => onNavigate('owl-post')} />
             <AccountMenu
               user={currentUser}
               active={ACCOUNT_SCREENS.includes(activeScreen)}

@@ -9,7 +9,8 @@ import { DELETED_PLAYER_NAME } from '../lib/displayName.js';
  * The row is not removed: duels, challenge leaderboards and the other player's history all point
  * at it, and deleting it would either fail on those references or erase things that belong to
  * other people. Instead everything that identifies the player is removed or overwritten — name,
- * email, password, avatar, bio and profile choices, invite code, friendships, blocks, achievements, activity — and what is
+ * email, password, avatar, bio and profile choices, invite code, friendships, blocks, achievements,
+ * Owl Post messages, activity — and what is
  * left is a numbered husk that other players see as "Deleted player" (lib/displayName.js).
  *
  * Their runs and scores stay, un-attributed. A name is also written INTO other players' rows (the
@@ -45,6 +46,9 @@ export async function deleteAccount(userId) {
     await client.query('DELETE FROM friendships WHERE user_id = $1 OR friend_user_id = $1', [userId]);
     await client.query('DELETE FROM blocks WHERE blocker_id = $1 OR blocked_id = $1', [userId]);
     await client.query('DELETE FROM user_achievements WHERE user_id = $1', [userId]);
+    // Owl Post, both ways: what they sent is theirs to take back, and what they received from a
+    // player who is now "Deleted player" has nowhere left to be read.
+    await client.query('DELETE FROM messages WHERE sender_id = $1 OR recipient_id = $1', [userId]);
     await client.query('DELETE FROM activity_events WHERE user_id = $1', [userId]);
     await client.query(
       `UPDATE activity_events

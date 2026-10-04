@@ -50,7 +50,7 @@ function ActivityRow({ event }) {
   return null;
 }
 
-export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge, onViewProfile }) {
+export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge, onMessage, onViewProfile }) {
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
   const [newFriend, setNewFriend] = useState('');
@@ -420,6 +420,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                 showStatus={false}
                 onViewProfile={() => onViewProfile(f.username)}
                 onChallenge={() => onChallenge(f.username)}
+                onMessage={() => onMessage(f.username)}
                 onRemove={() => handleRemove(f.username)}
               />
             ))}

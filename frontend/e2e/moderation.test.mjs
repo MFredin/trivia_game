@@ -106,7 +106,12 @@ test('a report ends in an action the player is told about', { skip: SKIP }, asyn
     await row.getByRole('button', { name: 'Take action…' }).click();
 
     const dialog = adminPage.getByRole('dialog');
-    assert.equal(await dialog.getByRole('checkbox', { name: /^Suspend/ }).isChecked(), true, 'a repeat is suggested a suspension');
+    // Harassment's step after a warning is a mute: the player keeps playing but cannot write to anyone.
+    assert.equal(await dialog.getByRole('checkbox', { name: /^Mute/ }).isChecked(), true, 'a repeat is suggested a mute');
+    // This moderator wants more than that.
+    await dialog.getByRole('checkbox', { name: /^Mute/ }).uncheck();
+    await dialog.getByRole('checkbox', { name: /^Suspend/ }).check();
+    await dialog.locator('#suspend-days').selectOption('1');
     await dialog.getByLabel('What the player will be told').fill('Suspended for a day for harassing another player.');
     await dialog.getByRole('button', { name: /^Apply: Suspend 1 day/ }).click();
     await adminPage.waitForSelector('[role=dialog]', { state: 'detached' });

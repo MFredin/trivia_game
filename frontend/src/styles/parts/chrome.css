@@ -54,6 +54,15 @@
   order: 2;
 }
 
+@media (max-width: 420px) {
+  /* The envelope and the avatar share the wordmark's row on a phone; at full size the three do not
+     fit in 390px and the account controls drop to a line of their own. */
+  .running-title {
+    font-size: 1.2rem;
+    gap: 0.45rem;
+  }
+}
+
 @media (max-width: 720px) {
   /* The links get a row of their own, under the wordmark and the avatar. */
   .running-account {

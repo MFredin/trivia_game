@@ -32,6 +32,7 @@ export default function ProfileScreen({
   ownVisibility,
   onBack,
   onChallenge,
+  onSendOwl,
   onViewProfile,
   onEditProfile,
   onChangeVisibility,
@@ -107,6 +108,7 @@ export default function ProfileScreen({
             onAccept={view.accept}
             onDecline={view.decline}
             onChallenge={() => onChallenge(profile.username)}
+            onSendOwl={() => onSendOwl(profile.username)}
             onEdit={onEditProfile}
             onRemove={() => setDialog('remove')}
             onBlock={() => setDialog('block')}
