@@ -11,7 +11,8 @@
     "audit:contrast": "node scripts/contrast-audit.mjs",
     "audit": "npm run audit:contrast && npm run audit:dead",
     "audit:dead": "node scripts/dead-code-audit.mjs",
-    "e2e": "node --test --test-concurrency=1"
+    "e2e": "node --test --test-concurrency=1",
+    "og:image": "node scripts/generate-og-image.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
