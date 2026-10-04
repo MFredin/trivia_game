@@ -15,6 +15,7 @@ import { useDuels } from './features/duels/useDuels.js';
 import { useLeaderboard } from './features/leaderboard/useLeaderboard.js';
 import { useAchievementToasts } from './features/achievements/useAchievementToasts.js';
 import { useAccount } from './features/account/useAccount.js';
+import { useProfile } from './features/social/useProfile.js';
 import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
@@ -64,6 +65,9 @@ const initialAppState = {
   showFeedback: false,
   viewingProfile: null,
   profileReturnScreen: 'friends',
+  // Profiles opened from other profiles (a friend's chip), so Back walks back through them
+  // rather than returning to the profile you are already on.
+  profileHistory: [],
   startError: null,
   apiBuild: null,
   showMischief: false,
@@ -109,8 +113,18 @@ function appReducer(state, action) {
     case 'navigated':
       return { ...state, startError: null, screen: action.screen };
     case 'profile/viewed':
-      return { ...state, profileReturnScreen: state.screen, viewingProfile: action.username, screen: 'profile' };
+      if (state.screen === 'profile') {
+        return { ...state, profileHistory: [...state.profileHistory, state.viewingProfile], viewingProfile: action.username };
+      }
+      return { ...state, profileReturnScreen: state.screen, profileHistory: [], viewingProfile: action.username, screen: 'profile' };
     case 'profile/closed':
+      if (state.profileHistory.length > 0) {
+        return {
+          ...state,
+          viewingProfile: state.profileHistory[state.profileHistory.length - 1],
+          profileHistory: state.profileHistory.slice(0, -1),
+        };
+      }
       return { ...state, screen: state.profileReturnScreen };
     case 'preview/entered':
       return { ...state, screen: 'preview' };
@@ -174,6 +188,7 @@ export default function App() {
   });
 
   const account = useAccount({ token: auth.token, onUserChanged: auth.updateUser });
+  const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
 
   const leaderboard = useLeaderboard({ authToken: auth.token });
   const toasts = useAchievementToasts();
@@ -389,8 +404,13 @@ export default function App() {
         <Suspense fallback={screenFallback}>
           <ProfileScreen
             username={viewingProfile}
-            token={auth.token}
+            view={profileView}
+            ownVisibility={auth.user?.friends_visibility}
             onBack={() => dispatch({ type: 'profile/closed' })}
+            onChallenge={duels.openLobby}
+            onViewProfile={viewProfile}
+            onEditProfile={() => navigate('settings')}
+            onChangeVisibility={() => navigate('settings')}
           />
         </Suspense>
       )}

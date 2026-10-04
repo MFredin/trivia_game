@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { updateAvatar } from '../../api/account.js';
+import { updateAvatar, updateFriendsVisibility } from '../../api/account.js';
 
 /**
  * The changes a player makes to their own account from Settings. Each one reports the account
@@ -8,6 +8,7 @@ import { updateAvatar } from '../../api/account.js';
  */
 export function useAccount({ token, onUserChanged }) {
   const [avatarError, setAvatarError] = useState(null);
+  const [privacyError, setPrivacyError] = useState(null);
 
   const setAvatar = useCallback(
     async (avatar) => {
@@ -22,5 +23,18 @@ export function useAccount({ token, onUserChanged }) {
     [token, onUserChanged],
   );
 
-  return { setAvatar, avatarError };
+  const setFriendsVisibility = useCallback(
+    async (value) => {
+      setPrivacyError(null);
+      try {
+        const data = await updateFriendsVisibility(value, token);
+        onUserChanged(data.user);
+      } catch {
+        setPrivacyError('Could not save that setting. Try again.');
+      }
+    },
+    [token, onUserChanged],
+  );
+
+  return { setAvatar, avatarError, setFriendsVisibility, privacyError };
 }

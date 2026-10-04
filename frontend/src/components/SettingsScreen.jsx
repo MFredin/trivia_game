@@ -3,6 +3,7 @@ import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
 import { HOUSES } from '../constants/houses.js';
 import AvatarPicker from './AvatarPicker.jsx';
+import PrivacySettings from './PrivacySettings.jsx';
 import { getInviteCode } from '../api/auth.js';
 
 export default function SettingsScreen({ user, onSelectTheme, token, onViewOwnProfile, account }) {
@@ -73,6 +74,11 @@ export default function SettingsScreen({ user, onSelectTheme, token, onViewOwnPr
         </div>
       </Plate>
       <AvatarPicker user={user} onSelect={account.setAvatar} error={account.avatarError} />
+      <PrivacySettings
+        value={user.friends_visibility}
+        onChange={account.setFriendsVisibility}
+        error={account.privacyError}
+      />
       <Plate>
         <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
           Your Invite Link

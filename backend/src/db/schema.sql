@@ -272,3 +272,9 @@ CREATE INDEX IF NOT EXISTS idx_activity_events_user_created
 -- The sigil a player chose for their avatar (see lib/avatars.js for the allowed ids). NULL is
 -- the default and means "draw my initial", so no existing account needs a backfill.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
+
+-- Who may see this player's list of friends on their profile: 'everyone', 'friends' or
+-- 'only_me' (see lib/friendsVisibility.js). Defaults to friends-only for every account,
+-- existing ones included — the list exposes other people's names, so nobody should have to find
+-- the setting before their friends stop being listed to strangers.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS friends_visibility TEXT NOT NULL DEFAULT 'friends';

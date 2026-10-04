@@ -3,6 +3,7 @@ import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
 import { getOnlineUserIds, isOnline } from '../lib/presenceRegistry.js';
 import { evaluateAchievements } from '../services/achievements.js';
+import { deriveStatus } from '../lib/friendStatus.js';
 
 const router = express.Router();
 
@@ -53,8 +54,8 @@ async function findUserByUsername(username) {
 }
 
 // Shared shape for every "list of other members, with my relationship to each" endpoint
-// (search, online, the full directory) — only how outgoing/incoming friendship rows resolve
-// to a single status the UI can switch on.
+// (search, online, the full directory); how outgoing/incoming friendship rows resolve to one
+// status the UI can switch on is in lib/friendStatus.js.
 function memberView(row) {
   return {
     id: row.id,
@@ -64,13 +65,6 @@ function memberView(row) {
     online: isOnline(row.id),
     status: deriveStatus(row),
   };
-}
-
-function deriveStatus(row) {
-  if (row.outgoing_status === 'accepted' || row.incoming_status === 'accepted') return 'friends';
-  if (row.outgoing_status === 'pending') return 'pending_sent';
-  if (row.incoming_status === 'pending') return 'pending_received';
-  return 'none';
 }
 
 // Lets a player find members to befriend (or challenge) by partial username, without already

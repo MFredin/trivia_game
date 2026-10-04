@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
-import { getProfile } from '../api/profile.js';
+import Avatar from './Avatar.jsx';
+import ProfileActions from './ProfileActions.jsx';
+import ProfileFriends from './ProfileFriends.jsx';
 import { HOUSES } from '../constants/houses.js';
 
 const HOUSE_BY_ID = Object.fromEntries(HOUSES.map((h) => [h.id, h]));
@@ -16,18 +17,23 @@ function Stat({ label, value }) {
   );
 }
 
-export default function ProfileScreen({ username, token, onBack }) {
-  const [profile, setProfile] = useState(null);
-  const [error, setError] = useState(null);
+const joinedLabel = (iso) => new Date(iso).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-  useEffect(() => {
-    setProfile(null);
-    setError(null);
-    getProfile(username, token)
-      .then(setProfile)
-      .catch(() => setError('Could not load that player file.'));
-  }, [username, token]);
-
+/**
+ * A player's file. Presentational: everything it shows arrives as props from `useProfile`, so
+ * the page can be rendered for any player, in any relationship to the viewer, without a server.
+ */
+export default function ProfileScreen({
+  username,
+  view,
+  ownVisibility,
+  onBack,
+  onChallenge,
+  onViewProfile,
+  onEditProfile,
+  onChangeVisibility,
+}) {
+  const { profile, error, friends, actionError } = view;
   const house = profile ? HOUSE_BY_ID[profile.theme] : null;
 
   return (
@@ -44,22 +50,48 @@ export default function ProfileScreen({ username, token, onBack }) {
         )}
       </div>
 
-      {house && (
+      {profile && house && (
         // The subject's own house colours, applied directly rather than through the
         // (viewer-scoped) --rubric/--leaf tokens — this profile may belong to someone
         // bound in a different house than whoever is looking at it.
         <div className="exlibris-card exlibris-card--standalone">
-          <div className="exlibris-header">
-            <HouseDevice house={house.id} size={40} style={{ color: house.ink }} />
-            <div>
-              <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0, color: house.ink }}>
-                Bound in
-              </p>
-              <p className="exlibris-house" style={{ color: house.ink }}>
-                {house.label}
+          <div className="profile-head">
+            <Avatar username={profile.username} avatar={profile.avatar} house={profile.theme} size={88} label={`${profile.username}'s avatar`} />
+            <div className="profile-head-text">
+              <div className="exlibris-header">
+                <HouseDevice house={house.id} size={30} style={{ color: house.ink }} />
+                <div>
+                  <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0, color: house.ink }}>
+                    Bound in
+                  </p>
+                  <p className="exlibris-house" style={{ color: house.ink }}>
+                    {house.label}
+                  </p>
+                </div>
+              </div>
+              <p className="profile-meta">
+                <span>Member since {joinedLabel(profile.member_since)}</span>
+                {profile.online && (
+                  <span className="profile-online">
+                    <span className="online-dot is-online" aria-hidden="true" /> Online now
+                  </span>
+                )}
               </p>
             </div>
           </div>
+          <ProfileActions
+            relationship={profile.relationship}
+            onAdd={view.add}
+            onAccept={view.accept}
+            onDecline={view.decline}
+            onChallenge={() => onChallenge(profile.username)}
+            onEdit={onEditProfile}
+          />
+          {actionError && (
+            <div className="error-banner" role="alert">
+              {actionError}
+            </div>
+          )}
         </div>
       )}
 
@@ -116,6 +148,15 @@ export default function ProfileScreen({ username, token, onBack }) {
               </div>
             )}
           </Plate>
+
+          <ProfileFriends
+            friends={friends}
+            isSelf={profile.relationship === 'self'}
+            ownVisibility={ownVisibility}
+            onViewProfile={onViewProfile}
+            onLoadMore={view.loadMoreFriends}
+            onChangeVisibility={onChangeVisibility}
+          />
         </>
       )}
     </div>

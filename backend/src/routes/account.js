@@ -2,6 +2,7 @@ import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isValidAvatar } from '../lib/avatars.js';
+import { isValidFriendsVisibility } from '../lib/friendsVisibility.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
 
 const router = express.Router();
@@ -20,6 +21,17 @@ router.patch('/avatar', async (req, res) => {
     avatar,
     req.userId,
   ]);
+  return res.json({ user: userView(rows[0]) });
+});
+
+router.patch('/privacy', async (req, res) => {
+  const { friends_visibility: visibility } = req.body ?? {};
+  if (!isValidFriendsVisibility(visibility)) return res.status(400).json({ error: 'invalid_friends_visibility' });
+
+  const { rows } = await pool.query(
+    `UPDATE users SET friends_visibility = $1 WHERE id = $2 RETURNING ${USER_COLUMNS}`,
+    [visibility, req.userId],
+  );
   return res.json({ user: userView(rows[0]) });
 });
 
