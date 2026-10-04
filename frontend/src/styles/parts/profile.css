@@ -120,24 +120,28 @@
   cursor: pointer;
 }
 
-/* Drawn by hand: the global 44px floor on inputs (a11y.css) turns a native radio into a 44px
-   disc, and the label around it is already the 44px target. */
+/* Drawn by hand. The input itself is the 44px target (a11y.css sets that floor, and the test that
+   enforces it measures the input), with the 22px ring painted inside it as a gradient — a native
+   radio is a 44px disc at that size, and a smaller one is a smaller target. The negative margins
+   pull the ring back out to the edge of the text column. */
 .privacy-option input {
   appearance: none;
   -webkit-appearance: none;
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 44px;
+  height: 44px;
   min-height: 0;
-  margin: 0.15rem 0 0;
+  margin: -0.55rem -0.4rem -0.55rem -0.7rem;
   padding: 0;
-  border: 2px solid var(--rubric);
+  border: none;
   border-radius: 50%;
-  background: transparent;
+  background: radial-gradient(circle, transparent 0 8.5px, var(--rubric) 9px 11px, transparent 11.5px);
 }
 
 .privacy-option input:checked {
-  background: radial-gradient(circle, var(--rubric) 0 40%, transparent 45%);
+  background:
+    radial-gradient(circle, var(--rubric) 0 5px, transparent 5.5px),
+    radial-gradient(circle, transparent 0 8.5px, var(--rubric) 9px 11px, transparent 11.5px);
 }
 
 .privacy-option-label {

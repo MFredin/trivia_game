@@ -7,10 +7,11 @@ import Icon from './icons.jsx';
  * moves into it on open, arrows walk it, Escape closes it and puts focus back on the button, and
  * so does a click anywhere outside.
  *
- * `items` are `{ key, label, icon?, danger?, onSelect }`. The trigger's content and class are the
+ * `items` are `{ key, label, icon?, danger?, onSelect }`; `header` is an optional non-interactive
+ * block above them (who the menu belongs to). The trigger's content and class are the
  * caller's, so the same behaviour can be an icon button in one place and an avatar in another.
  */
-export default function PopoverMenu({ label, trigger, triggerClassName, items, align = 'right' }) {
+export default function PopoverMenu({ label, trigger, triggerClassName, items, header, align = 'right' }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
@@ -72,6 +73,7 @@ export default function PopoverMenu({ label, trigger, triggerClassName, items, a
           className={`popover-menu ${align === 'left' ? 'popover-menu--left' : 'popover-menu--right'}`}
           onKeyDown={onMenuKeyDown}
         >
+          {header && <div className="popover-menu-header">{header}</div>}
           {items.map((item) => (
             <button
               key={item.key}

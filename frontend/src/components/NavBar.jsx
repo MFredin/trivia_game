@@ -1,18 +1,22 @@
 import { useRef } from 'react';
 import BrandMark from './BrandMark.jsx';
+import AccountMenu from './AccountMenu.jsx';
 
 const LINKS = [
   { screen: 'start', label: 'Home' },
   { screen: 'leaderboard', label: 'Leaderboard' },
   { screen: 'friends', label: 'Friends' },
   { screen: 'achievements', label: 'Achievements' },
-  { screen: 'settings', label: 'Settings' },
 ];
+
+// Screens that live behind the avatar menu rather than in the row of links; the avatar takes
+// the "you are here" underline for them.
+const ACCOUNT_SCREENS = ['settings', 'admin-suggestions', 'admin-reports'];
 
 const TAP_COUNT_TO_TRIGGER = 7;
 const TAP_RESET_MS = 1500;
 
-export default function NavBar({ currentUser, activeScreen, onNavigate, onLogout, onSecretFound }) {
+export default function NavBar({ currentUser, activeScreen, onNavigate, onViewProfile, onLogout, onSecretFound }) {
   // The mobile-friendly half of the Marauder's Map easter egg (see App.jsx for the
   // keydown-phrase half, which needs a physical keyboard). Tapping the wordmark itself
   // — the "tap the build number 7 times" pattern — works identically on touch, mouse, or
@@ -47,44 +51,35 @@ export default function NavBar({ currentUser, activeScreen, onNavigate, onLogout
         The Restricted Section
       </button>
       {currentUser && (
-        // Navigation, not toggles: aria-current says "this is the screen you are on", which
-        // is what the `on` class has been saying visually and to nobody else.
-        <div className="running-nav">
-          {LINKS.map((link) => (
-            <button
-              key={link.screen}
-              type="button"
-              className={activeScreen === link.screen ? 'on' : ''}
-              aria-current={activeScreen === link.screen ? 'page' : undefined}
-              onClick={() => onNavigate(link.screen)}
-            >
-              {link.label}
-            </button>
-          ))}
-          {currentUser.is_admin && (
-            <button
-              type="button"
-              className={activeScreen === 'admin-suggestions' ? 'on' : ''}
-              aria-current={activeScreen === 'admin-suggestions' ? 'page' : undefined}
-              onClick={() => onNavigate('admin-suggestions')}
-            >
-              Admin
-            </button>
-          )}
-          {currentUser.is_admin && (
-            <button
-              type="button"
-              className={activeScreen === 'admin-reports' ? 'on' : ''}
-              aria-current={activeScreen === 'admin-reports' ? 'page' : undefined}
-              onClick={() => onNavigate('admin-reports')}
-            >
-              Reports
-            </button>
-          )}
-          <button type="button" onClick={onLogout}>
-            Log out
-          </button>
-        </div>
+        <>
+          {/* The account menu comes before the links in the markup so that on a phone, where
+              the links drop to their own row, it stays beside the wordmark; the stylesheet
+              puts it after them on a wide screen. */}
+          <div className="running-account">
+            <AccountMenu
+              user={currentUser}
+              active={ACCOUNT_SCREENS.includes(activeScreen)}
+              onViewProfile={onViewProfile}
+              onNavigate={onNavigate}
+              onLogout={onLogout}
+            />
+          </div>
+          {/* Navigation, not toggles: aria-current says "this is the screen you are on", which
+              is what the `on` class has been saying visually and to nobody else. */}
+          <div className="running-nav">
+            {LINKS.map((link) => (
+              <button
+                key={link.screen}
+                type="button"
+                className={activeScreen === link.screen ? 'on' : ''}
+                aria-current={activeScreen === link.screen ? 'page' : undefined}
+                onClick={() => onNavigate(link.screen)}
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

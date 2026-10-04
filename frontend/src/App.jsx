@@ -199,6 +199,7 @@ export default function App() {
 
   const account = useAccount({
     token: auth.token,
+    user: auth.user,
     onUserChanged: auth.updateUser,
     onDeleted: useCallback(() => {
       auth.logout();
@@ -360,6 +361,7 @@ export default function App() {
           currentUser={auth.user}
           activeScreen={navActiveScreen}
           onNavigate={navigate}
+          onViewProfile={viewProfile}
           onLogout={auth.logout}
           onSecretFound={() => dispatch({ type: 'mischief/opened' })}
         />

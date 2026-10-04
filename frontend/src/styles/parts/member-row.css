@@ -1,0 +1,54 @@
+/* --- a player in a list ---
+   Builds on .friend-row (flex, hairline between rows). The identity half grows and may shrink —
+   a long name wraps inside it — and the actions never do, so even at 390px the buttons stay
+   beside the name rather than dropping under it. */
+.member-row {
+  flex-wrap: nowrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.member-id {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  gap: 0.75rem;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.member-id:hover .member-name {
+  text-decoration: underline;
+}
+
+.member-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.member-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.member-caption {
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
+}
+
+.member-actions {
+  display: flex;
+  flex: none;
+  gap: 0.4rem;
+}

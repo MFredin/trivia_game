@@ -68,3 +68,19 @@
 .icon-button .icon {
   flex: none;
 }
+
+/* The word beside the glyph, only where the screen has the room for it: a row of three
+   labelled buttons does not fit a phone, and the glyph plus a tooltip carries it there. */
+.icon-button-label--wide {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .icon-button--wide-label {
+    padding: 0 0.9rem;
+  }
+
+  .icon-button-label--wide {
+    display: inline;
+  }
+}

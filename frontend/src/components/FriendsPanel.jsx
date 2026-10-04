@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
+import MemberRow from './MemberRow.jsx';
 import { getActivity } from '../api/activity.js';
 import { acceptFriendRequest, addFriend, declineFriendRequest, getAllMembers, getFriendRequests, getOnlineMembers, listFriends, removeFriend, searchMembers } from '../api/friends.js';
 
@@ -47,39 +48,6 @@ function ActivityRow({ event }) {
     );
   }
   return null;
-}
-
-function MemberRow({ member, onAdd, onAccept, onDecline, onChallenge, onViewProfile }) {
-  return (
-    <li className="friend-row">
-      <button type="button" className="friend-name friend-name-link" onClick={onViewProfile}>
-        <span className={`online-dot ${member.online ? 'is-online' : ''}`} aria-hidden="true" />
-        {member.username}
-      </button>
-      <span className="friend-actions">
-        {member.status === 'friends' && <span className="explanation">Friends</span>}
-        {member.status === 'pending_sent' && <span className="explanation">Request sent</span>}
-        {member.status === 'pending_received' && (
-          <>
-            <button type="button" className="primary-button" onClick={onAccept}>
-              Accept
-            </button>
-            <button type="button" className="secondary-button" onClick={onDecline}>
-              Decline
-            </button>
-          </>
-        )}
-        {member.status === 'none' && (
-          <button type="button" className="secondary-button" onClick={onAdd}>
-            Add Friend
-          </button>
-        )}
-        <button type="button" className="primary-button" onClick={onChallenge}>
-          Challenge
-        </button>
-      </span>
-    </li>
-  );
 }
 
 export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge, onViewProfile }) {
@@ -387,17 +355,14 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <h3 className="plate-subhead">Friend Requests</h3>
           <ul className="friend-list">
             {requests.map((r) => (
-              <li key={r.id} className="friend-row">
-                <span className="friend-name">{r.username}</span>
-                <span className="friend-actions">
-                  <button type="button" className="primary-button" onClick={() => handleAccept(r.username)}>
-                    Accept
-                  </button>
-                  <button type="button" className="secondary-button" onClick={() => handleDecline(r.username)}>
-                    Decline
-                  </button>
-                </span>
-              </li>
+              <MemberRow
+                key={r.id}
+                member={{ ...r, status: 'pending_received', online: false }}
+                showStatus={false}
+                onViewProfile={() => onViewProfile(r.username)}
+                onAccept={() => handleAccept(r.username)}
+                onDecline={() => handleDecline(r.username)}
+              />
             ))}
           </ul>
         </Plate>
@@ -449,20 +414,14 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
         ) : (
           <ul className="friend-list">
             {friends.map((f) => (
-              <li key={f.id} className="friend-row">
-                <button type="button" className="friend-name friend-name-link" onClick={() => onViewProfile(f.username)}>
-                  <span className={`online-dot ${f.online ? 'is-online' : ''}`} aria-hidden="true" />
-                  {f.username}
-                </button>
-                <span className="friend-actions">
-                  <button type="button" className="primary-button" onClick={() => onChallenge(f.username)}>
-                    Challenge
-                  </button>
-                  <button type="button" className="secondary-button" onClick={() => handleRemove(f.username)}>
-                    Remove
-                  </button>
-                </span>
-              </li>
+              <MemberRow
+                key={f.id}
+                member={{ ...f, status: 'friends' }}
+                showStatus={false}
+                onViewProfile={() => onViewProfile(f.username)}
+                onChallenge={() => onChallenge(f.username)}
+                onRemove={() => handleRemove(f.username)}
+              />
             ))}
           </ul>
         )}
