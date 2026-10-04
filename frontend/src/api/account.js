@@ -24,3 +24,8 @@ export function changePassword({ currentPassword, newPassword }, token) {
 export function deleteAccount(password, token) {
   return request('/account', { method: 'DELETE', body: JSON.stringify({ password }) }, token);
 }
+
+// Only accepted after a moderator has renamed the player.
+export function renameUser(username, token) {
+  return request('/account/username', { method: 'PATCH', body: JSON.stringify({ username }) }, token);
+}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getMe, updateTheme } from '../../api/auth.js';
+import { isRestriction } from '../moderation/restrictionMessage.js';
 import { DEFAULT_HOUSE } from '../../constants/houses.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
@@ -11,7 +12,7 @@ const TOKEN_STORAGE_KEY = 'trivia_auth_token';
  * know whether to show the auth screen or the start screen, and flashing one before the other
  * is worse than a blank frame.
  */
-export function useAuth({ onAuthenticated, onLoggedOut }) {
+export function useAuth({ onAuthenticated, onLoggedOut, onRestricted }) {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [checked, setChecked] = useState(false);
@@ -28,7 +29,12 @@ export function useAuth({ onAuthenticated, onLoggedOut }) {
         setUser(data.user);
         onAuthenticated(data.user);
       })
-      .catch(() => localStorage.removeItem(TOKEN_STORAGE_KEY))
+      .catch((err) => {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        // A stored token for an account that has since been suspended or banned: say so, rather
+        // than dropping the player at a login screen with no idea why.
+        if (isRestriction(err)) onRestricted?.(err.data);
+      })
       .finally(() => setChecked(true));
     // Once, on mount: a stored token is checked when the app opens and never again.
     // eslint-disable-next-line react-hooks/exhaustive-deps

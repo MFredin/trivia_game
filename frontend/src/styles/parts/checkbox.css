@@ -1,0 +1,49 @@
+/* --- the app's checkbox (components/Checkbox.jsx) ---
+   The input is the 44px target and is transparent; the box is drawn beside it, inside the same
+   44px square. It shows a tick, or whatever `mark` puts there. */
+.checkbox {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -0.55rem -0.4rem -0.55rem -0.7rem;
+}
+
+.checkbox input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkbox-box {
+  position: absolute;
+  inset: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--rubric);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--parchment-100);
+  pointer-events: none;
+}
+
+.checkbox input:checked + .checkbox-box {
+  background: var(--rubric);
+}
+
+.checkbox input:disabled + .checkbox-box {
+  border-color: var(--text-muted-on-surface);
+  border-style: dashed;
+}
+
+.checkbox input:focus-visible + .checkbox-box {
+  outline: 3px solid var(--gilt);
+  outline-offset: 2px;
+}

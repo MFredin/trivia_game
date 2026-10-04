@@ -339,3 +339,50 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_book TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_subject TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS pinned_achievements TEXT[] NOT NULL DEFAULT '{}';
+
+-- ---------------------------------------------------------------------------
+-- Moderation
+-- ---------------------------------------------------------------------------
+
+-- A suspension is a date, a ban is a timestamp, and both are checked on every authenticated
+-- request (repo/users.js), so lifting one takes effect at once. must_rename is set by a moderator
+-- and cleared when the player chooses a new name (routes/account.js).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS must_rename BOOLEAN NOT NULL DEFAULT false;
+
+-- Everything a moderator does to a player, one row per action. Actions taken together on one
+-- report share a batch_id and a note, so the player sees one notice, not three. `note` is what
+-- the player is told; it is written for them. acknowledged_at is how a warning stays on screen
+-- until it has been read; suspend and ban are created acknowledged, because the player cannot
+-- sign in to read anything — they see the note at the login screen instead.
+CREATE TABLE IF NOT EXISTS moderation_actions (
+  id SERIAL PRIMARY KEY,
+  batch_id UUID NOT NULL,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  report_id INTEGER REFERENCES reports(id),
+  admin_id INTEGER NOT NULL REFERENCES users(id),
+  action TEXT NOT NULL,
+  note TEXT NOT NULL,
+  days INTEGER,
+  expires_at TIMESTAMPTZ,
+  email_hash TEXT,
+  acknowledged_at TIMESTAMPTZ,
+  lifted_at TIMESTAMPTZ,
+  lifted_by INTEGER REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_moderation_actions_user ON moderation_actions (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_moderation_actions_batch ON moderation_actions (batch_id);
+
+-- What a report ended in, in words, for the resolved list ("Warned; suspended 7 days").
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS resolution TEXT;
+
+-- A banned player could otherwise delete the account and register again with the same email.
+-- Only a hash of the email is kept, only for a banned account, and it outlives the account's
+-- deletion on purpose: that is the whole point of it. Removed if the ban is lifted.
+CREATE TABLE IF NOT EXISTS banned_emails (
+  email_hash TEXT PRIMARY KEY,
+  banned_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

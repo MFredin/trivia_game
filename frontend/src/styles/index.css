@@ -39,3 +39,5 @@
 @import './parts/account-menu.css';
 @import './parts/member-row.css';
 @import './parts/avatar-designer.css';
+@import './parts/moderation.css';
+@import './parts/checkbox.css';

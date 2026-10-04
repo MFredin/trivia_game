@@ -110,9 +110,13 @@ jobs:
         working-directory: backend
       # nohup and a log file, so the process outlives the step that started it and its output
       # is still readable if the wait below times out.
+      # The browser tests sign more players up and in than ten per quarter hour from one address,
+      # which is the production limit; the override is for this job's API only.
       - name: Start the API
         run: nohup node src/index.js > /tmp/api.log 2>&1 &
         working-directory: backend
+        env:
+          AUTH_RATE_LIMIT_MAX: '200'
       - name: Start the app
         run: nohup npx vite --port 5175 --strictPort > /tmp/app.log 2>&1 &
         working-directory: frontend

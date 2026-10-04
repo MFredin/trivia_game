@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { changePassword, deleteAccount, updateFriendsVisibility } from '../../api/account.js';
+import { changePassword, deleteAccount, renameUser, updateFriendsVisibility } from '../../api/account.js';
 
 /**
  * The changes a player makes to their own account from Settings. Each one reports the account
@@ -40,5 +40,14 @@ export function useAccount({ token, user, onUserChanged, onDeleted }) {
     [token, onDeleted],
   );
 
-  return { setFriendsVisibility, privacyError, updatePassword, removeAccount };
+  // Throws on failure, so the dialog can say which way it failed (name taken, name not allowed).
+  const rename = useCallback(
+    async (username) => {
+      const data = await renameUser(username, token);
+      onUserChanged(data.user);
+    },
+    [token, onUserChanged],
+  );
+
+  return { rename, setFriendsVisibility, privacyError, updatePassword, removeAccount };
 }

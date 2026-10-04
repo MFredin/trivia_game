@@ -1,4 +1,5 @@
 import Plate from './Plate.jsx';
+import Checkbox from './Checkbox.jsx';
 
 /**
  * The "about you" half of Edit Profile: a short bio, two favourites picked from lists, and up to
@@ -84,19 +85,13 @@ export default function ProfileAbout({ draft, customization, bioError, onChange 
               const checked = draft.pinned.includes(a.id);
               return (
                 <label key={a.id} className="pin-option" htmlFor={`pin-${a.id}`}>
-                  {/* The real checkbox is the 44px target, transparent, laid over a box drawn beside it. */}
-                  <span className="pin-check">
-                    <input
-                      id={`pin-${a.id}`}
-                      type="checkbox"
-                      checked={checked}
-                      disabled={!checked && atLimit}
-                      onChange={() => togglePin(a.id)}
-                    />
-                    <span className="pin-box" aria-hidden="true">
-                      {checked ? draft.pinned.indexOf(a.id) + 1 : ''}
-                    </span>
-                  </span>
+                  <Checkbox
+                    id={`pin-${a.id}`}
+                    checked={checked}
+                    disabled={!checked && atLimit}
+                    onChange={() => togglePin(a.id)}
+                    mark={draft.pinned.indexOf(a.id) + 1}
+                  />
                   <span>
                     <span className="pin-option-name">
                       {a.name}

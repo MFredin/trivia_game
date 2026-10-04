@@ -4,4 +4,6 @@ export const REPORT_REASONS = ['offensive_name', 'offensive_bio', 'harassment', 
 
 export const REPORT_DETAILS_MAX = 500;
 
-export const REPORT_OUTCOMES = ['dismissed', 'actioned'];
+// A report is closed one of two ways: dismissed (here), or by taking action against the player
+// (lib/moderation.js), which closes it as 'actioned'.
+export const REPORT_OUTCOMES = ['dismissed'];

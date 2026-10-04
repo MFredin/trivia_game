@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import { login, register } from '../api/auth.js';
+import { isRestriction, restrictionMessage } from '../features/moderation/restrictionMessage.js';
 
 // Read once at module load, not per-render — the query string doesn't change while this
 // screen is mounted, and reading it in useState's initializer avoids stale-closure issues.
@@ -28,7 +29,8 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
           : await register({ email, username, password, inviteCode });
       onAuthenticated(data.token, data.user);
     } catch (err) {
-      if (err.code === 'invalid_credentials') setError('Wrong email or password.');
+      if (isRestriction(err)) setError(restrictionMessage(err.data));
+      else if (err.code === 'invalid_credentials') setError('Wrong email or password.');
       else if (err.code === 'email_or_username_taken') setError('That email or username is already in use.');
       else if (err.code === 'password_too_short') setError('Password needs to be at least 8 characters.');
       else if (err.code === 'invalid_email') setError('Enter a valid email address.');

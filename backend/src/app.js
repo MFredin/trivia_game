@@ -18,6 +18,7 @@ import accountRouter from './routes/account.js';
 import accountProfileRouter from './routes/accountProfile.js';
 import blocksRouter from './routes/blocks.js';
 import reportsRouter from './routes/reports.js';
+import moderationRouter from './routes/moderation.js';
 
 export function createApp() {
   const app = express();
@@ -63,6 +64,7 @@ export function createApp() {
   app.use('/api/account', accountProfileRouter);
   app.use('/api/blocks', blocksRouter);
   app.use('/api/reports', reportsRouter);
+  app.use('/api/moderation', moderationRouter);
 
   // Mounted after every route, as Express requires for error-handling middleware. No-op
   // unless SENTRY_DSN is set — see lib/sentry.js. Reports and then hands off to the default

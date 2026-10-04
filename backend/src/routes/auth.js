@@ -7,6 +7,8 @@ import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
 import { isReservedUsername } from '../lib/usernames.js';
+import { hashEmail } from '../lib/emailHash.js';
+import { getAccountAccess, restrictionNote } from '../repo/users.js';
 
 const router = express.Router();
 
@@ -15,7 +17,9 @@ const VALID_THEMES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'mon
 
 // Credential-stuffing/brute-force throttle — narrowly scoped to these two routes so normal
 // gameplay traffic is never affected. Keyed by IP; see lib/rateLimiter.js for the tradeoffs.
-const authRateLimit = rateLimit({ max: 10, windowMs: 15 * 60 * 1000 });
+// AUTH_RATE_LIMIT_MAX exists for the browser tests, which sign a dozen players up and in from one
+// address inside one window; production leaves it unset and gets ten.
+const authRateLimit = rateLimit({ max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 10, windowMs: 15 * 60 * 1000 });
 
 router.post('/register', authRateLimit, async (req, res) => {
   const { email, username, password, invite_code } = req.body ?? {};
@@ -28,6 +32,13 @@ router.post('/register', authRateLimit, async (req, res) => {
   if (typeof password !== 'string' || password.length < 8) {
     return res.status(400).json({ error: 'password_too_short' });
   }
+
+  // A banned player's email stays unusable after they delete the account. Answered as an ordinary
+  // collision, so the response does not say that this address is one that was banned.
+  const { rows: bannedRows } = await pool.query('SELECT 1 FROM banned_emails WHERE email_hash = $1', [
+    hashEmail(email),
+  ]);
+  if (bannedRows.length > 0) return res.status(409).json({ error: 'email_or_username_taken' });
 
   const passwordHash = hashPassword(password);
 
@@ -79,6 +90,17 @@ router.post('/login', authRateLimit, async (req, res) => {
   const user = rows[0];
   if (!user || !user.password_hash || !verifyPassword(password, user.password_hash)) {
     return res.status(401).json({ error: 'invalid_credentials' });
+  }
+
+  // After the password, not before: telling someone they are suspended is telling them the account
+  // exists, which should take its password.
+  const access = await getAccountAccess(user.id);
+  if (access.state === 'suspended' || access.state === 'banned') {
+    return res.status(403).json({
+      error: access.state === 'banned' ? 'account_banned' : 'account_suspended',
+      until: access.until,
+      note: await restrictionNote(user.id),
+    });
   }
 
   return res.json({ token: signAuthToken(user.id), user: userView(user) });

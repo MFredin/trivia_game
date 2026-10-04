@@ -18,6 +18,10 @@ import { useAccount } from './features/account/useAccount.js';
 import { useProfile } from './features/social/useProfile.js';
 import { useSafety } from './features/safety/useSafety.js';
 import { useProfileEditor } from './features/profile/useProfileEditor.js';
+import { useModerationNotices } from './features/moderation/useModerationNotices.js';
+import { restrictionMessage } from './features/moderation/restrictionMessage.js';
+import ModerationNoticeModal from './components/ModerationNoticeModal.jsx';
+import RenameModal from './components/RenameModal.jsx';
 import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
@@ -197,7 +201,9 @@ export default function App() {
   const auth = useAuth({
     onAuthenticated: useCallback(() => dispatch({ type: 'auth/authenticated' }), []),
     onLoggedOut: useCallback(() => dispatch({ type: 'auth/logged_out' }), []),
+    onRestricted: useCallback((data) => dispatch({ type: 'notice/shown', message: restrictionMessage(data) }), []),
   });
+  const notices = useModerationNotices({ token: auth.token });
 
   const account = useAccount({
     token: auth.token,
@@ -396,6 +402,10 @@ export default function App() {
           {duels.notice}
         </div>
       )}
+      {/* A moderator's notice, then a forced rename, each shown until dealt with: neither can be
+          closed, because closing would be the same as not having seen it. */}
+      {auth.user && notices.current && <ModerationNoticeModal notice={notices.current} onAcknowledge={notices.acknowledge} />}
+      {auth.user && !notices.current && auth.user.must_rename && <RenameModal onRename={account.rename} />}
       <AchievementToast achievement={toasts.current} onDismiss={toasts.dismiss} />
       {screen === 'auth' && (
         <AuthScreen

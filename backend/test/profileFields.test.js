@@ -119,7 +119,6 @@ test('profile fields', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
       call('/reports', { method: 'POST', token: reporter.token, body: json({ username: author.username, reason: 'offensive_bio' }) });
     const queueEntry = async () =>
       (await call('/reports', { token: admin.token })).body.reports.find((r) => r.reported_username === author.username);
-    const resolve = (id, body) => call(`/reports/${id}/resolve`, { method: 'POST', token: admin.token, body: json(body) });
     const bioOf = async () => (await pool.query('SELECT bio FROM users WHERE id = $1', [author.id])).rows[0].bio;
 
     await t.test('arrives in the queue with the bio the moderator will be judging', async () => {
@@ -127,30 +126,27 @@ test('profile fields', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
       const entry = await queueEntry();
       assert.equal(entry.reason, 'offensive_bio');
       assert.equal(entry.reported_bio, 'a bio worth reporting');
-  });
-
-  await t.test('dismissing it never touches the bio, even if asked to', async () => {
-    const entry = await queueEntry();
-    assert.equal((await resolve(entry.id, { outcome: 'dismissed', clear_bio: true })).status, 204);
-    assert.equal(await bioOf(), 'a bio worth reporting');
-  });
-
-  await t.test('taking action can clear it', async () => {
-    await report();
-    const entry = await queueEntry();
-    assert.equal((await resolve(entry.id, { outcome: 'actioned', clear_bio: true })).status, 204);
-    assert.equal(await bioOf(), null);
-  });
-
-  await t.test('only an admin can', async () => {
-    await report();
-    const entry = await queueEntry();
-    const res = await call(`/reports/${entry.id}/resolve`, {
-      method: 'POST',
-      token: reporter.token,
-      body: json({ outcome: 'actioned', clear_bio: true }),
     });
-    assert.equal(res.status, 403);
-  });
+
+    await t.test('dismissing it never touches the bio', async () => {
+      const entry = await queueEntry();
+      const res = await call(`/reports/${entry.id}/resolve`, { method: 'POST', token: admin.token, body: json({ outcome: 'dismissed' }) });
+      assert.equal(res.status, 204);
+      assert.equal(await bioOf(), 'a bio worth reporting');
+    });
+
+    await t.test('taking the clear_bio action removes it, and tells the player why', async () => {
+      await report();
+      const entry = await queueEntry();
+      const res = await call(`/reports/${entry.id}/action`, {
+        method: 'POST',
+        token: admin.token,
+        body: json({ actions: ['clear_bio', 'warn'], note: 'Your bio broke the house rules, so it was removed.' }),
+      });
+      assert.equal(res.status, 200);
+      assert.equal(await bioOf(), null);
+      const notices = (await call('/moderation/notices', { token: author.token })).body.notices;
+      assert.deepEqual(notices[0].actions, ['clear_bio', 'warn']);
+    });
   });
 });
