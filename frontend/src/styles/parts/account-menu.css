@@ -7,19 +7,9 @@
   min-height: 44px;
   padding: 0;
   background: none;
-  /* A transparent ring that "you are on one of my screens" fills in, so the avatar does not
-     shift by two pixels when it becomes the current page. */
-  border: 2px solid transparent;
-  border-radius: 50%;
+  /* The ring, which "you are on one of my screens" fills in, is shared with the envelope and
+     drawn in chrome.css. */
   cursor: pointer;
-}
-
-.account-trigger:hover {
-  border-color: rgba(var(--silver-400-rgb), 0.55);
-}
-
-.account-trigger.on {
-  border-color: var(--silver-200);
 }
 
 .popover-menu-header {
