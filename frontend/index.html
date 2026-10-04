@@ -8,6 +8,36 @@
       name="description"
       content="A wizarding-world trivia archive: timed runs, live duels, house leaderboards and a weekly challenge."
     />
+    <!-- Link-preview tags (Slack/Discord/iMessage/Facebook via Open Graph, Twitter/X via its
+         own Card tags). og:image/twitter:image point at /og-image.png, a PNG screenshot of a
+         static card built from this app's own design tokens and BrandMark SVG — see
+         scripts/generate-og-image.mjs for how it's produced and why a screenshot is used
+         instead of a hand-authored or external image (CLAUDE.md's "no image files" rule is
+         about ornament *inside* the app; this is an external platform's rendering requirement,
+         and the source of the raster is still 100% this app's own CSS/SVG).
+         og:url/og:image must be absolute per the OG spec; this repo has no single fixed
+         production domain checked in anywhere (see README.md's Railway deploy notes and
+         frontend/.env.example), so the placeholder below follows that same
+         "*-production.up.railway.app" naming and should be swapped for the real deployed
+         frontend domain once one exists. -->
+    <meta property="og:title" content="The Restricted Section — HP Trivia" />
+    <meta
+      property="og:description"
+      content="A wizarding-world trivia archive: timed runs, live duels, house leaderboards and a weekly challenge."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://trivia-frontend-production.up.railway.app/" />
+    <meta property="og:image" content="https://trivia-frontend-production.up.railway.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Restricted Section — HP Trivia" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Restricted Section — HP Trivia" />
+    <meta
+      name="twitter:description"
+      content="A wizarding-world trivia archive: timed runs, live duels, house leaderboards and a weekly challenge."
+    />
+    <meta name="twitter:image" content="https://trivia-frontend-production.up.railway.app/og-image.png" />
     <!-- The page has always been dark; without this the browser still paints the scrollbars,
          form controls and the flash before first paint in light colours. -->
     <meta name="color-scheme" content="dark" />
