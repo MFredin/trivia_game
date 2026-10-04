@@ -507,7 +507,7 @@
   color: rgba(36, 27, 16, 0.7);
 }
 
-.start-form input,
+.start-form input:not([type='checkbox']),
 .start-form select,
 .start-form textarea {
   background: rgba(255, 255, 255, 0.22);
@@ -521,6 +521,21 @@
   text-transform: none;
   letter-spacing: normal;
   font-weight: 400;
+}
+
+/* The suggestion form's tag/divergence toggles. Left unstyled, they inherited the
+   text-input rule above — border-bottom, background wash, text padding — which has no
+   meaning on a checkbox and rendered as a misshapen blob instead of a normal box, with
+   the browser's stock blue/black check colors clashing with the parchment-and-brass
+   palette everywhere else on the plate. accent-color re-themes both states through the
+   same house channel the rest of the form uses, without hand-drawing a custom control. */
+.start-form input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--rubric);
+  cursor: pointer;
 }
 
 .start-form textarea {

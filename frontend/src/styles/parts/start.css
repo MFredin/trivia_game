@@ -35,9 +35,16 @@
   transition: transform 0.18s ease, box-shadow 0.18s ease, height 0.18s ease;
 }
 
-.mode-spine:hover {
-  transform: translateY(-6px);
-  filter: brightness(1.12);
+/* Guarded to devices that actually have a pointer to move away. Without this, a tap on a
+   touchscreen promotes straight to :hover and nothing ever un-hovers it — a phone has no
+   cursor to leave, so the lift and brightness boost below stuck to whichever spine a player
+   had tapped, however long ago, looking unstyled next to its neighbours the next time they
+   glanced at the shelf. */
+@media (hover: hover) {
+  .mode-spine:hover {
+    transform: translateY(-6px);
+    filter: brightness(1.12);
+  }
 }
 
 .mode-spine.is-active {
