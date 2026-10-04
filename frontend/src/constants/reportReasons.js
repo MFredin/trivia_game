@@ -2,6 +2,7 @@
 // (backend/src/lib/reportReasons.js) and refuses anything else; the wording lives here.
 export const REPORT_REASONS = [
   { id: 'offensive_name', label: 'Offensive username or avatar' },
+  { id: 'offensive_bio', label: 'Offensive bio' },
   { id: 'harassment', label: 'Harassment or abuse' },
   { id: 'impersonation', label: 'Pretending to be someone else' },
   { id: 'cheating', label: 'Cheating' },

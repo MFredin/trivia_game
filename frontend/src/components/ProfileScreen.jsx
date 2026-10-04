@@ -63,7 +63,7 @@ export default function ProfileScreen({
         // bound in a different house than whoever is looking at it.
         <div className="exlibris-card exlibris-card--standalone">
           <div className="profile-head">
-            <Avatar username={profile.username} avatar={profile.avatar} house={profile.theme} size={88} label={`${profile.username}'s avatar`} />
+            <Avatar username={profile.username} avatar={profile.avatar} style={profile.avatar_style} house={profile.theme} size={88} label={`${profile.username}'s avatar`} />
             <div className="profile-head-text">
               <div className="exlibris-header">
                 <HouseDevice house={house.id} size={30} style={{ color: house.ink }} />
@@ -84,6 +84,21 @@ export default function ProfileScreen({
                   </span>
                 )}
               </p>
+              {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+              {(profile.favorite_book || profile.favorite_subject) && (
+                <p className="profile-facts">
+                  {profile.favorite_book && (
+                    <span>
+                      <span className="profile-fact-label">Favourite book</span> {profile.favorite_book}
+                    </span>
+                  )}
+                  {profile.favorite_subject && (
+                    <span>
+                      <span className="profile-fact-label">Favourite subject</span> {profile.favorite_subject}
+                    </span>
+                  )}
+                </p>
+              )}
             </div>
           </div>
           <ProfileActions
@@ -126,7 +141,7 @@ export default function ProfileScreen({
             <Stat label="Accuracy" value={profile.accuracy_pct != null ? `${profile.accuracy_pct}%` : '—'} />
             <Stat label="Best single-run score" value={profile.best_score} />
             <Stat label="Longest in-run streak" value={profile.max_best_streak} />
-            <Stat label="Favorite category" value={profile.favorite_category ?? 'No category picked yet'} />
+            <Stat label="Most played category" value={profile.favorite_category ?? 'No category picked yet'} />
           </Plate>
 
           <Plate>
@@ -143,7 +158,7 @@ export default function ProfileScreen({
                 are their most recent unlocks; the Achievements screen stays the full list. */}
             {profile.achievements_showcase?.length > 0 && (
               <div className="profile-badges">
-                <p className="profile-badges-label">Most recent</p>
+                <p className="profile-badges-label">{profile.achievements_pinned ? 'Pinned' : 'Most recent'}</p>
                 <div className="achievement-grid achievement-grid--compact">
                   {profile.achievements_showcase.map((a) => (
                     <div key={a.id} className="achievement-card is-unlocked">

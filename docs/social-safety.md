@@ -5,16 +5,46 @@ for a store listing, writes the privacy policy, or changes it later.
 
 ## Avatars
 
-An avatar is the id of one of 24 generic sigils (`backend/src/lib/avatars.js`, drawn in
-`frontend/src/constants/avatarSigils.js`) on a disc in the owner's house colours, or the player's
-initial until they choose. **Nothing is uploaded.** CLAUDE.md rules out image files, and an upload
-would make every profile a moderation surface. A backend test fails if the two lists drift.
+An avatar is a sigil (one of 24 generic objects drawn in `frontend/src/constants/avatarSigils.js`) or
+the player's initial, on a disc they have dressed in five layers: **shape** (circle, rounded square,
+hexagon, octagon), **colour** (their house, or one of nine fixed colours), **pattern**, **frame** and a
+**corner mark** — roughly 20,000 combinations. **Nothing is uploaded**: CLAUDE.md rules out image
+files, and an upload would make every profile a moderation surface. Everything is drawn as SVG from
+fixed lists (`backend/src/lib/avatarStyle.js` is the allow-list; a backend test fails if it drifts from
+the frontend's), and every colour pair is in the contrast audit.
+
+A few patterns, frames and marks are **earned**: an achievement unlocks them (`AVATAR_UNLOCKS`).
+Colours and the basics of every layer are always free. The server refuses a locked choice, but never
+refuses to keep one a player already wears, so retiring an achievement cannot lock someone out of
+saving.
+
+## Bio and profile fields
+
+Players can also pick a favourite book (of the seven) and a favourite subject (a question category),
+pin up to three earned achievements to show instead of the most recent, and write a **bio**. Only the
+bio is free text, so it is the one field with a filter and a removal path:
+
+- **140 characters, plain text.** Whitespace is collapsed and control characters removed.
+- **No links, email addresses, handles or phone numbers** (`lib/bioFilter.js`) — harmful whatever the
+  words, and how a profile becomes an advert or a way to pull someone off the platform.
+- **A blocklist** of common profanity and slurs, checked through the usual disguises (`sh1t`, `f.u.c.k`,
+  `fuck!`) but by whole word, so "class" and "assassin" are fine. The built-in list is stored obscured
+  (rot13) so the repository does not hold a plain list of slurs; extend it on the service with the
+  `BIO_BLOCKLIST_EXTRA` environment variable (comma-separated). **This is a first line of defence, not a
+  guarantee** — it cannot recognise every way to be unpleasant, which is what the next two points are for.
+- **Report reason "Offensive bio"**, and the admin Reports screen shows the bio being judged with a
+  **Clear bio** action (only when marking a report *action taken*; dismissing never changes anything).
+- Saving a profile is rate limited per player (40 an hour), so the filter cannot be probed by script.
+- A blocked player's bio is hidden with the rest of their profile, and deleting an account clears it.
+
+Free text from young players also touches the age / COPPA question flagged for the attorney reviewing
+`docs/legal/`; if that is unresolved, the bio is the first thing to switch off.
 
 ## Who can see what
 
 | | Visible to |
 |---|---|
-| Username, avatar, house, member-since, online marker | any signed-in player (the member directory is open by decision) |
+| Username, avatar, bio, favourites, pinned achievements, house, member-since, online marker | any signed-in player (the member directory is open by decision) |
 | Lifetime stats, achievements, duel record | any signed-in player |
 | Friends list (and its count) | **friends only by default**; the owner can change it to everyone or only themselves |
 
@@ -53,7 +83,7 @@ app has no suspend feature. The reported player is never told.
 Deletion **anonymises**: the row stays, with everything that identifies the player removed, because
 other players' history points at it. In one transaction:
 
-- **Removed or overwritten:** username (becomes `deleted-<id>-<random>`), email, password, avatar,
+- **Removed or overwritten:** username (becomes `deleted-<id>-<random>`), email, password, avatar and its style, bio, favourites, pinned achievements,
   invite code, house, admin flag, friendships, blocks, achievements, activity.
 - **Rewritten in other people's rows:** the "won a duel against ___" activity line.
 - **Kept, without a name:** game runs and scores, challenge and duel history, submitted question
@@ -72,5 +102,7 @@ for the username typed out.
 - **A public web page for requesting deletion** — Google Play requires one in addition to the
   in-app flow.
 - **Password reset** — there is no email sending, so a forgotten password cannot be recovered.
+- **Bio moderation beyond the filter** (a human reviewing every bio, or an external moderation service) —
+  the filter and the report path are the minimum, not a substitute for a policy.
 - Whether "scores kept, un-named" satisfies the privacy law that applies to the operator is a
   question for the attorney reviewing `docs/legal/` (PR #46), not something this code decides.

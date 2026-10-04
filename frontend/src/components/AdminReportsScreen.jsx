@@ -22,10 +22,10 @@ export default function AdminReportsScreen({ token }) {
       .catch(() => setError('Could not load the reports.'));
   }, [status, token]);
 
-  const resolve = async (id, outcome) => {
+  const resolve = async (id, outcome, options) => {
     setError(null);
     try {
-      await resolveReport(id, outcome, token);
+      await resolveReport(id, outcome, token, options);
       setReports((prev) => prev.filter((r) => r.id !== id));
     } catch {
       setError('Could not update that report.');
@@ -76,10 +76,20 @@ export default function AdminReportsScreen({ token }) {
                     {r.status !== 'open' && ` · ${r.status === 'actioned' ? 'action taken' : 'dismissed'}`}
                   </p>
                   {r.details && <p className="report-row-details">&ldquo;{r.details}&rdquo;</p>}
+                  {r.reason === 'offensive_bio' && r.reported_bio && (
+                    <p className="report-row-bio">
+                      <span className="report-row-bio-label">Their bio</span> {r.reported_bio}
+                    </p>
+                  )}
                 </div>
                 {r.status === 'open' && (
                   <span className="friend-actions">
-                    <button type="button" className="primary-button" onClick={() => resolve(r.id, 'actioned')}>
+                    {r.reason === 'offensive_bio' && r.reported_bio && (
+                      <button type="button" className="primary-button" onClick={() => resolve(r.id, 'actioned', { clearBio: true })}>
+                        Clear bio
+                      </button>
+                    )}
+                    <button type="button" className={r.reason === 'offensive_bio' && r.reported_bio ? 'secondary-button' : 'primary-button'} onClick={() => resolve(r.id, 'actioned')}>
                       Action taken
                     </button>
                     <button type="button" className="secondary-button" onClick={() => resolve(r.id, 'dismissed')}>

@@ -32,7 +32,9 @@ async function relationshipOf(viewerId, user) {
 
 async function findProfileUser(username) {
   const { rows } = await pool.query(
-    'SELECT id, username, theme, avatar, created_at, friends_visibility FROM users WHERE username = $1 AND deleted_at IS NULL',
+    `SELECT id, username, theme, avatar, avatar_style, created_at, friends_visibility, bio, favorite_book,
+            favorite_subject, pinned_achievements
+     FROM users WHERE username = $1 AND deleted_at IS NULL`,
     [username],
   );
   return rows[0] ?? null;
@@ -115,18 +117,27 @@ router.get('/:username', requireAuth, async (req, res) => {
   // because ACHIEVEMENTS is deploy-time content, not a table. A row whose id is no longer in
   // the catalog (an achievement retired in a later release) is dropped rather than rendered
   // as a blank card.
-  const showcase = achievementStats.rows
+  const unlocked = achievementStats.rows
     .map((row) => {
       const def = ACHIEVEMENTS.find((a) => a.id === row.achievement_id);
       return def ? { ...def, unlocked_at: row.unlocked_at } : null;
     })
-    .filter(Boolean)
-    .slice(0, ACHIEVEMENT_SHOWCASE_SIZE);
+    .filter(Boolean);
+
+  // What the player chose to show, in the order they chose it — if they chose anything that is
+  // still unlocked and still in the catalog. Otherwise the most recent, as before.
+  const pinned = (user.pinned_achievements ?? []).map((id) => unlocked.find((a) => a.id === id)).filter(Boolean);
+  const showcase = pinned.length > 0 ? pinned : unlocked.slice(0, ACHIEVEMENT_SHOWCASE_SIZE);
 
   return res.json({
     username: user.username,
     theme: user.theme,
     avatar: user.avatar ?? null,
+    avatar_style: user.avatar_style ?? {},
+    bio: user.bio ?? null,
+    favorite_book: user.favorite_book ?? null,
+    favorite_subject: user.favorite_subject ?? null,
+    achievements_pinned: pinned.length > 0,
     member_since: user.created_at,
     online: isOnline(user.id),
     relationship,
@@ -164,7 +175,7 @@ router.get('/:username/friends', requireAuth, async (req, res) => {
 
   const [{ rows }, { rows: countRows }] = await Promise.all([
     pool.query(
-      `SELECT u.id, u.username, u.avatar, u.theme
+      `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme
        FROM friendships f
        JOIN users u ON u.id = f.friend_user_id
        WHERE f.user_id = $1 AND f.status = 'accepted' AND ${notBlockedSql('$4', 'u.id')}
@@ -182,7 +193,13 @@ router.get('/:username/friends', requireAuth, async (req, res) => {
 
   return res.json({
     visible: true,
-    friends: rows.map((r) => ({ username: r.username, avatar: r.avatar ?? null, theme: r.theme, online: isOnline(r.id) })),
+    friends: rows.map((r) => ({
+      username: r.username,
+      avatar: r.avatar ?? null,
+      avatar_style: r.avatar_style ?? {},
+      theme: r.theme,
+      online: isOnline(r.id),
+    })),
     total,
     has_more: offset + rows.length < total,
   });

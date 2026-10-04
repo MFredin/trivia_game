@@ -1,7 +1,12 @@
 import { request } from './request.js';
 
-export function updateAvatar(avatar, token) {
-  return request('/account/avatar', { method: 'PATCH', body: JSON.stringify({ avatar }) }, token);
+export function getCustomization(token) {
+  return request('/account/customization', {}, token);
+}
+
+// Only the fields that changed. The server validates the whole request before applying any of it.
+export function saveProfile(fields, token) {
+  return request('/account/profile', { method: 'PATCH', body: JSON.stringify(fields) }, token);
 }
 
 export function updateFriendsVisibility(friendsVisibility, token) {

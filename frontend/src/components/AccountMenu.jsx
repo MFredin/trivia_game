@@ -12,6 +12,7 @@ const HOUSE_LABEL = Object.fromEntries(HOUSES.map((h) => [h.id, h.label]));
 export default function AccountMenu({ user, active, onViewProfile, onNavigate, onLogout }) {
   const items = [
     { key: 'profile', label: 'My profile', icon: 'user', onSelect: () => onViewProfile(user.username) },
+    { key: 'edit-profile', label: 'Edit profile', icon: 'edit', onSelect: () => onNavigate('edit-profile') },
     { key: 'settings', label: 'Settings', icon: 'cog', onSelect: () => onNavigate('settings') },
     ...(user.is_admin
       ? [
@@ -26,10 +27,10 @@ export default function AccountMenu({ user, active, onViewProfile, onNavigate, o
     <PopoverMenu
       label="Account menu"
       triggerClassName={`account-trigger ${active ? 'on' : ''}`}
-      trigger={<Avatar username={user.username} avatar={user.avatar} house={user.theme} size={34} />}
+      trigger={<Avatar username={user.username} avatar={user.avatar} style={user.avatar_style} house={user.theme} size={34} />}
       header={
         <>
-          <Avatar username={user.username} avatar={user.avatar} house={user.theme} size={40} />
+          <Avatar username={user.username} avatar={user.avatar} style={user.avatar_style} house={user.theme} size={40} />
           <span className="account-menu-who">
             <span className="account-menu-name">{user.username}</span>
             <span className="account-menu-house">{HOUSE_LABEL[user.theme]}</span>

@@ -161,3 +161,27 @@
     gap: 0.8rem;
   }
 }
+
+/* --- what a player says about themselves, on their profile --- */
+.profile-bio {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 1rem;
+  /* Their words, not ours: wrap anywhere rather than let a long unbroken string widen the card. */
+  overflow-wrap: anywhere;
+}
+
+.profile-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.2rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.profile-fact-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}

@@ -50,7 +50,7 @@ test('profile and its friends list', { skip: skip && 'DATABASE_URL not set' }, a
   const friends = (as, query = '') => call(`/profile/${owner.username}/friends${query}`, { token: as });
 
   await t.test('carry the owner’s avatar, join date and how the viewer stands to them', async () => {
-    await call('/account/avatar', { method: 'PATCH', token: owner.token, body: json({ avatar: 'lantern' }) });
+    await call('/account/profile', { method: 'PATCH', token: owner.token, body: json({ avatar: 'lantern' }) });
 
     const asSelf = (await profile(owner)).body;
     assert.equal(asSelf.avatar, 'lantern');

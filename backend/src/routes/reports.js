@@ -42,7 +42,8 @@ router.get('/', requireAdmin, async (req, res) => {
   const status = req.query.status === 'resolved' ? 'resolved' : 'open';
   const { rows } = await pool.query(
     `SELECT r.id, r.reason, r.details, r.status, r.created_at, r.reviewed_at,
-            reporter.username AS reporter_username, reported.username AS reported_username
+            reporter.username AS reporter_username, reported.username AS reported_username,
+            reported.bio AS reported_bio
      FROM reports r
      JOIN users reporter ON reporter.id = r.reporter_id
      JOIN users reported ON reported.id = r.reported_id
@@ -54,16 +55,23 @@ router.get('/', requireAdmin, async (req, res) => {
 });
 
 router.post('/:id/resolve', requireAdmin, async (req, res) => {
-  const { outcome } = req.body ?? {};
+  const { outcome, clear_bio: clearBio } = req.body ?? {};
   if (!REPORT_OUTCOMES.includes(outcome)) return res.status(400).json({ error: 'invalid_outcome' });
   if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'report_not_found' });
 
-  const { rowCount } = await pool.query(
+  const { rows } = await pool.query(
     `UPDATE reports SET status = $1, reviewed_by = $2, reviewed_at = now()
-     WHERE id = $3 AND status = 'open'`,
+     WHERE id = $3 AND status = 'open'
+     RETURNING reported_id`,
     [outcome, req.userId, Number(req.params.id)],
   );
-  if (rowCount === 0) return res.status(404).json({ error: 'report_not_found' });
+  if (rows.length === 0) return res.status(404).json({ error: 'report_not_found' });
+
+  // The one thing a moderator can do to a profile from here: take the bio down. Only with an
+  // outcome of 'actioned' — a dismissed report must never change anything.
+  if (clearBio === true && outcome === 'actioned') {
+    await pool.query('UPDATE users SET bio = NULL WHERE id = $1', [rows[0].reported_id]);
+  }
   return res.status(204).end();
 });
 

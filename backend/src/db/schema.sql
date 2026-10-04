@@ -321,3 +321,21 @@ CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status, created_at);
 -- the other side of a duel, a challenge leaderboard, the question they once suggested. Anywhere
 -- that history is shown, a row with this set is displayed as "Deleted player".
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+-- ---------------------------------------------------------------------------
+-- Profile customisation
+-- ---------------------------------------------------------------------------
+
+-- How the player's avatar is dressed: shape, colour, pattern, frame, corner mark (see
+-- lib/avatarStyle.js). '{}' means all defaults, so no existing account needs a backfill and an
+-- avatar from before this column looks exactly as it did.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_style JSONB NOT NULL DEFAULT '{}';
+
+-- What a player says about themselves. bio is the one free-text field in the app that other
+-- players read, so it is length-capped and filtered (lib/bioFilter.js) before it is stored; the
+-- rest are picked from lists. pinned_achievements is up to three achievement ids shown on the
+-- profile in place of the most recent unlocks.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_book TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS favorite_subject TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS pinned_achievements TEXT[] NOT NULL DEFAULT '{}';

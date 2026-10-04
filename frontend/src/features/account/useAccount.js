@@ -1,33 +1,16 @@
 import { useCallback, useState } from 'react';
-import { changePassword, deleteAccount, updateAvatar, updateFriendsVisibility } from '../../api/account.js';
+import { changePassword, deleteAccount, updateFriendsVisibility } from '../../api/account.js';
 
 /**
  * The changes a player makes to their own account from Settings. Each one reports the account
  * through `onUserChanged`, so what Settings shows and what the rest of the app shows (the nav,
  * the profile) never come from two different copies.
  *
- * Avatar and privacy changes are applied at once and put back if the server refuses them: a
+ * Privacy changes are applied at once and put back if the server refuses them: a
  * radio button that waits for a round trip before it moves looks broken.
  */
 export function useAccount({ token, user, onUserChanged, onDeleted }) {
-  const [avatarError, setAvatarError] = useState(null);
   const [privacyError, setPrivacyError] = useState(null);
-
-  const setAvatar = useCallback(
-    async (avatar) => {
-      setAvatarError(null);
-      const previous = user;
-      onUserChanged({ ...user, avatar });
-      try {
-        const data = await updateAvatar(avatar, token);
-        onUserChanged(data.user);
-      } catch {
-        onUserChanged(previous);
-        setAvatarError('Could not save that sigil. Try again.');
-      }
-    },
-    [token, user, onUserChanged],
-  );
 
   const setFriendsVisibility = useCallback(
     async (value) => {
@@ -57,5 +40,5 @@ export function useAccount({ token, user, onUserChanged, onDeleted }) {
     [token, onDeleted],
   );
 
-  return { setAvatar, avatarError, setFriendsVisibility, privacyError, updatePassword, removeAccount };
+  return { setFriendsVisibility, privacyError, updatePassword, removeAccount };
 }

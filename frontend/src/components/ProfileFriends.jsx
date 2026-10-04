@@ -33,7 +33,7 @@ export default function ProfileFriends({ friends, isSelf, ownVisibility, onViewP
           {friends.list.map((f) => (
             <li key={f.username}>
               <button type="button" className="profile-friend" onClick={() => onViewProfile(f.username)}>
-                <Avatar username={f.username} avatar={f.avatar} house={f.theme} size={40} />
+                <Avatar username={f.username} avatar={f.avatar} style={f.avatar_style} house={f.theme} size={40} />
                 <span className="profile-friend-name">
                   <span className={`online-dot ${f.online ? 'is-online' : ''}`} aria-hidden="true" />
                   {f.username}

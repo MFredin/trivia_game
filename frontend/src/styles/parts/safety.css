@@ -69,3 +69,19 @@
   font-style: italic;
   overflow-wrap: anywhere;
 }
+
+.report-row-bio {
+  margin: 0.4rem 0 0;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid var(--oxblood-600);
+  background: rgba(92, 26, 43, 0.06);
+  overflow-wrap: anywhere;
+}
+
+.report-row-bio-label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}

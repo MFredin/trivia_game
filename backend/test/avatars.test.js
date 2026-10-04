@@ -33,30 +33,30 @@ test('avatar routes', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
   t.after(shutdown);
   const me = await newPlayer();
   const other = await newPlayer();
+  const save = (body, as = me) => call('/account/profile', { method: 'PATCH', token: as.token, body: json(body) });
 
   await t.test('need a login', async () => {
-    assert.equal((await call('/account/avatar', { method: 'PATCH', body: json({ avatar: 'key' }) })).status, 401);
+    assert.equal((await call('/account/profile', { method: 'PATCH', body: json({ avatar: 'key' }) })).status, 401);
   });
 
   await t.test('pick a sigil, and clear it again', async () => {
-    const set = await call('/account/avatar', { method: 'PATCH', token: me.token, body: json({ avatar: 'key' }) });
+    const set = await save({ avatar: 'key' });
     assert.equal(set.status, 200);
     assert.equal(set.body.user.avatar, 'key');
     assert.equal((await call('/auth/me', { token: me.token })).body.user.avatar, 'key', 'it persists');
 
-    const cleared = await call('/account/avatar', { method: 'PATCH', token: me.token, body: json({ avatar: null }) });
-    assert.equal(cleared.body.user.avatar, null);
+    assert.equal((await save({ avatar: null })).body.user.avatar, null);
   });
 
   await t.test('refuse anything that is not a known sigil', async () => {
-    for (const avatar of ['nope', 12, {}, undefined]) {
-      const res = await call('/account/avatar', { method: 'PATCH', token: me.token, body: json({ avatar }) });
+    for (const avatar of ['nope', 12, {}, true]) {
+      const res = await save({ avatar });
       assert.equal(res.status, 400, `rejects ${JSON.stringify(avatar)}`);
     }
   });
 
   await t.test('shows on other players’ member lists, with the house to draw it in', async () => {
-    await call('/account/avatar', { method: 'PATCH', token: me.token, body: json({ avatar: 'star' }) });
+    await save({ avatar: 'star' });
     const found = await call(`/friends/search?q=${me.username}`, { token: other.token });
     assert.equal(found.body.results[0].avatar, 'star');
     assert.equal(found.body.results[0].theme, 'monochrome');

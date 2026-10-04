@@ -65,6 +65,13 @@ for (const m of hj.matchAll(/\{\s*id:\s*'([a-z]+)'[^}]*\}/g)) {
   );
 }
 
+// ---------- parse avatarStyle.js ----------
+const avatarSrc = readFileSync(join(SRC, 'constants', 'avatarStyle.js'), 'utf8');
+const AVATAR_COLORS = [...avatarSrc.matchAll(/\{ id: '([a-z]+)', label: '[^']+', disc: '(#[0-9a-f]{6})', deep: '(#[0-9a-f]{6})', mark: '(#[0-9a-f]{6})' \}/g)].map(
+  (m) => ({ id: m[1], disc: m[2], deep: m[3], mark: m[4] }),
+);
+if (AVATAR_COLORS.length < 9) throw new Error(`expected the avatar colours in constants/avatarStyle.js, found ${AVATAR_COLORS.length}`);
+
 // ---------- the pairings the app renders ----------
 function build(house) {
   const t = (n) => tok(house, n);
@@ -161,6 +168,16 @@ function build(house) {
   // The avatar's glyph and initial sit on the disc's gradient, which runs cover to coverDeep.
   for (const disc of [hd.cover, hd.coverDeep]) {
     add('avatar mark on disc', hexrgb(hd.sigil), hexrgb(disc), 3.0, 'Avatar sigil / initial (meaningful)');
+  }
+  // The fixed avatar colours a player can pick instead of their house (constants/avatarStyle.js):
+  // the mark has to read on both ends of the disc's gradient. Listed once, under the house loop's
+  // first pass, since they do not depend on the binding.
+  if (house === 'gryffindor') {
+    for (const c of AVATAR_COLORS) {
+      for (const disc of [c.disc, c.deep]) {
+        add(`avatar colour ${c.id}`, hexrgb(c.mark), hexrgb(disc), 3.0, 'Avatar sigil on a chosen colour (meaningful)');
+      }
+    }
   }
 
   // ornament — listed, never gated

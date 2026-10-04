@@ -32,7 +32,7 @@ export default function MemberRow({
   return (
     <li className="friend-row member-row">
       <button type="button" className="member-id" onClick={onViewProfile}>
-        <Avatar username={member.username} avatar={member.avatar} house={member.theme} size={40} />
+        <Avatar username={member.username} avatar={member.avatar} style={member.avatar_style} house={member.theme} size={40} />
         <span className="member-text">
           <span className="member-name">
             <span className={`online-dot ${member.online ? 'is-online' : ''}`} aria-hidden="true" />
