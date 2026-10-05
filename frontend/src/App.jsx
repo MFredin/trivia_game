@@ -46,6 +46,7 @@ const MischiefModal = lazy(() => import('./components/MischiefModal.jsx'));
 const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScreen.jsx'));
 const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
 const AdminReportsScreen = lazy(() => import('./components/AdminReportsScreen.jsx'));
+const AdminTitlesScreen = lazy(() => import('./components/AdminTitlesScreen.jsx'));
 const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
@@ -539,6 +540,11 @@ export default function App() {
       {screen === 'admin-reports' && auth.user?.is_admin && (
         <Suspense fallback={screenFallback}>
           <AdminReportsScreen token={auth.token} />
+        </Suspense>
+      )}
+      {screen === 'admin-titles' && auth.user?.is_admin && (
+        <Suspense fallback={screenFallback}>
+          <AdminTitlesScreen token={auth.token} />
         </Suspense>
       )}
       {screen === 'friends' && (

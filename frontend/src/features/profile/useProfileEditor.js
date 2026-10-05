@@ -11,6 +11,7 @@ const draftFrom = (user) => ({
   favoriteBook: user.favorite_book ?? '',
   favoriteSubject: user.favorite_subject ?? '',
   pinned: [...(user.pinned_achievements ?? [])],
+  title: user.title?.id ?? '',
 });
 
 /**
@@ -51,7 +52,8 @@ export function useProfileEditor({ token, user, active, onUserChanged }) {
       draft.bio.trim() !== base.bio ||
       draft.favoriteBook !== base.favoriteBook ||
       draft.favoriteSubject !== base.favoriteSubject ||
-      !sameList(draft.pinned, base.pinned)
+      !sameList(draft.pinned, base.pinned) ||
+      draft.title !== base.title
     );
   }, [user, draft]);
 
@@ -80,6 +82,7 @@ export function useProfileEditor({ token, user, active, onUserChanged }) {
     if (draft.favoriteBook !== base.favoriteBook) fields.favorite_book = draft.favoriteBook || null;
     if (draft.favoriteSubject !== base.favoriteSubject) fields.favorite_subject = draft.favoriteSubject || null;
     if (!sameList(draft.pinned, base.pinned)) fields.pinned_achievements = draft.pinned;
+    if (draft.title !== base.title) fields.title = draft.title || null;
 
     setSaving(true);
     setError(null);

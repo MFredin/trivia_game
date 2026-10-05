@@ -12,7 +12,7 @@ const LINKS = [
 
 // Screens that live behind the avatar menu rather than in the row of links; the avatar takes
 // the "you are here" underline for them.
-const ACCOUNT_SCREENS = ['my-profile', 'settings', 'edit-profile', 'admin-suggestions', 'admin-reports'];
+const ACCOUNT_SCREENS = ['my-profile', 'settings', 'edit-profile', 'admin-suggestions', 'admin-reports', 'admin-titles'];
 
 const TAP_COUNT_TO_TRIGGER = 7;
 const TAP_RESET_MS = 1500;

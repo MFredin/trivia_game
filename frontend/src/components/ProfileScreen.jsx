@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
+import PlayerTitle from './PlayerTitle.jsx';
 import Avatar from './Avatar.jsx';
 import ProfileActions from './ProfileActions.jsx';
 import ProfileFriends from './ProfileFriends.jsx';
@@ -68,6 +69,7 @@ export default function ProfileScreen({
           <div className="profile-head">
             <Avatar username={profile.username} avatar={profile.avatar} style={profile.avatar_style} house={profile.theme} size={88} label={`${profile.username}'s avatar`} />
             <div className="profile-head-text">
+              <PlayerTitle title={profile.title} className="player-title--profile" />
               <div className="exlibris-header">
                 <HouseDevice house={house.id} size={30} style={{ color: house.ink }} />
                 <div>

@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
-import { TITLE_BY_ID } from '../lib/titles.js';
+import { TITLES, TITLE_BY_ID } from '../lib/titles.js';
 import { grantTitle, listHolders, revokeTitle } from '../services/titles.js';
 
 const router = express.Router();
@@ -12,6 +12,8 @@ router.get('/', async (req, res) => {
   const holders = await listHolders();
   return res.json({
     holders: holders.map((h) => ({ ...h, title_name: TITLE_BY_ID[h.title]?.name ?? h.title })),
+    // What can be given, from the one catalogue, so this screen cannot offer a title that does not exist.
+    available: TITLES.filter((t) => t.kind === 'system').map((t) => ({ id: t.id, name: t.name, description: t.description })),
   });
 });
 

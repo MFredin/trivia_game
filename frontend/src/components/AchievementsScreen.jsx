@@ -62,6 +62,7 @@ export default function AchievementsScreen({ token }) {
                   <span className="achievement-name">{a.name}</span>
                 </div>
                 <p className="achievement-desc">{a.description}</p>
+                {a.title && <p className="achievement-title-note">Earns the title {a.title}</p>}
                 {a.unlocked && (
                   <p className="achievement-date">Unlocked {new Date(a.unlocked_at).toLocaleDateString()}</p>
                 )}

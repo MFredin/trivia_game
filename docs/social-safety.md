@@ -192,3 +192,23 @@ nobody's behaviour changes until they choose. A player whose setting is **Off** 
 either (`challenges_off`), their Home screen drops the "Challenge a friend" link block, and no row offers
 Challenge. A refusal is `403 not_accepting_challenges`; a blocked player is still the same `404`. A duel
 already accepted is never interrupted by changing the setting.
+
+
+## Titles
+
+A title is a short label worn beside a name (`lib/titles.js`, `users.title`, `user_titles`). It is picked from a
+fixed list, so there is nothing to moderate: no free text, no upload.
+
+- **Earned titles** (31 at launch) hang on achievements, one each. A player has one as soon as they hold the
+  achievement; nothing is stored for it. The 12 achievements added with Titles (answer milestones, accuracy,
+  perfectionist, every difficulty, every solo mode, 100 daily days, 25 duel wins, 25 friends, and two for having
+  suggested questions approved) are in `lib/achievements.js`, evaluated in `services/achievements.js`, and a
+  test fails if a title requires an achievement that does not exist or two titles share one.
+- **System titles** (Head Student, Head Boy, Head Girl, Prefect, Librarian, Groundskeeper) are given to a
+  specific player by an admin and by nothing else (`/api/admin/titles`, the admin **Titles** screen). They are
+  **labels, not powers**: wearing Prefect lets nobody do anything. There is still only one permission level, the
+  admin flag; a real moderator tier would be a separate piece of work.
+- A player chooses which held title to wear (Edit Profile), or none. Taking a granted title back also takes it
+  off them at once. Deleting the account clears both. A title shows on the profile, in member lists and in the
+  account menu; **not yet on leaderboards or in Owl Post**, which are drawn from different queries.
+- The words are generic school and library terms, not licensed names or marks.

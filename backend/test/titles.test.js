@@ -83,7 +83,10 @@ test('titles', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
     assert.equal(offered.kind, 'system');
     assert.equal((await choose(player, 'prefect')).body.user.title.name, 'Prefect');
 
-    const holders = (await call('/admin/titles', { token: admin.token })).body.holders;
+    const listing = (await call('/admin/titles', { token: admin.token })).body;
+    assert.ok(listing.available.some((x) => x.id === 'prefect' && x.name === 'Prefect'));
+    assert.equal(listing.available.some((x) => x.id === 'newcomer'), false, 'only the ones an admin can give');
+    const holders = listing.holders;
     const mine = holders.find((h) => h.username === player.username && h.title === 'prefect');
     assert.equal(mine.granted_by, admin.username);
 

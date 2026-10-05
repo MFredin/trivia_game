@@ -54,6 +54,8 @@ chosen by you:
   and removed by a moderator.
 - **Favourite book and favourite subject**, chosen from fixed lists.
 - **Pinned achievements** — up to three of your earned achievements to show on your profile.
+- **Title** — a short label from a fixed list (earned through play, or given by an administrator) shown beside
+  your name; you choose whether to wear one.
 - **Who can see your friends list** — friends only (the default), everyone, or only you.
 - **Owl Post and challenge settings** — who may message you or invite you to a duel: everyone (the
   default), friends only, or no one.

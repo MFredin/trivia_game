@@ -1,5 +1,6 @@
 import Avatar from './Avatar.jsx';
 import IconButton from './IconButton.jsx';
+import PlayerTitle from './PlayerTitle.jsx';
 
 const STATUS_CAPTION = {
   friends: 'Friends',
@@ -46,7 +47,12 @@ export default function MemberRow({
             )}
             {member.username}
           </span>
-          {caption && <span className="member-caption">{caption}</span>}
+          {(member.title || caption) && (
+            <span className="member-meta">
+              <PlayerTitle title={member.title} />
+              {caption && <span className="member-caption">{caption}</span>}
+            </span>
+          )}
         </span>
       </button>
       <span className="member-actions">

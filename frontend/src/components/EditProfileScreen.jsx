@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import Plate from './Plate.jsx';
 import AvatarDesigner from './AvatarDesigner.jsx';
 import ProfileAbout from './ProfileAbout.jsx';
+import TitlePicker from './TitlePicker.jsx';
 
 // What a refused save says, in the player's terms. The bio's reasons sit beside the bio; the rest
 // are about the avatar or the connection and appear by the Save button.
@@ -15,6 +16,7 @@ const BIO_ERRORS = {
 const SAVE_ERRORS = {
   option_locked: 'One of those avatar choices has not been unlocked yet.',
   achievement_not_earned: 'You can only pin achievements you have earned.',
+  title_not_held: 'You do not have that title.',
   too_many_attempts: 'You have saved a lot of changes — try again in a little while.',
 };
 
@@ -59,6 +61,8 @@ export default function EditProfileScreen({ user, editor, onViewProfile }) {
           onStyle={setStyle}
         />
       </Plate>
+
+      <TitlePicker titles={customization?.titles} value={draft.title} onChange={(title) => change({ title })} />
 
       <ProfileAbout draft={draft} customization={customization} bioError={bioError} onChange={change} />
 
