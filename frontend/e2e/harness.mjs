@@ -46,9 +46,17 @@ export function uniqueName(prefix = 'e2e') {
   return `${prefix}${Math.random().toString(36).slice(2, 9)}`;
 }
 
+/** Answers the age question that begins registration, as an adult unless told otherwise. */
+export async function passAgeGate(page, { month = '6', year = String(new Date().getFullYear() - 30) } = {}) {
+  await page.getByLabel('Month').selectOption(month);
+  await page.getByLabel('Year').selectOption(year);
+  await page.getByRole('button', { name: 'Continue' }).click();
+}
+
 /** Registers a new player through the UI and lands on the start screen. */
 export async function register(page, username = uniqueName()) {
   await page.getByRole('button', { name: /Need an account\? Register/ }).click();
+  await passAgeGate(page);
   await page.locator('input[type=email]').fill(`${username}@test.invalid`);
   await page.locator('input[type=text]').fill(username);
   await page.locator('input[type=password]').fill('password123');

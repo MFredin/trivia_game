@@ -449,3 +449,7 @@ CREATE TABLE IF NOT EXISTS user_titles (
   granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, title_id)
 );
+
+-- When a new account passed the age check at registration (lib/ageGate.js). Only that it was passed:
+-- the birth date asked for at the time is not stored. Accounts that pre-date the check have none.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS age_confirmed_at TIMESTAMPTZ;

@@ -38,7 +38,7 @@ export async function deleteAccount(userId) {
       `UPDATE users
        SET username = $2, email = NULL, password_hash = NULL, invite_code = NULL, avatar = NULL, avatar_style = '{}', bio = NULL,
            favorite_book = NULL, favorite_subject = NULL, pinned_achievements = '{}', title = NULL,
-           theme = 'monochrome', is_admin = false, friends_visibility = 'only_me', deleted_at = now()
+           theme = 'monochrome', is_admin = false, age_confirmed_at = NULL, friends_visibility = 'only_me', deleted_at = now()
        WHERE id = $1`,
       [userId, `deleted-${userId}-${crypto.randomBytes(4).toString('hex')}`],
     );

@@ -136,7 +136,7 @@ test('account settings', { skip: skip && 'DATABASE_URL not set' }, async (t) => 
     for (const username of ['deleted-9-abcd1234', 'Deleted Player']) {
       const res = await call('/auth/register', {
         method: 'POST',
-        body: json({ email: `${Math.random().toString(36).slice(2)}@test.invalid`, username, password: 'password123' }),
+        body: json({ email: `${Math.random().toString(36).slice(2)}@test.invalid`, username, password: 'password123', birth_month: 1, birth_year: 1990 }),
       });
       assert.equal(res.status, 400, username);
     }

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import Plate from './Plate.jsx';
+import AgeGate from './AgeGate.jsx';
+import AgeBlocked from './AgeBlocked.jsx';
+import { ageGateBlocked, markAgeGateBlocked } from '../lib/ageGate.js';
 import { login, register } from '../api/auth.js';
 import { isRestriction, restrictionMessage } from '../features/moderation/restrictionMessage.js';
 
@@ -17,6 +20,9 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  // Registering starts with the age question. The answer is held here, in memory, only until it is sent.
+  const [birth, setBirth] = useState(null);
+  const [tooYoung, setTooYoung] = useState(ageGateBlocked);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -26,10 +32,13 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
       const data =
         mode === 'login'
           ? await login({ email, password })
-          : await register({ email, username, password, inviteCode });
+          : await register({ email, username, password, inviteCode, birth });
       onAuthenticated(data.token, data.user);
     } catch (err) {
-      if (isRestriction(err)) setError(restrictionMessage(err.data));
+      if (err.code === 'underage') {
+        markAgeGateBlocked();
+        setTooYoung(true);
+      } else if (isRestriction(err)) setError(restrictionMessage(err.data));
       else if (err.code === 'invalid_credentials') setError('Wrong email or password.');
       else if (err.code === 'email_or_username_taken') setError('That email or username is already in use.');
       else if (err.code === 'password_too_short') setError('Password needs to be at least 8 characters.');
@@ -49,6 +58,17 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
         </div>
       </div>
       <Plate>
+        {mode === 'register' && tooYoung ? (
+          <AgeBlocked onLogin={() => setMode('login')} />
+        ) : mode === 'register' && !birth ? (
+          <AgeGate
+            onPassed={setBirth}
+            onTooYoung={() => {
+              markAgeGateBlocked();
+              setTooYoung(true);
+            }}
+          />
+        ) : (
         <form className="start-form" onSubmit={handleSubmit}>
           {error && <div className="error-banner">{error}</div>}
           {mode === 'register' && inviteCode && (
@@ -93,6 +113,7 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
             </button>
           )}
         </form>
+        )}
       </Plate>
     </div>
   );

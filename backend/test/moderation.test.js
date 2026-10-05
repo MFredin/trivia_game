@@ -139,16 +139,19 @@ test('moderation', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
 
   await t.test('removing scores takes a player off the leaderboards, and nothing is deleted', async () => {
     const { target, report } = await reported('cheating');
+    // A score of its own each run, so a leftover from an earlier run (this one, or a run that failed
+    // part way) cannot be mistaken for it on a shared database.
+    const score = 90000 + Math.floor(Math.random() * 9000);
     await pool.query(
       `INSERT INTO game_sessions (user_id, mode, question_count, time_limit_ms, status, total_score, leaderboard_window, completed_at)
-       VALUES ($1, 'classic', 10, 30000, 'completed', 98765, 'any', now())`,
-      [target.id],
+       VALUES ($1, 'classic', 10, 30000, 'completed', $2, 'any', now())`,
+      [target.id, score],
     );
     const board = async () => (await call('/leaderboard?mode=classic&window=all&limit=100', { token: admin.token })).body.entries;
-    assert.ok((await board()).some((e) => e.total_score === 98765), 'on the board before');
+    assert.ok((await board()).some((e) => e.total_score === score), 'on the board before');
 
     await act(report.id, { actions: ['remove_scores', 'warn'], note: NOTE });
-    assert.ok(!(await board()).some((e) => e.total_score === 98765), 'off it after, with no wait for the cache');
+    assert.ok(!(await board()).some((e) => e.total_score === score), 'off it after, with no wait for the cache');
     const { rows } = await pool.query('SELECT count(*) FROM game_sessions WHERE user_id = $1', [target.id]);
     assert.equal(Number(rows[0].count), 1, 'the run is still there');
   });
@@ -231,7 +234,7 @@ test('moderation', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
     const register = (email) =>
       call('/auth/register', {
         method: 'POST',
-        body: json({ email, username: `again${Math.random().toString(36).slice(2, 8)}`, password: 'password123' }),
+        body: json({ email, username: `again${Math.random().toString(36).slice(2, 8)}`, password: 'password123', birth_month: 1, birth_year: 1990 }),
       });
     const refused = await register(target.email);
     assert.equal(refused.status, 409, 'refused as an ordinary collision, giving nothing away');

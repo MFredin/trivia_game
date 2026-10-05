@@ -212,3 +212,25 @@ fixed list, so there is nothing to moderate: no free text, no upload.
   off them at once. Deleting the account clears both. A title shows on the profile, in member lists and in the
   account menu; **not yet on leaderboards or in Owl Post**, which are drawn from different queries.
 - The words are generic school and library terms, not licensed names or marks.
+
+
+## Minimum age: 13 and over
+
+By decision (see `docs/legal/coppa-options.md`, Option A) the Service is for players aged 13 and over; a
+parent-approved mode for younger players is deferred. Registration enforces it:
+
+- **The age question comes first**, before email, name or password: a month and a year, neutral (nothing
+  pre-selected, no hint of the cut-off), the same for everyone (`AgeGate.jsx`).
+- **Under 13 stores nothing**: no account, no email, no name. The server checks the age before it reads
+  anything else (`lib/ageGate.js`, `403 underage`), so the rule holds for a client that skips the screen.
+  A birth date is never stored or logged for anyone; a new account records only *when* the check was passed
+  (`users.age_confirmed_at`).
+- **Counted in whole months**, so someone is never let in early: a player is eligible once the whole of the
+  month they turned thirteen in has passed.
+- **A device that is turned away is turned away again for a day**, by a timestamp in this browser
+  (`trivia_age_gate`), so going Back and picking another year does not work. It is not a defence against a
+  determined liar and is not meant to be.
+- The turned-away screen points parents at `VITE_PARENT_CONTACT_EMAIL` if set.
+
+Not done: accounts that pre-date the check have no age on record, and nobody is asked to confirm one. If one
+turns out to belong to a child it is deleted, and the privacy policy should say that is the process.
