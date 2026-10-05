@@ -1,0 +1,11 @@
+// Spelled out rather than assembled, so the dead-code audit can see each rule is in use.
+const KIND_CLASS = { earned: 'player-title--earned', system: 'player-title--system' };
+
+/**
+ * A title worn beside a player's name. Earned ones are quiet; one an admin gave (Prefect, Head Student)
+ * is set apart, because it says something about the person and not just about their record.
+ */
+export default function PlayerTitle({ title, className = '' }) {
+  if (!title) return null;
+  return <span className={`player-title ${KIND_CLASS[title.kind]} ${className}`}>{title.name}</span>;
+}

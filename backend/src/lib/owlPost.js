@@ -14,7 +14,10 @@ export const RETENTION_DAYS = 90;
 // How much of a conversation is copied into a report made from inside it.
 export const EVIDENCE_MESSAGES = 20;
 
-export const OWL_POST_MODES = ['friends', 'off'];
+// Owls from someone who is not a friend are held to two limits, so open does not mean a way to
+// flood a stranger: one owl until they answer, and a handful of new strangers a day.
+export const UNANSWERED_NON_FRIEND_OWLS = 1;
+export const NEW_CONTACTS_PER_DAY = 10;
 
 const ERRORS = {
   invalid: 'invalid_message',

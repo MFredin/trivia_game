@@ -16,7 +16,8 @@
   username that lets others contact a child is itself personal information, and so is making
   anything of a child's available to the public.
 - **Public by design:** leaderboards, the open member directory, profiles, the activity feed to
-  friends. Free text (bio, Owl Post subject and message) is filtered but not reviewed by a person
+  friends. **Owl Post is now open to any player by default**, so a child could be contacted by a
+  stranger; that makes the age decision more pressing, not less. Free text (bio, Owl Post subject and message) is filtered but not reviewed by a person
   unless reported.
 - **The audience is plausibly mixed.** Harry Potter trivia is not aimed at children as such, but it
   appeals to them; whether a service is "directed to children" is a facts-and-circumstances test

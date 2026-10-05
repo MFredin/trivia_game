@@ -55,7 +55,7 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
 
   await t.test('the friends list defaults to friends-only, and can be changed', async () => {
     await navigateTo(page, 'Settings');
-    assert.equal(await page.getByLabel('Friends only').isChecked(), true);
+    assert.equal(await page.locator('#friends-visibility-friends').isChecked(), true);
     await page.getByLabel('Only me').check();
     await navigateTo(page, 'My profile');
     await page.waitForSelector('.profile-friends-privacy');

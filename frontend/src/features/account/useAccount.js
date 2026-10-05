@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { changePassword, deleteAccount, renameUser, updateFriendsVisibility } from '../../api/account.js';
 import { setOwlPostMode } from '../../api/owlpost.js';
+import { setChallengeMode } from '../../api/duels.js';
 
 /**
  * The changes a player makes to their own account from Settings. Each one reports the account
@@ -13,6 +14,7 @@ import { setOwlPostMode } from '../../api/owlpost.js';
 export function useAccount({ token, user, onUserChanged, onDeleted }) {
   const [privacyError, setPrivacyError] = useState(null);
   const [owlPostError, setOwlPostError] = useState(null);
+  const [challengesError, setChallengesError] = useState(null);
 
   const setFriendsVisibility = useCallback(
     async (value) => {
@@ -46,6 +48,22 @@ export function useAccount({ token, user, onUserChanged, onDeleted }) {
     [token, user, onUserChanged],
   );
 
+  const setChallenges = useCallback(
+    async (mode) => {
+      setChallengesError(null);
+      const previous = user;
+      onUserChanged({ ...user, challenges: mode });
+      try {
+        const data = await setChallengeMode(mode, token);
+        onUserChanged(data.user);
+      } catch {
+        onUserChanged(previous);
+        setChallengesError('Could not save that setting. Try again.');
+      }
+    },
+    [token, user, onUserChanged],
+  );
+
   // These two throw on failure, with the server's error code, so the form that asked can say
   // which field was wrong — a wrong current password and a lost connection want different words.
   const updatePassword = useCallback((fields) => changePassword(fields, token), [token]);
@@ -67,5 +85,5 @@ export function useAccount({ token, user, onUserChanged, onDeleted }) {
     [token, onUserChanged],
   );
 
-  return { rename, setOwlPost, owlPostError, setFriendsVisibility, privacyError, updatePassword, removeAccount };
+  return { rename, setOwlPost, owlPostError, setChallenges, challengesError, setFriendsVisibility, privacyError, updatePassword, removeAccount };
 }

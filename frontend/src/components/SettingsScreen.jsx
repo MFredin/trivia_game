@@ -5,6 +5,7 @@ import { HOUSES } from '../constants/houses.js';
 import PrivacySettings from './PrivacySettings.jsx';
 import BlockedPlayers from './BlockedPlayers.jsx';
 import OwlPostSettings from './OwlPostSettings.jsx';
+import ChallengeSettings from './ChallengeSettings.jsx';
 import PasswordSettings from './PasswordSettings.jsx';
 import DeleteAccountSection from './DeleteAccountSection.jsx';
 import { getInviteCode } from '../api/auth.js';
@@ -82,6 +83,7 @@ export default function SettingsScreen({ user, onSelectTheme, token, onViewOwnPr
         error={account.privacyError}
       />
       <OwlPostSettings value={user.owl_post} onChange={account.setOwlPost} error={account.owlPostError} />
+      <ChallengeSettings value={user.challenges} onChange={account.setChallenges} error={account.challengesError} />
       <BlockedPlayers
         blocked={safety.blocked}
         loaded={safety.loaded}

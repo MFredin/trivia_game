@@ -4,7 +4,9 @@ import { isValidAvatar } from '../lib/avatars.js';
 import { AVATAR_UNLOCKS, lockedChoices, normalizeAvatarStyle } from '../lib/avatarStyle.js';
 import { checkBio } from '../lib/bioFilter.js';
 import { isFavoriteBook, normalizePinned } from '../lib/profileFields.js';
+import { TITLE_BY_ID } from '../lib/titles.js';
 import { getAllQuestions } from '../repo/questions.js';
+import { heldTitleIds } from './titles.js';
 
 const ACHIEVEMENT_BY_ID = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));
 
@@ -34,7 +36,7 @@ export function describeLocks(earned) {
   }));
 }
 
-const EDITABLE = ['avatar', 'avatar_style', 'bio', 'favorite_book', 'favorite_subject', 'pinned_achievements'];
+const EDITABLE = ['avatar', 'avatar_style', 'bio', 'favorite_book', 'favorite_subject', 'pinned_achievements', 'title'];
 
 const refuse = (error, extra = {}) => ({ error: { status: 400, body: { error, ...extra } } });
 
@@ -92,6 +94,13 @@ export async function validateProfileUpdate(userId, current, body) {
     const have = new Set((await getEarned()).map((a) => a.id));
     if (!pinned.every((id) => have.has(id))) return refuse('achievement_not_earned');
     updates.pinned_achievements = pinned;
+  }
+
+  if ('title' in body) {
+    if (body.title !== null && !(typeof body.title === 'string' && TITLE_BY_ID[body.title])) return refuse('invalid_title');
+    // Worn only if held: earned by an achievement, or granted by an admin. Null takes it off.
+    if (body.title !== null && !(await heldTitleIds(userId)).has(body.title)) return refuse('title_not_held');
+    updates.title = body.title;
   }
 
   return { updates };

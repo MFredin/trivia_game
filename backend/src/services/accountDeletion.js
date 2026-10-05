@@ -37,7 +37,7 @@ export async function deleteAccount(userId) {
     await client.query(
       `UPDATE users
        SET username = $2, email = NULL, password_hash = NULL, invite_code = NULL, avatar = NULL, avatar_style = '{}', bio = NULL,
-           favorite_book = NULL, favorite_subject = NULL, pinned_achievements = '{}',
+           favorite_book = NULL, favorite_subject = NULL, pinned_achievements = '{}', title = NULL,
            theme = 'monochrome', is_admin = false, friends_visibility = 'only_me', deleted_at = now()
        WHERE id = $1`,
       [userId, `deleted-${userId}-${crypto.randomBytes(4).toString('hex')}`],
@@ -46,6 +46,7 @@ export async function deleteAccount(userId) {
     await client.query('DELETE FROM friendships WHERE user_id = $1 OR friend_user_id = $1', [userId]);
     await client.query('DELETE FROM blocks WHERE blocker_id = $1 OR blocked_id = $1', [userId]);
     await client.query('DELETE FROM user_achievements WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM user_titles WHERE user_id = $1', [userId]);
     // Owl Post, both ways: what they sent is theirs to take back, and what they received from a
     // player who is now "Deleted player" has nowhere left to be read.
     await client.query('DELETE FROM messages WHERE sender_id = $1 OR recipient_id = $1', [userId]);

@@ -108,24 +108,32 @@ Not here: **appeals** beyond the existing Submit Feedback form, and automatic sa
 
 ## Owl Post
 
-Short messages between **friends**, and nobody else. The largest safety surface in the app, so it is
-the most constrained.
+Short messages between players. It began friends-only; **by decision it is now open to anyone by
+default**, because a duel can be offered to a stranger and there was no way to talk it over first. That
+is a real widening of who can contact whom, so it comes with limits, and with a control for each player.
 
-- **Friends only, one to one.** A stranger, a blocked player, a player who has Owl Post off, and an
-  unknown name are all the same `404 user_not_found`, so the routes cannot be used to find out who has
-  blocked you or who has an account. Blocking ends the friendship and so ends the conversation for both.
+- **Open, Friends only or Off — per player, default Open** (existing accounts keep the setting they had:
+  Friends only). Open: anyone can send you an owl. Friends only: only friends. Off: no one, and you may
+  not send either, so it is not a one-way street. The setting is public (it is on their profile), so a
+  profile or row offers "Send an owl" only if it would be accepted, and a refusal says why.
+- **A stranger gets one owl until you answer** (`awaiting_reply`), counted over every message so deleting
+  one does not reset it, and may start new conversations with at most **10 non-friends a day**
+  (`too_many_new_contacts`). The recipient may always answer, after which it is an ordinary conversation.
+  The inbox tags a conversation with someone who is not a friend, and the thread says so and points at
+  Report and Block.
+- **Blocked players and unknown names are still the same `404 user_not_found`**, so the routes cannot be
+  used to find out who has blocked you or who has an account. A conversation that already exists stays
+  readable after a friendship ends or a setting changes; a stranger with no history is a 404 to read.
 - **Plain text, 500 characters**, through the same filter as bios (`lib/bioFilter.js`): no links, emails,
   handles or phone numbers, and the blocklist through the usual disguises. Line breaks are collapsed.
-- **A new owl is addressed to a friend, by name.** The Owl Post screen has a form (to, an optional
-  subject, the message) whose "to" is picked from your friends list; a name that is not a friend is
-  turned back in the form, and the server gives the same `404 user_not_found` as ever. This does not
-  widen who can be written to: opening Owl Post to anyone would change the safety model, not just the UI.
+- **A new owl is addressed by name.** The Owl Post screen has a form (to, an optional subject, the
+  message); the "to" suggests friends and anyone the member search finds, and what the server says about
+  a refusal is shown in words.
 - **The subject** is optional, 60 characters, through the same filter as the message, and is copied into
   report evidence with the message.
 - **Rate limited per sender:** 20 a minute and 300 a day, and the same message to the same person twice
   within a minute is refused.
-- **A switch.** Each player can turn Owl Post **off** in Settings: they cannot send or receive, and their
-  old conversations stay readable. (This is per player. There is no operator-wide kill switch yet.)
+- **A switch** — the three-way setting above. (This is per player. There is no operator-wide kill switch yet.)
 - **Retention: 90 days.** Messages are deleted by an hourly sweep after that, wherever they sit. "Delete
   for me" hides a message from one player only, since the other still has their copy.
 - **Deleting an account removes its messages**, both those it sent and those it received.
@@ -174,3 +182,33 @@ for the username typed out.
   the filter and the report path are the minimum, not a substitute for a policy.
 - Whether "scores kept, un-named" satisfies the privacy law that applies to the operator is a
   question for the attorney reviewing `docs/legal/` (PR #46), not something this code decides.
+
+
+## Challenges (duel invites)
+
+The same three choices — **Open, Friends only, Off** — decide who may invite a player to a duel
+(`users.challenges`, `lib/contactModes.js`, `PATCH /api/duels/settings`). Everyone was already open, so
+nobody's behaviour changes until they choose. A player whose setting is **Off** may not challenge anyone
+either (`challenges_off`), their Home screen drops the "Challenge a friend" link block, and no row offers
+Challenge. A refusal is `403 not_accepting_challenges`; a blocked player is still the same `404`. A duel
+already accepted is never interrupted by changing the setting.
+
+
+## Titles
+
+A title is a short label worn beside a name (`lib/titles.js`, `users.title`, `user_titles`). It is picked from a
+fixed list, so there is nothing to moderate: no free text, no upload.
+
+- **Earned titles** (31 at launch) hang on achievements, one each. A player has one as soon as they hold the
+  achievement; nothing is stored for it. The 12 achievements added with Titles (answer milestones, accuracy,
+  perfectionist, every difficulty, every solo mode, 100 daily days, 25 duel wins, 25 friends, and two for having
+  suggested questions approved) are in `lib/achievements.js`, evaluated in `services/achievements.js`, and a
+  test fails if a title requires an achievement that does not exist or two titles share one.
+- **System titles** (Head Student, Head Boy, Head Girl, Prefect, Librarian, Groundskeeper) are given to a
+  specific player by an admin and by nothing else (`/api/admin/titles`, the admin **Titles** screen). They are
+  **labels, not powers**: wearing Prefect lets nobody do anything. There is still only one permission level, the
+  admin flag; a real moderator tier would be a separate piece of work.
+- A player chooses which held title to wear (Edit Profile), or none. Taking a granted title back also takes it
+  off them at once. Deleting the account clears both. A title shows on the profile, in member lists and in the
+  account menu; **not yet on leaderboards or in Owl Post**, which are drawn from different queries.
+- The words are generic school and library terms, not licensed names or marks.

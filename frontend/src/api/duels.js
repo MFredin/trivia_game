@@ -26,3 +26,7 @@ export function declineDuel(duelId, token) {
 export function getDuelLeaderboard(scope = 'global', token) {
   return request(`/duels/leaderboard?scope=${scope}`, {}, token);
 }
+
+export function setChallengeMode(mode, token) {
+  return request('/duels/settings', { method: 'PATCH', body: JSON.stringify({ mode }) }, token);
+}

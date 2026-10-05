@@ -16,7 +16,7 @@ export default function OwlInbox({ conversations, onOpen, onCompose }) {
         <div className="owl-empty">
           <p className="owl-empty-title">Nothing in your owlery yet</p>
           <p className="explanation">
-            Owl Post is for writing to your friends. Send your first owl, or start one from a friend&rsquo;s row or profile.
+            Owl Post is for short messages to other players, for planning a duel or saying well played. Send your first owl, or start one from anyone&rsquo;s row or profile.
           </p>
           <button type="button" className="primary-button" onClick={onCompose}>
             Send an owl
@@ -33,6 +33,7 @@ export default function OwlInbox({ conversations, onOpen, onCompose }) {
                   <span className="member-name">
                     <span className={`online-dot ${c.online ? 'is-online' : ''}`} aria-hidden="true" />
                     {c.username}
+                    {c.is_friend === false && <span className="owl-row-tag">Not a friend</span>}
                     <span className="owl-row-when">{when(c.last.created_at)}</span>
                   </span>
                   <span className={`owl-row-preview ${c.unread > 0 ? 'is-unread' : ''}`}>

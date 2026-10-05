@@ -226,7 +226,7 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
             Begin
           </button>
         </form>
-        {mode === 'classic' && (
+        {mode === 'classic' && currentUser.challenges !== 'off' && (
           <div style={{ marginTop: '1.2rem' }}>
             {challengeLink ? (
               <div className="invite-link-row">

@@ -5,6 +5,7 @@ import { getAllQuestions, invalidateQuestionCache } from '../repo/questions.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { DESIGN_TIERS } from '../lib/designTiers.js';
 import { displayNameSql } from '../lib/displayName.js';
+import { evaluateAchievements } from '../services/achievements.js';
 
 const router = express.Router();
 
@@ -209,6 +210,9 @@ router.post('/admin/:id/approve', requireAuth, requireAdmin, async (req, res) =>
   );
   invalidateQuestionCache();
   await getAllQuestions(); // repopulate immediately rather than lazily on the next player's request
+
+  // Having one approved can unlock the contributor badges, so the submitter is checked now.
+  await evaluateAchievements(draft.suggested_by);
 
   return res.json({ question: inserted, suggestion: suggestionView(updatedRows[0]) });
 });

@@ -7,6 +7,8 @@ import { isOnline } from '../lib/presenceRegistry.js';
 import { deriveStatus } from '../lib/friendStatus.js';
 import { canSeeFriends } from '../lib/friendsVisibility.js';
 import { isBlockedEitherWay, notBlockedSql } from '../services/blocks.js';
+import { contactAllowed } from '../lib/contactModes.js';
+import { titleView } from '../lib/titles.js';
 
 const router = express.Router();
 
@@ -33,7 +35,7 @@ async function relationshipOf(viewerId, user) {
 async function findProfileUser(username) {
   const { rows } = await pool.query(
     `SELECT id, username, theme, avatar, avatar_style, created_at, friends_visibility, bio, favorite_book,
-            favorite_subject, pinned_achievements
+            favorite_subject, pinned_achievements, owl_post, challenges, title
      FROM users WHERE username = $1 AND deleted_at IS NULL`,
     [username],
   );
@@ -134,6 +136,7 @@ router.get('/:username', requireAuth, async (req, res) => {
     theme: user.theme,
     avatar: user.avatar ?? null,
     avatar_style: user.avatar_style ?? {},
+    title: titleView(user.title),
     bio: user.bio ?? null,
     favorite_book: user.favorite_book ?? null,
     favorite_subject: user.favorite_subject ?? null,
@@ -141,6 +144,9 @@ router.get('/:username', requireAuth, async (req, res) => {
     member_since: user.created_at,
     online: isOnline(user.id),
     relationship,
+    // What the viewer may start with them — their settings are public, and the page offers only what would be accepted.
+    can_owl: contactAllowed(user.owl_post, relationship === 'friends'),
+    can_challenge: contactAllowed(user.challenges, relationship === 'friends'),
     friends: { visible: friendsVisible, count: friendsVisible ? Number(friendCount.rows[0].n) : null },
     total_completed: Number(runStats.rows[0].total_completed),
     total_questions_answered: totalAnswered,

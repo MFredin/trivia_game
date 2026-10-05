@@ -46,11 +46,10 @@ test('owl post', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
     assert.equal((await inbox(b))[0].unread, 0);
   });
 
-  await t.test('strangers, blocked players and unknown names are the same 404', async () => {
+  await t.test('blocked players, unknown names and strangers with no history are the same 404 to read', async () => {
     const a = await newPlayer();
     const stranger = await newPlayer();
     for (const res of [
-      await send(a, stranger, 'hello'),
       await thread(a, stranger),
       await send(a, { username: 'nobody-by-this-name' }, 'hello'),
       await send(a, a, 'to myself'),
@@ -118,8 +117,8 @@ test('owl post', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
     assert.equal(off.body.user.owl_post, 'off');
 
     const refused = await send(a, b, 'are you there?');
-    assert.equal(refused.status, 404, 'looks like no such player');
-    assert.equal(refused.body.error, 'user_not_found');
+    assert.equal(refused.status, 403);
+    assert.equal(refused.body.error, 'not_accepting_owls', 'their setting is public, so it is said plainly');
     const own = await send(b, a, 'hi');
     assert.equal(own.status, 403);
     assert.equal(own.body.error, 'owl_post_off', 'your own switch is yours to be told about');
@@ -128,6 +127,9 @@ test('owl post', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
 
     assert.equal((await call('/owlpost/settings', { method: 'PATCH', token: b.token, body: json({ mode: 'friends' }) })).status, 200);
     assert.equal((await send(a, b, 'welcome back')).status, 201);
+    for (const mode of ['open', 'friends', 'off']) {
+      assert.equal((await call('/owlpost/settings', { method: 'PATCH', token: b.token, body: json({ mode }) })).body.user.owl_post, mode);
+    }
     assert.equal((await call('/owlpost/settings', { method: 'PATCH', token: b.token, body: json({ mode: 'everyone' }) })).status, 400);
   });
 
@@ -205,6 +207,65 @@ test('owl post', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
     assert.equal(await refusedWith('write to me@example.com'), 'subject_has_link');
     assert.equal(await refusedWith(5), 'invalid_subject');
     assert.equal((await thread(b, a)).body.messages.length, 2, 'a refused subject sends nothing');
+  });
+
+  await t.test('open by default: someone who is not a friend can send an owl, and is held to one until they answer', async () => {
+    const a = await newPlayer();
+    const b = await newPlayer();
+    assert.equal((await call('/auth/me', { token: b.token })).body.user.owl_post, 'open', 'new accounts are open');
+
+    assert.equal((await send(a, b, 'Fancy a duel?')).status, 201);
+    const second = await send(a, b, 'Hello? Anyone?');
+    assert.equal(second.status, 403);
+    assert.equal(second.body.error, 'awaiting_reply');
+    assert.equal((await thread(a, b)).body.with.awaiting_reply, true, 'and the screen can say so');
+
+    const box = await inbox(b);
+    assert.equal(box[0].username, a.username);
+    assert.equal(box[0].is_friend, false, 'the recipient is told it is not a friend');
+    assert.equal(await unread(b), 1);
+
+    await call(`/owlpost/messages/${(await thread(a, b)).body.messages[0].id}`, { method: 'DELETE', token: a.token });
+    assert.equal((await send(a, b, 'Trying again')).body.error, 'awaiting_reply', 'tidying up does not reset the allowance');
+
+    assert.equal((await send(b, a, 'Sure, when?')).status, 201, 'the recipient may always answer');
+    assert.equal((await send(a, b, 'Friday')).status, 201, 'and then the conversation is open');
+  });
+
+  await t.test('friends only turns strangers away, plainly, and still allows friends and old conversations', async () => {
+    const [a, b] = await friends();
+    const stranger = await newPlayer();
+    await call('/owlpost/settings', { method: 'PATCH', token: b.token, body: json({ mode: 'friends' }) });
+
+    const turned = await send(stranger, b, 'hello');
+    assert.equal(turned.status, 403);
+    assert.equal(turned.body.error, 'not_accepting_owls');
+    assert.equal((await send(a, b, 'hello friend')).status, 201);
+
+    // A conversation that already exists stays readable, even once the setting has moved on.
+    const c = await newPlayer();
+    assert.equal((await send(c, a, 'before the setting changed')).status, 201);
+    await call('/owlpost/settings', { method: 'PATCH', token: a.token, body: json({ mode: 'friends' }) });
+    assert.equal((await thread(a, c)).status, 200);
+    assert.equal((await send(c, a, 'and again')).body.error, 'not_accepting_owls', 'but they cannot add to it');
+  });
+
+  await t.test('a player cannot start new owls to many strangers in a day', async () => {
+    const a = await newPlayer();
+    let last;
+    for (let i = 0; i < 11; i += 1) last = await send(a, await newPlayer(), 'hello');
+    assert.equal(last.status, 429);
+    assert.equal(last.body.error, 'too_many_new_contacts');
+  });
+
+  await t.test('blocking still ends it, the same 404 whoever blocked whom', async () => {
+    const a = await newPlayer();
+    const b = await newPlayer();
+    await send(a, b, 'first');
+    await call('/blocks', { method: 'POST', token: b.token, body: json({ username: a.username }) });
+    assert.equal((await send(a, b, 'again')).status, 404);
+    assert.equal((await thread(b, a)).status, 404);
+    assert.equal(await unread(b), 0, 'and a blocked player\u2019s owls are not counted');
   });
 
   await t.test('a new owl reaches the recipient live, and only the recipient', async (t) => {

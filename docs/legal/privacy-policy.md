@@ -54,8 +54,11 @@ chosen by you:
   and removed by a moderator.
 - **Favourite book and favourite subject**, chosen from fixed lists.
 - **Pinned achievements** — up to three of your earned achievements to show on your profile.
+- **Title** — a short label from a fixed list (earned through play, or given by an administrator) shown beside
+  your name; you choose whether to wear one.
 - **Who can see your friends list** — friends only (the default), everyone, or only you.
-- **Owl Post setting** — whether you accept messages (see below).
+- **Owl Post and challenge settings** — who may message you or invite you to a duel: everyone (the
+  default), friends only, or no one.
 
 **Gameplay data** (`game_sessions` and `session_questions` tables): every quiz run you play —
 mode (Classic, Daily Challenge, Blitz, Survival, Gauntlet, Live Duel, shared Challenge),
@@ -74,8 +77,9 @@ your friends on the Community screen's Activity tab. We never push these as noti
 
 **Achievements** (`user_achievements` table): which achievements you have unlocked, and when.
 
-**Owl Post messages** (`messages` table): short plain-text messages between two players who are
-friends. For each message we store its text, an optional subject, who sent it and to whom, when,
+**Owl Post messages** (`messages` table): short plain-text messages between two players. By default
+any player can send you one (you can restrict this to friends only, or switch Owl Post off, in Settings),
+though someone who is not your friend can send only one until you answer. For each message we store its text, an optional subject, who sent it and to whom, when,
 and whether and when it was read. Messages are **not** end-to-end encrypted: they sit in our
 database in readable form. We do not read them as a matter of course — **moderators have no way to
 browse anyone's inbox** — but they can be seen in two situations: (1) when a player reports a
@@ -165,7 +169,7 @@ a popular book/film franchise and may attract players under the age of 13. **The
 currently ask anyone's age, and does not currently implement age screening, verifiable parental
 consent, or restricted handling for known-underage users.** Several features make a child's
 information visible to others (a public username, an open member directory, leaderboards, a bio,
-and messages between friends), which matters for the legal analysis. **We are not representing, in
+and messages that, by default, any other player can send), which matters for the legal analysis. **We are not representing, in
 this draft, that the Service complies with COPPA or equivalent children's-privacy laws elsewhere.**
 The intended policy wording depends on a product decision (restrict the Service to players 13 and
 over, or build a separate parent-approved experience); `docs/legal/coppa-options.md` sets the

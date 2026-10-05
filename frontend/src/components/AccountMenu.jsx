@@ -1,5 +1,6 @@
 import Avatar from './Avatar.jsx';
 import PopoverMenu from './PopoverMenu.jsx';
+import PlayerTitle from './PlayerTitle.jsx';
 import { HOUSES } from '../constants/houses.js';
 
 const HOUSE_LABEL = Object.fromEntries(HOUSES.map((h) => [h.id, h.label]));
@@ -18,6 +19,7 @@ export default function AccountMenu({ user, active, onViewProfile, onNavigate, o
       ? [
           { key: 'questions', label: 'Review questions', icon: 'check', onSelect: () => onNavigate('admin-suggestions') },
           { key: 'reports', label: 'Review reports', icon: 'alert', onSelect: () => onNavigate('admin-reports') },
+          { key: 'titles', label: 'Manage titles', icon: 'user', onSelect: () => onNavigate('admin-titles') },
         ]
       : []),
     { key: 'logout', label: 'Log out', icon: 'logout', onSelect: onLogout },
@@ -27,12 +29,14 @@ export default function AccountMenu({ user, active, onViewProfile, onNavigate, o
     <PopoverMenu
       label="Account menu"
       triggerClassName={`account-trigger ${active ? 'on' : ''}`}
+      triggerCurrent={active}
       trigger={<Avatar username={user.username} avatar={user.avatar} style={user.avatar_style} house={user.theme} size={34} />}
       header={
         <>
           <Avatar username={user.username} avatar={user.avatar} style={user.avatar_style} house={user.theme} size={40} />
           <span className="account-menu-who">
             <span className="account-menu-name">{user.username}</span>
+            <PlayerTitle title={user.title} />
             <span className="account-menu-house">{HOUSE_LABEL[user.theme]}</span>
           </span>
         </>

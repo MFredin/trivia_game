@@ -11,7 +11,10 @@ const SEND_ERRORS = {
   invalid_subject: 'That subject could not be used.',
   duplicate_message: 'You just sent that.',
   too_many_attempts: 'Slow down — you are sending a lot of owls. Try again in a moment.',
-  user_not_found: 'That owl could not be delivered. They may have switched Owl Post off, or are no longer your friend.',
+  user_not_found: 'There is no player by that name.',
+  not_accepting_owls: 'That player is not accepting owls from you.',
+  awaiting_reply: 'You have already sent this player an owl. You can write again once they answer.',
+  too_many_new_contacts: 'You have started a lot of new conversations today. Try again tomorrow, or write to a friend.',
 };
 
 export function sendErrorText(error) {
