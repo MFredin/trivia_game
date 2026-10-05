@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import Plate from './Plate.jsx';
 import Avatar from './Avatar.jsx';
 import IconButton from './IconButton.jsx';
@@ -6,6 +6,7 @@ import Icon from './icons.jsx';
 import PopoverMenu from './PopoverMenu.jsx';
 import PlayerTitle from './PlayerTitle.jsx';
 import { sendErrorText } from '../features/owlpost/sendErrors.js';
+import { useFillViewport } from '../features/owlpost/useFillViewport.js';
 
 const MESSAGE_MAX = 500;
 
@@ -16,13 +17,42 @@ const stamp = (iso) =>
 export default function OwlThread({ thread, user, sending, sendError, onSend, onLoadOlder, onDelete, onBack, onViewProfile, onReport, onBlock }) {
   const [draft, setDraft] = useState('');
   const [selected, setSelected] = useState(null);
-  const endRef = useRef(null);
+  const scrollerRef = useRef(null);
+  const composerRef = useRef(null);
+  useFillViewport(scrollerRef, composerRef);
   const count = thread.messages.length;
 
-  // New messages land at the bottom of the view, as in any conversation.
-  useEffect(() => {
-    endRef.current?.scrollIntoView?.({ block: 'end' });
-  }, [count]);
+  // Where the conversation was last time it changed, and whether the reader was at the bottom of it. The
+  // messages scroll inside their own area (CSS .owl-scroll), so the position is kept here rather than left to
+  // the page: the newest owl is shown when the thread opens or when a new one arrives to a reader who was
+  // already at the bottom, and loading older owls above must not move what is being read.
+  const placed = useRef({ username: null, first: null, last: null, height: 0 });
+  const following = useRef(true);
+
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const first = thread.messages[0]?.id ?? null;
+    const last = thread.messages.at(-1)?.id ?? null;
+    const prev = placed.current;
+    const opened = prev.username !== thread.username || prev.last === null;
+    const newest = thread.messages.at(-1);
+
+    if (opened || (last !== prev.last && (following.current || newest?.from_me))) {
+      el.scrollTop = el.scrollHeight;
+      following.current = true;
+    } else if (first !== prev.first && last === prev.last) {
+      // Older owls were added above: move down by what was added, so the same owl stays where it was.
+      el.scrollTop += el.scrollHeight - prev.height;
+    }
+    placed.current = { username: thread.username, first, last, height: el.scrollHeight };
+  }, [thread.messages, thread.username]);
+
+  // Within a few pixels of the end counts as "at the bottom", so a rounding difference never stops following.
+  const onScroll = (event) => {
+    const el = event.currentTarget;
+    following.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  };
 
   const submit = async (event) => {
     event.preventDefault();
@@ -93,13 +123,15 @@ export default function OwlThread({ thread, user, sending, sendError, onSend, on
           </p>
         )}
 
+        {/* The one scrolling part of the page. It takes focus (tabIndex) so the keyboard can scroll it. */}
+        <div className="owl-scroll" ref={scrollerRef} onScroll={onScroll} role="region" aria-label={`Conversation with ${thread.username}`} tabIndex={0}>
         {thread.hasMore && (
           <button type="button" className="secondary-button owl-older" onClick={onLoadOlder}>
             Earlier owls
           </button>
         )}
 
-        <ol className="owl-messages" aria-label={`Conversation with ${thread.username}`}>
+        <ol className="owl-messages">
           {thread.messages.map((m) => (
             <li key={m.id} className={`owl-message ${m.from_me ? 'owl-message--mine' : ''}`}>
               <button
@@ -127,10 +159,10 @@ export default function OwlThread({ thread, user, sending, sendError, onSend, on
           ))}
         </ol>
         {!thread.loading && count === 0 && !thread.error && <p className="explanation">No owls yet — say hello.</p>}
-        <div ref={endRef} />
+        </div>
       </Plate>
 
-      <form className="owl-composer" onSubmit={submit}>
+      <form className="owl-composer" ref={composerRef} onSubmit={submit}>
         {blockedReason ? (
           <p className="explanation owl-blocked" role="status">
             {blockedReason}

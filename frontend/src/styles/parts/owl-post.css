@@ -109,6 +109,26 @@
   overflow-wrap: anywhere;
 }
 
+/* A long conversation scrolls inside this box, with the composer below it always on screen, instead of lengthening
+   the page. useFillViewport sets the real max-height from what is left of the screen; the value here is only the
+   fallback before it runs (about 33rem of header, title row, padding and composer; `dvh` follows a phone's
+   collapsing address bar, with `vh` for browsers that do not know it). The floor keeps it usable on a very short
+   screen. */
+.owl-scroll {
+  max-height: calc(100vh - 33rem);
+  max-height: calc(100dvh - 33rem);
+  min-height: 12rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 0.3rem;
+}
+
+.owl-scroll:focus-visible {
+  outline: 2px solid var(--rubric);
+  outline-offset: 2px;
+}
+
 .owl-older {
   display: block;
   margin: 0 auto 1rem;

@@ -168,3 +168,97 @@ test('owl post: open to anyone by default, with a stranger held to one owl until
     await e.getByLabel(/Your owl to/).waitFor();
   });
 });
+
+// A bug that reached a player: a long conversation just kept lengthening the page, so the composer sank out
+// of reach. The conversation now scrolls inside itself, with the composer always on screen.
+test('owl post: a long conversation scrolls inside itself, with the composer in reach', { skip: !process.env.DATABASE_URL && 'DATABASE_URL not set' }, async (t) => {
+  const { default: pg } = await import('../../backend/node_modules/pg/lib/index.js');
+  const db = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const browser = await launch();
+  t.after(async () => {
+    await browser.close();
+    await db.end();
+  });
+
+  // A phone is where it hurts most; the same rule holds on a desktop screen (checked at the end).
+  const a = (await openPage(browser, { width: 390, height: 844 })).page;
+  const b = (await openPage(browser)).page;
+  const nameA = await register(a);
+  const nameB = await register(b);
+  assert.equal(await asPlayer(a, '/friends', 'POST', { username: nameB }), 201);
+  assert.equal(await asPlayer(b, `/friends/requests/${nameA}/accept`, 'POST'), 200);
+
+  // Ninety owls straight into the table (the send route is rate limited, as it should be): more than one
+  // page of the thread, so "Earlier owls" is offered too. Each is numbered so a position can be named.
+  const { rows } = await db.query('SELECT id, username FROM users WHERE username = ANY($1)', [[nameA, nameB]]);
+  const id = Object.fromEntries(rows.map((r) => [r.username, r.id]));
+  await db.query(
+    `INSERT INTO messages (sender_id, recipient_id, body, created_at)
+     SELECT CASE WHEN n % 2 = 0 THEN $1::int ELSE $2::int END, CASE WHEN n % 2 = 0 THEN $2::int ELSE $1::int END,
+            'Owl number ' || n, now() - make_interval(mins => 100 - n)
+     FROM generate_series(1, 90) AS n`,
+    [id[nameA], id[nameB]],
+  );
+  await a.reload({ waitUntil: 'networkidle' });
+  await navigateTo(a, 'Owl Post');
+  await a.getByRole('button', { name: new RegExp(nameB) }).click();
+  await a.locator('.owl-bubble', { hasText: 'Owl number 90' }).waitFor();
+
+  const geometry = () =>
+    a.evaluate(() => {
+      const scroller = document.querySelector('.owl-scroll');
+      const composer = document.querySelector('.owl-composer').getBoundingClientRect();
+      return {
+        pageGrowth: document.documentElement.scrollHeight - window.innerHeight,
+        scrollable: scroller.scrollHeight > scroller.clientHeight + 1,
+        atBottom: scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 2,
+        composerBottom: composer.bottom,
+        viewport: window.innerHeight,
+      };
+    });
+
+  await t.test('the page does not grow with the conversation, and the newest owl is in view', async () => {
+    const g = await geometry();
+    assert.equal(g.scrollable, true, 'the messages scroll inside their own area');
+    assert.ok(g.pageGrowth <= 320, `the page is not lengthened by the owls: only the footer is below the fold (grew by ${g.pageGrowth}px)`);
+    assert.equal(g.atBottom, true, 'it opens at the newest owl');
+    assert.ok(await a.locator('.owl-bubble', { hasText: 'Owl number 90' }).isVisible());
+  });
+
+  await t.test('the composer is on screen without scrolling the page', async () => {
+    const g = await geometry();
+    assert.ok(g.composerBottom <= g.viewport + 1, `composer ends at ${g.composerBottom}px in a ${g.viewport}px screen`);
+  });
+
+  await t.test('the scrolling area can be reached from the keyboard', async () => {
+    assert.equal(await a.locator('.owl-scroll').getAttribute('tabindex'), '0');
+  });
+
+  await t.test('earlier owls load above without moving what you were reading', async () => {
+    const probe = a.locator('.owl-bubble', { hasText: 'Owl number 51' });
+    await a.evaluate(() => {
+      const scroller = document.querySelector('.owl-scroll');
+      scroller.scrollTop = 0;
+    });
+    await a.getByRole('button', { name: 'Earlier owls' }).click();
+    await a.locator('.owl-bubble', { hasText: 'Owl number 1' }).first().waitFor({ state: 'attached' });
+    // Number 51 was the oldest one loaded; after loading 50 older ones it must still be where it was on screen.
+    const top = await probe.evaluate((el) => el.getBoundingClientRect().top - document.querySelector('.owl-scroll').getBoundingClientRect().top);
+    assert.ok(top >= -2 && top < 120, `the oldest owl you had is still at the top of the area (at ${Math.round(top)}px)`);
+  });
+
+  await t.test('a new owl sent from here brings the view back to the bottom', async () => {
+    await a.getByLabel(/Your owl to/).fill('Newest of all');
+    await a.getByRole('button', { name: 'Send', exact: true }).click();
+    await a.locator('.owl-bubble', { hasText: 'Newest of all' }).waitFor();
+    assert.equal((await geometry()).atBottom, true);
+  });
+
+  await t.test('the same on a desktop screen', async () => {
+    await a.setViewportSize({ width: 1280, height: 800 });
+    await a.waitForTimeout(300);
+    const g = await geometry();
+    assert.ok(g.pageGrowth <= 320, `page grew by ${g.pageGrowth}px`);
+    assert.ok(g.composerBottom <= g.viewport + 1);
+  });
+});
