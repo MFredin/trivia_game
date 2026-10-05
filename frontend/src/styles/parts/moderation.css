@@ -135,3 +135,12 @@
 .notice-taken {
   font-size: 0.9rem;
 }
+
+/* A report a moderator has sent up: said plainly, so an admin who opens the queue sees it first and why. */
+.mod-escalated {
+  margin: 0.4rem 0 0;
+  padding: 0.4rem 0.7rem;
+  border-left: 3px solid var(--rubric);
+  background: rgba(var(--rubric-rgb), 0.07);
+  font-size: 0.85rem;
+}

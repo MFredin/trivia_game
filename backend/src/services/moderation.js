@@ -4,6 +4,7 @@ import { getSockets } from '../lib/presenceRegistry.js';
 import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
 import { hashEmail } from '../lib/emailHash.js';
 import { LOCKOUT_ACTIONS, TIMED_ACTIONS, describeResolution } from '../lib/moderation.js';
+import { canActOn, roleOf } from '../lib/roles.js';
 
 const fail = (error, status = 400) => ({ error: { status, body: { error } } });
 
@@ -14,9 +15,11 @@ const fail = (error, status = 400) => ({ error: { status, body: { error } } });
  *
  * The target is read from the report, never from the request, so an action can only be taken
  * against the person who was actually reported. Admins and the acting admin themselves are out of
- * reach: nobody in this app can be moderated by someone they outrank or by themselves.
+ * reach, and a moderator cannot act on another moderator: nobody in this app can be moderated by
+ * someone they do not outrank, or by themselves. `actorRole` is who is acting; what that role may do
+ * (a ban, a long suspension) is checked by the route before this is called.
  */
-export async function applyModeration({ adminId, reportId, actions, days, note }) {
+export async function applyModeration({ adminId, actorRole = 'admin', reportId, actions, days, note }) {
   const client = await pool.connect();
   let lockedOut = false;
   let targetId;
@@ -34,7 +37,7 @@ export async function applyModeration({ adminId, reportId, actions, days, note }
     targetId = reportRows[0].reported_id;
 
     const { rows: userRows } = await client.query(
-      'SELECT id, email, is_admin, deleted_at FROM users WHERE id = $1 FOR UPDATE',
+      'SELECT id, email, is_admin, is_moderator, deleted_at FROM users WHERE id = $1 FOR UPDATE',
       [targetId],
     );
     const target = userRows[0];
@@ -45,6 +48,10 @@ export async function applyModeration({ adminId, reportId, actions, days, note }
     if (target.is_admin || target.id === adminId) {
       await client.query('ROLLBACK');
       return fail('cannot_moderate_admin');
+    }
+    if (!canActOn(actorRole, roleOf(target))) {
+      await client.query('ROLLBACK');
+      return fail('cannot_moderate_staff');
     }
 
     const batchId = crypto.randomUUID();
@@ -125,12 +132,12 @@ export async function applyModeration({ adminId, reportId, actions, days, note }
  * player's state is recomputed from the actions that remain, so lifting one of two overlapping
  * suspensions leaves the other in force.
  */
-export async function liftAction({ adminId, actionId }) {
+export async function liftAction({ adminId, actorRole = 'admin', actionId }) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const { rows } = await client.query(
-      `SELECT id, user_id, action, email_hash FROM moderation_actions
+      `SELECT id, user_id, action, email_hash, admin_id FROM moderation_actions
        WHERE id = $1 AND action IN ('suspend', 'ban', 'mute') AND lifted_at IS NULL FOR UPDATE`,
       [actionId],
     );
@@ -138,6 +145,12 @@ export async function liftAction({ adminId, actionId }) {
     if (!row) {
       await client.query('ROLLBACK');
       return fail('action_not_found', 404);
+    }
+
+    // A moderator can take back what they did themselves, short of a ban; anything else is an admin's.
+    if (actorRole !== 'admin' && (row.action === 'ban' || row.admin_id !== adminId)) {
+      await client.query('ROLLBACK');
+      return fail('needs_admin', 403);
     }
 
     await client.query('UPDATE moderation_actions SET lifted_at = now(), lifted_by = $2 WHERE id = $1', [actionId, adminId]);

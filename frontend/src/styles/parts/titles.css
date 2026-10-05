@@ -16,6 +16,16 @@
   font-weight: 600;
 }
 
+/* On the dark page, in a screen heading. */
+.player-title--on-page {
+  color: var(--silver-200);
+}
+
+/* Beside a name in a table cell, not under it. */
+.player-title--inline {
+  margin-left: 0.5rem;
+}
+
 /* The line under a name in a list: the title, then how you stand with them. */
 .member-meta {
   display: flex;

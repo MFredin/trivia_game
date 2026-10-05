@@ -12,8 +12,8 @@
 > product gaps" list at the end of this document before doing anything else with it.
 
 **Last updated:** DRAFT — not yet published. Date to be set upon attorney review and launch.
-**Draft revision:** 2 — brought up to date with the app as of October 2026 (profiles, blocking,
-reporting and moderation, account deletion, Owl Post). See "Revision history" at the end.
+**Draft revision:** 3 — brought up to date with the app as of October 2026 (the 13+ age gate, moderator
+role, retention periods, password reset and the public deletion page). See "Revision history" at the end.
 
 ---
 
@@ -33,14 +33,19 @@ or a new data-collecting feature, this section needs to be updated to match.
 **Account information** (`users` table):
 - **Username** — public. Shown on leaderboards, in the member directory, to friends, and in
   duels. Other players can find you by it.
-- **Email address** — used to log in. Not shown to other players. (If a player is banned, a
-  one-way hash of the address is kept; see "Moderation records" below.)
+- **Email address** — used to log in, and to send you a link if you ask to reset your password or to
+  delete your account (we send no other email). Not shown to other players. (If a player is banned, a
+  one-way hash of the address is kept; see "Reports and moderation" below.)
 - **Password** — we never store your actual password. We store a one-way hash: your password
   is run through Node's `scrypt` key-derivation function with a unique random salt per
   account, and only that salt+hash is stored (`backend/src/lib/passwords.js`). We cannot look
   up or recover your plaintext password.
 - **Chosen house theme** — a cosmetic preference, stored against your account.
-- **Admin flag** — whether your account has moderator rights. Only a small number of accounts.
+- **Staff role** — whether your account is a moderator or an administrator. Only a small number of accounts.
+  Moderators can review reports and take some actions; administrators can do everything, including bans.
+  See "Reports and moderation" below for who sees what.
+- **Age confirmation** — a timestamp showing that, when you registered, you told us you were 13 or over. **We
+  do not keep your date of birth**: the month and year you enter are checked on the spot and discarded.
 - **Invite code** — a code tied to your account that lets you invite other players.
 - **Account creation timestamp.**
 
@@ -99,6 +104,18 @@ moderator, and the note written to you explaining why. If you are **banned**, we
 SHA-256 hash of your email address (not the address itself) so the same address cannot be used to
 register again; the hash is removed if the ban is lifted.
 
+**Who sees a report.** Reports are read by moderators and administrators. A moderator sees the report, the
+reason and note, and any messages attached to it, and can warn, rename, clear a bio or avatar, hold scores off
+the leaderboards, mute or suspend for up to 7 days, or send the report up to an administrator; only an
+administrator can ban, suspend for longer, or act on another member of staff. Neither can browse anyone's
+inbox. Every action is recorded with who took it. The reported player is never told who reported them.
+
+**Password-reset and deletion links** (`email_tokens`, `email_token_log` tables): when you ask for a link, we
+store a one-way hash of the random code in it (never the code), which account it is for, and when it expires
+(60 minutes) or is used, and we count the messages sent to an address per day to limit abuse. Used and expired
+codes are deleted. The address is entered only to look up an account; if it has none we send nothing and say
+the same thing, so the form cannot be used to find out who is registered.
+
 **Suggested questions** (`suggested_questions` table): if you use the question-suggestion
 feature, we store the question text, answer, and distractors you wrote, tied to your account,
 plus the review status and any review note once it has been looked at.
@@ -129,7 +146,10 @@ the database — this section must be rewritten to say so before that feature sh
 - **Owl Post messages** — to deliver them, and to let you report abuse with evidence.
 - **Reports and moderation records** — to keep the Service safe: to review reports, apply and
   explain sanctions, make sure repeated behaviour is recognised, and keep a banned player from
-  returning.
+  returning. Kept for the periods in Section 7.
+- **Age confirmation** — to keep the Service to players aged 13 and over (Section 6).
+- **Email for reset and deletion links** — so that someone who cannot log in can still get back in or delete
+  their account.
 - **Suggested questions** — to run the player-question-submission and review feature.
 - **Feedback** — to receive and act on bug reports and ideas.
 
@@ -141,6 +161,9 @@ for their own advertising or marketing purposes.
 - **Hosting.** The Service runs on a hosting provider (Railway) and its database, which therefore
   store everything described above on our behalf. 🚩 *Attorney: confirm whether a data-processing
   agreement and a statement about where the data is stored are needed.*
+- **Email.** If an operator turns it on, password-reset and account-deletion links are sent through an email
+  provider (Resend), which therefore sees the recipient's address and the message. Nothing else is emailed.
+  Without it nothing is sent and the app says so. 🚩 *Attorney: provider terms and where it processes data.*
 - **Feedback submissions** are sent to a GitHub repository's issue tracker via the GitHub API,
   so GitHub stores that content (your message, category, page, and username if logged in) as
   well as we do. 🚩 *Confirm whether that repository's issues are public; if they are, a
@@ -156,25 +179,40 @@ for their own advertising or marketing purposes.
 ## 5. What's stored on your device (cookies / local storage)
 
 We checked the actual frontend code for this rather than describing a generic cookie policy.
-As of this writing, the app stores exactly one thing in your browser's `localStorage`: your
-**login session token**, under the key `trivia_auth_token`. This is what keeps you logged in
-between visits; it is removed when you log out or when the server tells the app your session is
-invalid. We do not use advertising or analytics cookies. Your theme preference is saved to your
-account on our server, not in the browser.
+As of this writing, the app stores two things in your browser's `localStorage`:
+
+- your **login session token**, under the key `trivia_auth_token`. This is what keeps you logged in between
+  visits; it is removed when you log out or when the server tells the app your session is invalid. Session
+  tokens last 30 days and cannot be cancelled early, even by changing the password. 🚩 *Fixable in code; say so
+  here until it is fixed.*
+- **a timestamp, under `trivia_age_gate`, set only if someone enters an age under 13** at registration. It stops
+  the same browser immediately trying again with an older age for 24 hours, and holds no date of birth.
+
+Both are strictly necessary to run the Service as described (staying signed in; keeping the age rule), so a
+consent banner is probably not needed for them 🚩 *attorney to confirm for the jurisdictions that matter*. We do
+not use advertising or analytics cookies. Your theme preference is saved to your account on our server, not in
+the browser.
 
 ## 6. Children's privacy
 
-🚩 *[See the flagged item below and `docs/legal/coppa-options.md`.]* This Service is themed around
-a popular book/film franchise and may attract players under the age of 13. **The app does not
-currently ask anyone's age, and does not currently implement age screening, verifiable parental
-consent, or restricted handling for known-underage users.** Several features make a child's
-information visible to others (a public username, an open member directory, leaderboards, a bio,
-and messages that, by default, any other player can send), which matters for the legal analysis. **We are not representing, in
-this draft, that the Service complies with COPPA or equivalent children's-privacy laws elsewhere.**
-The intended policy wording depends on a product decision (restrict the Service to players 13 and
-over, or build a separate parent-approved experience); `docs/legal/coppa-options.md` sets the
-options out for the attorney. This section must be rewritten to match whatever is decided, and the
-decision implemented in the app, before publication.
+🚩 *[See `docs/legal/coppa-options.md`; the decision below is the founder's and an attorney must confirm it.]*
+**The Service is for players aged 13 and over.** Registration begins with a neutral question — the month and
+year of birth, with no hint of the cut-off — before any email address, username or password is asked for. If
+the answer shows the person is under 13, nothing is stored, no account is created, and they are told the
+Service is not available to them; the same browser is stopped from trying again with a different answer for 24
+hours (Section 5). If the answer shows 13 or over, registration continues, and all that is kept is the fact
+that they confirmed it (Section 2) — not the date. The server makes this check itself, before it reads
+anything else in the request.
+
+If we learn that an account belongs to someone under 13, we will delete it. Parents who think their child has
+an account can use the contact method in Section 9, and the in-app deletion or the public page in Section 7.
+There is no parent-approved mode for younger players; whether to offer one later is open (`coppa-options.md`,
+Option B).
+
+Limits, stated plainly: an age question that is answered honestly is the only check; accounts that existed
+before it was added were never asked; and **we are not representing that the Service complies with COPPA or
+equivalent laws elsewhere** — whether a Harry Potter-themed service counts as "directed to children", and what
+follows from that, is a question for the attorney. Some countries set a higher age of digital consent than 13.
 
 ## 7. Data retention and account deletion
 
@@ -189,10 +227,8 @@ delete:
   you sent or received.** Your username and email can then be used to register again.
 - **Kept, without your name:** your game runs and scores, and duel and challenge history that other
   players are part of; where these are shown, you appear as **"Deleted player."**
-- **Moderation records are kept.** Reports made about you or by you, the actions taken, the notes
-  written to you, and any copy of messages attached to a report remain, linked only to the
-  anonymised account, so that a safety decision can be explained and a pattern recognised. 🚩 *No
-  retention period is set for these; one needs to be chosen (see flagged items).*
+- **Moderation records are kept for a fixed time, then deleted** (below), linked only to the anonymised
+  account in the meantime, so that a safety decision can be explained and a pattern recognised.
 - **If you were banned,** the one-way hash of your email address is kept after deletion, on
   purpose, so the ban cannot be avoided by deleting and re-registering.
 - **Backups.** 🚩 *The hosting provider's database backups are outside the app's control; a
@@ -201,11 +237,25 @@ delete:
 If you do not delete your account, we keep your data for as long as the account exists. Owl Post
 messages are deleted after 90 days regardless.
 
-🚩 **Gap:** Google Play and similar stores require a public web page where someone can request
-deletion without opening the app (for example after losing their password). **That page does not
-exist yet**, and there is no password-reset (the app sends no email), so a player who cannot log in
-cannot delete their own account today. Until it is built, such a request has to be made through
-the contact method in Section 9 and handled by hand.
+**Safety records** are removed automatically (checked hourly), whether or not the account still exists:
+
+- the **copy of messages attached to a report** — 90 days after the report is closed;
+- **a closed report** (reason, note, outcome) — 1 year after it is closed;
+- **what was done to a player** (warning, forced rename, suspension, ban and the note sent with it) — 1 year
+  after it stopped mattering: after it was applied, for a one-off action; after it ended or was lifted, for a
+  suspension or mute; after it was lifted, for a ban.
+
+**Open reports and sanctions still in force are never removed**; a ban's record, and the hash of the email behind
+it, last as long as the ban. 🚩 *Attorney: are these periods defensible? Is a longer period needed for a
+particularly serious report?*
+
+**Reset and deletion links** are valid for 60 minutes and can be used once; expired ones are deleted.
+
+**Deleting without logging in.** The footer of every page has a "Delete your account" link (also reachable as
+`/?delete-account`, for an app-store listing). It explains what deletion does, and, where email is switched on,
+sends a one-hour link to the address on the account; opening it shows which account it is and deletes it only
+when the button is pressed. A forgotten password can likewise be reset by emailed link. 🚩 *Where email is not
+set up, the page says so and a request has to go through Section 9 and be handled by hand.*
 
 ## 8. Your rights
 
@@ -235,23 +285,24 @@ We may update this Privacy Policy as the Service changes. If we do, we will upda
 
 ## Flagged for attorney review / product gaps
 
-1. **Children's privacy / COPPA (Section 6).** No age screening exists, and several features make a
-   child's information public. Needs a product decision and legal review; see
-   `docs/legal/coppa-options.md`. **This is the largest open item.**
-2. **Retention of moderation records (Section 7).** Reports, evidence copies of messages, actions and
-   notes are kept after deletion with no end date. Choose a period (and say it here) — e.g. a fixed
-   number of months after the report is closed, longer for sanctions that are still in force.
-3. **Public deletion-request page and password reset (Section 7).** Not built; required by app
-   stores and needed for anyone locked out of their account.
-4. **Applicable regional privacy law (Section 8)** (GDPR, CCPA/CPRA, etc.) depends on where the
+1. **Children's privacy / COPPA (Section 6).** The founder has chosen 13 and over, enforced by a neutral age
+   question. Attorney to confirm that this is sufficient for this app (is it "directed to children"?), whether
+   any country needs a higher age, and the wording for people who registered before the question existed. A
+   parent-approved mode is deferred, not ruled out.
+2. **Retention periods (Section 7).** 90 days / 1 year / 1 year are the engineering proposal. Attorney to confirm
+   or change; the numbers live in `backend/src/lib/retention.js`.
+3. **Applicable regional privacy law (Section 8)** (GDPR, CCPA/CPRA, etc.) depends on where the
    operator and its players are located — needs attorney confirmation, tied to the governing-law
    placeholder in the Terms of Service.
-5. **Messages are stored readable (Section 2).** Confirm the disclosure about when they can be
+4. **Messages are stored readable (Section 2).** Confirm the disclosure about when they can be
    seen, and whether keeping the other person's messages inside a report is acceptable.
-6. **Sentry and request addresses (Section 4)** and **whether feedback issues are public.** Both are
+5. **Sentry and request addresses (Section 4)** and **whether feedback issues are public.** Both are
    fixable in code; decide before turning either on in production.
-7. **Hosting provider, processor terms and backups (Sections 4 and 7).**
-8. **Future IP-address / device-fingerprint persistence.** No IP address is persisted anywhere in the
+6. **Hosting provider, email provider, processor terms and backups (Sections 4 and 7).**
+7. **A private contact address (Section 9)** is still needed; the issue tracker is public.
+8. **Session tokens cannot be cancelled (Section 5)** — a password change or reset does not sign out other
+   devices for up to 30 days. A code fix is straightforward; until then this must be disclosed.
+9. **Future IP-address / device-fingerprint persistence.** No IP address is persisted anywhere in the
    schema — only used transiently in memory for rate-limiting. If that changes, Section 2 must be
    updated before such a feature ships.
 
@@ -264,3 +315,9 @@ We may update this Privacy Policy as the Service changes. If we do, we will upda
   Owl Post (messages, subject, 90-day retention, report evidence), self-service account deletion
   (which replaces the old "no deletion" statement), the activity feed's new location, and the new
   open items above.
+- **Revision 3 (October 2026)** — records the founder's decision to serve players 13 and over, with the age
+  question, the `age_confirmed_at` timestamp and the `trivia_age_gate` device flag; the moderator role and who
+  sees reports; titles and the open Owl Post and challenge settings (already described, now stated as the
+  default); retention periods for reports, evidence and moderation actions; password reset and the public
+  deletion page, with the email data they use and the email provider; the 30-day token limitation. Closes the
+  "public deletion page" and "no retention period" items and reframes the COPPA item as a decision to confirm.

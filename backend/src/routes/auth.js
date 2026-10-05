@@ -1,3 +1,4 @@
+import { MINIMUM_AGE, checkBirthDate, isOldEnough } from '../lib/ageGate.js';
 import crypto from 'node:crypto';
 import express from 'express';
 import { pool } from '../db/pool.js';
@@ -22,7 +23,14 @@ const VALID_THEMES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'mon
 const authRateLimit = rateLimit({ max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 10, windowMs: 15 * 60 * 1000 });
 
 router.post('/register', authRateLimit, async (req, res) => {
-  const { email, username, password, invite_code } = req.body ?? {};
+  const { email, username, password, invite_code, birth_month, birth_year } = req.body ?? {};
+
+  // Age first, before anything else is read or kept. Under the minimum there is no account, no email
+  // and no name stored, and the date itself is never stored for anyone.
+  const born = checkBirthDate({ month: birth_month, year: birth_year });
+  if (!born.ok) return res.status(400).json({ error: 'invalid_birth_date' });
+  if (!isOldEnough(born)) return res.status(403).json({ error: 'underage', minimum_age: MINIMUM_AGE });
+
   if (typeof email !== 'string' || !EMAIL_RE.test(email)) {
     return res.status(400).json({ error: 'invalid_email' });
   }
@@ -44,7 +52,7 @@ router.post('/register', authRateLimit, async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)
+      `INSERT INTO users (username, email, password_hash, age_confirmed_at) VALUES ($1, $2, $3, now())
        RETURNING ${USER_COLUMNS}`,
       [username.trim(), email.toLowerCase().trim(), passwordHash],
     );

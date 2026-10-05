@@ -1,3 +1,4 @@
+import { titleView } from '../lib/titles.js';
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { MODES } from '../lib/modes.js';
@@ -80,7 +81,7 @@ router.get('/', optionalAuth, async (req, res) => {
   // player once instead of letting one prolific player fill it with their own past attempts.
   const { rows } = await pool.query(
     `WITH ranked AS (
-       SELECT ${displayNameSql('u')} AS username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
+       SELECT ${displayNameSql('u')} AS username, u.title AS title_id, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
               gs.completed_at, (gs.completed_at - gs.created_at) AS duration,
               ROW_NUMBER() OVER (
                 PARTITION BY gs.user_id
@@ -90,7 +91,7 @@ router.get('/', optionalAuth, async (req, res) => {
        JOIN users u ON u.id = gs.user_id
        WHERE ${conditions.join(' AND ')}
      )
-     SELECT username, total_score, category, canon_source, difficulty, completed_at
+     SELECT username, title_id, total_score, category, canon_source, difficulty, completed_at
      FROM ranked
      WHERE rn = 1
      ORDER BY total_score DESC, duration ASC
@@ -98,7 +99,7 @@ router.get('/', optionalAuth, async (req, res) => {
     params,
   );
 
-  const result = { mode, category, canon_source: canonSource, difficulty, scope, window, entries: rows };
+  const result = { mode, category, canon_source: canonSource, difficulty, scope, window, entries: rows.map(({ title_id: titleId, ...row }) => ({ ...row, title: titleView(titleId) })) };
   setCached(cacheKey, result);
   return res.json(result);
 });

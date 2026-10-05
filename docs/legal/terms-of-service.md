@@ -11,7 +11,8 @@
 > the end of this document before doing anything else with it.
 
 **Last updated:** DRAFT — not yet published. Date to be set upon attorney review and launch.
-**Draft revision:** 2 — brought up to date with the app as of October 2026. See "Revision history".
+**Draft revision:** 3 — brought up to date with the app as of October 2026 (13+ age rule, moderator role, titles,
+retention, password reset and the public deletion page). See "Revision history".
 
 ---
 
@@ -20,7 +21,8 @@
 The Restricted Section ("the Service," "we," "us") is a free-to-play, browser-based trivia
 game built around Harry Potter–themed trivia questions. It includes solo quiz modes, a daily
 challenge, real-time head-to-head "duels" against other players, leaderboards, achievements, and
-a feature that lets players submit their own trivia questions for review. It also has a social
+a feature that lets players submit their own trivia questions for review, and titles — short labels earned through
+achievements, or given by an administrator, shown beside a player's name. It also has a social
 side: player profiles (an avatar and a short bio), a member directory, friends, an activity feed,
 the ability to block and report other players, and **Owl Post**, short private messages between players (anyone by default, or friends only, or off, as each player chooses).
 
@@ -46,15 +48,18 @@ address, and password.
 - Your username is shown to other players. It must not be offensive, and a moderator may change
   it (see Section 5).
 
-**Minimum age.** 🚩 *[PLACEHOLDER — see flagged item below and `docs/legal/coppa-options.md`.]*
-No minimum age is set in this draft, and **the app does not currently ask for anyone's age.** A
-trivia game themed around a popular book/film franchise is realistically likely to attract players
-under 13, which raises U.S. COPPA obligations (and equivalent regimes elsewhere, e.g. the UK/EU)
-that an AI drafting assistant is not positioned to resolve. The likely wording is "you must be at
-least 13" (and, where local law sets a higher age for consent to data processing, at least that
-age), **but that sentence is only true once the app enforces it**, so it is deliberately not
-included until a decision has been made and built. This section must be written by, or with, a
-licensed attorney.
+**Minimum age.** 🚩 *[Founder's decision recorded; wording and sufficiency for an attorney to confirm — see
+`docs/legal/coppa-options.md`.]* **You must be at least 13 years old to create an account** (and, where the law
+where you live sets a higher age for agreeing to the processing of your data, at least that age). Registration
+asks for your month and year of birth first, checks it, and **does not keep the date**: only a note that you
+confirmed you were 13 or over. If you are under 13, you may not register or use an account; if we learn that
+an account belongs to someone under 13, we will delete it. Entering a false age is a breach of these Terms. A
+parent or guardian who believes a child has an account can contact us (Section 11), or delete it using the
+public page described in Section 5. Whether a parent-approved mode for younger players will be offered later is
+undecided.
+
+**Staying in.** If you cannot log in, you can ask for a link by email to choose a new password. The link works
+for an hour and once. It is sent only to the address on the account.
 
 ## 3. Acceptable use
 
@@ -96,6 +101,10 @@ house, and your game statistics and achievements are visible to any signed-in pl
 member directory is open. Who can see your friends list is your choice (friends only by default).
 The avatar is drawn from fixed options; nothing can be uploaded.
 
+**Titles.** A title is a short label from a fixed list shown beside your name: earned by unlocking the matching
+achievement, or given by an administrator (for example Prefect, for moderators). You choose whether to wear
+one. Titles have no value outside the Service, and we may remove one, as with any achievement we reverse (Section 3).
+
 **Blocking.** You can block any player. A block ends any friendship between you, and after it
 neither of you can find, see, message, or challenge the other. They are not told. You can undo a
 block in Settings.
@@ -111,6 +120,7 @@ who writes to you. Please understand how it works:
 - **If a player reports a conversation and chooses to include the recent messages, the last 20
   messages of that conversation — including the ones you wrote — are copied into the report and
   shown to moderators.** By using Owl Post you accept that this can happen.
+- A report about a conversation can be seen by any moderator or administrator, not only one.
 - We may also look at messages where a serious safety concern or a legal obligation requires it.
 - Messages are deleted automatically after **90 days**. "Delete for me" hides a message from you
   only; the other person keeps their copy until the 90 days are up.
@@ -127,14 +137,17 @@ as it is there. 🚩 *Attorney: confirm.*
 
 Anyone can report a player, for an offensive name or bio, harassment, impersonation, cheating, or
 another reason. The player reported is **not** told who reported them. Reports are reviewed by a
-person, who decides what, if anything, to do. Depending on the situation, we may:
+person — a **moderator** or an **administrator** — who decides what, if anything, to do. Moderators are
+members of the community the operator has trusted with a smaller set of powers: they can warn, require a
+rename, clear a bio or avatar, hold scores, and mute or suspend for up to 7 days, but cannot ban or act on other
+staff, and can pass a report to an administrator. Depending on the situation, we may:
 
 - send you a **warning** that you must acknowledge before continuing;
 - require you to **change your username**;
 - **clear your bio** or **reset your avatar**;
 - **hold your scores off the leaderboards**;
 - **mute** you (stop you sending Owl Post) for a period;
-- **suspend** your account for a period, or **ban** it until we lift the ban;
+- **suspend** your account for a period, or **ban** it until we lift the ban (only an administrator can ban);
 - or, for a serious or repeated violation, skip steps.
 
 Whenever we do this we tell you what we did and why, in a note shown to you. We may also suspend
@@ -147,10 +160,11 @@ process beyond the in-app Submit Feedback form; decide whether one is needed.*
 by registering again, even if you delete your account. See the [Privacy Policy](privacy-policy.md).
 
 **Leaving.** You can stop using the Service at any time, and you can **delete your account in the
-app** (Settings → Delete account). Deleting removes your name, email, password, avatar, bio,
+app** (Settings → Delete account) or, if you cannot log in, from the **"Delete your account"** link in the
+footer, which emails a one-hour link to the address on the account. Deleting removes your name, email, password, avatar, bio,
 friends, blocks, achievements, activity and Owl Post messages; your game runs and scores remain
-without your name, shown as "Deleted player." Records of reports and moderation actions are kept,
-linked only to the anonymised account. See the [Privacy Policy](privacy-policy.md), Section 7.
+without your name, shown as "Deleted player." Records of reports and moderation actions are kept for a limited time (up to a year after a matter is
+closed; the copy of messages in a report for 90 days), linked only to the anonymised account, and removed after that. See the [Privacy Policy](privacy-policy.md), Section 7.
 
 ## 6. User-submitted questions
 
@@ -225,9 +239,10 @@ or support email address; if that changes, this section will be updated.
 The following items in this draft specifically need a licensed attorney's judgment, not just
 a wording pass, before this document is published or linked from the live app:
 
-1. **Minimum age / COPPA and children's-privacy compliance (Section 2).** No age floor is set and
-   the app does not ask for age. This needs a product decision and legal review; the options are in
-   `docs/legal/coppa-options.md`. **The largest open item.**
+1. **Minimum age / COPPA and children's-privacy compliance (Section 2).** The founder has decided on 13 and
+   over, enforced at registration by a neutral age question; attorney to confirm that is enough for this
+   app, whether any country needs a higher age, and what to say to accounts created before the question
+   existed. A parent-approved mode is deferred. **Still the largest open item.**
 2. **Governing law and venue (Section 9).** Left as an explicit placeholder — depends on where
    the operator is actually incorporated or based.
 3. **Enforceability of the liability cap and warranty disclaimer (Sections 7–8)** in whatever
@@ -238,7 +253,8 @@ a wording pass, before this document is published or linked from the live app:
 5. **Owl Post disclosures (Section 4).** Confirm that telling users that reported conversations are
    copied to moderators, including the other person's messages, is adequate, and whether
    moderators reading them needs further limits.
-6. **Appeals and moderation transparency (Section 5).** Whether to promise any process.
+6. **Appeals and moderation transparency (Section 5).** Whether to promise any process. Also whether the
+   moderator tier (community members with report access) needs any confidentiality undertaking.
 7. Whether a Terms-of-Service agreement needs an affirmative checkbox/click-through at signup
    (not just being linked somewhere) to be enforceable — a product change, not just wording.
 
@@ -249,3 +265,7 @@ a wording pass, before this document is published or linked from the live app:
   (Section 5), the banned-email hash, the account-deletion feature (replacing the old statement that
   there was none), new acceptable-use rules for names, bios and messages, and the open items above.
   Sections after 3 were renumbered; section references in the flagged list were updated to match.
+- **Revision 3 (October 2026)** — states a minimum age of 13 and how it is checked (Section 2); password reset and
+  the footer deletion page (Sections 2 and 5); the moderator role and its limits (Section 5); titles (Section 4);
+  that report evidence is visible to moderators generally and that moderation records are deleted after a set
+  time (Sections 4 and 5); updates the open items.

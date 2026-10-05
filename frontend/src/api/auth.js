@@ -1,9 +1,10 @@
 import { request } from './request.js';
 
-export function register({ email, username, password, inviteCode }) {
+export function register({ email, username, password, inviteCode, birth }) {
+  // The birth month and year decide whether registration goes ahead and are not stored by the server.
   return request('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, username, password, invite_code: inviteCode }),
+    body: JSON.stringify({ email, username, password, invite_code: inviteCode, birth_month: birth.month, birth_year: birth.year }),
   });
 }
 

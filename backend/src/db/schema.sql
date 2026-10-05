@@ -449,3 +449,45 @@ CREATE TABLE IF NOT EXISTS user_titles (
   granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, title_id)
 );
+
+-- When a new account passed the age check at registration (lib/ageGate.js). Only that it was passed:
+-- the birth date asked for at the time is not stored. Accounts that pre-date the check have none.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS age_confirmed_at TIMESTAMPTZ;
+
+-- ---------------------------------------------------------------------------
+-- Moderators (lib/roles.js)
+-- ---------------------------------------------------------------------------
+
+-- A moderator reviews reports and acts on them within limits; an admin (is_admin) can do everything.
+-- Made and unmade by an admin from the Team screen. Promoting an admin still has no route, by design.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_moderator BOOLEAN NOT NULL DEFAULT false;
+
+-- A moderator who finds a report needs more than they may do (a ban, a longer suspension) escalates it:
+-- it stays open, goes to the top of the admins' queue, and carries who sent it up and why.
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ;
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS escalated_by INTEGER REFERENCES users(id);
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS escalation_note TEXT;
+
+-- ---------------------------------------------------------------------------
+-- Links sent by email: password reset, account deletion (services/emailTokens.js)
+-- ---------------------------------------------------------------------------
+
+-- Only the hash of the token is kept; the token itself exists only in the message. One live token per
+-- account and purpose. Used and expired rows are swept after a day.
+CREATE TABLE IF NOT EXISTS email_tokens (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  purpose TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at TIMESTAMPTZ
+);
+
+-- A count of messages sent per account, so one address cannot be sent a flood by asking repeatedly.
+-- No address is kept here, and it is swept after two days.
+CREATE TABLE IF NOT EXISTS email_token_log (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_email_token_log_user ON email_token_log (user_id, created_at);

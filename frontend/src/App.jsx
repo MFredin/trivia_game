@@ -27,7 +27,6 @@ import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
 import { startChallenge } from './api/challenges.js';
-import { getHealth } from './api/health.js';
 import { createSession } from './api/sessions.js';
 
 // Fetched on demand. All of this used to sit in the first bundle, so every player on a phone
@@ -47,6 +46,8 @@ const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScr
 const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
 const AdminReportsScreen = lazy(() => import('./components/AdminReportsScreen.jsx'));
 const AdminTitlesScreen = lazy(() => import('./components/AdminTitlesScreen.jsx'));
+const AdminTeamScreen = lazy(() => import('./components/AdminTeamScreen.jsx'));
+const RecoveryScreen = lazy(() => import('./components/RecoveryScreen.jsx'));
 const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
@@ -57,16 +58,26 @@ const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
 // to nothing at all: a placeholder where a dialog is about to appear reads as a glitch.
 const screenFallback = <p className="screen-loading">Fetching&hellip;</p>;
 
-// Injected at build time by vite.config.js from Railway's RAILWAY_GIT_COMMIT_SHA. Falls back
-// to 'dev' for a local build, which is also how you can tell one at a glance.
-const BUILD_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : 'dev';
-
 const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
 
 // The shell's own state — everything that is not a feature's, kept out of `features/` per
 // ARCHITECTURE.md. Every name here is a field of the reducer state below, not a `useState`.
+// A link from an email (?reset=<token> or ?delete=<token>) opens its page. The token is taken out of the
+// address bar at once, so it does not sit in the history or travel in a Referer header.
+function readRecoveryFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const reset = params.get('reset');
+  const del = params.get('delete');
+  const kind = reset ? 'reset' : del ? 'deletion-confirm' : params.has('delete-account') ? 'deletion-info' : null;
+  if (!kind) return null;
+  window.history.replaceState(null, '', window.location.pathname);
+  return { kind, token: reset ?? del ?? null };
+}
+const initialRecovery = readRecoveryFromUrl();
+
 const initialAppState = {
-  screen: 'auth',
+  recovery: initialRecovery,
+  screen: initialRecovery ? 'recovery' : 'auth',
   categories: [],
   cameFromPreview: false,
   // A challenge link (?challenge=<code>) should land on that challenge's screen once the
@@ -85,7 +96,6 @@ const initialAppState = {
   // The Owl Post conversation open on that screen, if any (null is the inbox).
   owlWith: null,
   startError: null,
-  apiBuild: null,
   showMischief: false,
 };
 
@@ -103,17 +113,21 @@ function appReducer(state, action) {
     // A stored token checked out, or AuthScreen just registered/logged someone in. A pending
     // challenge link wins over the ordinary start screen.
     case 'auth/authenticated':
+      // A recovery page opened from an email stays open for someone who happens to be signed in.
+      if (state.screen === 'recovery') return state;
       return { ...state, screen: state.challengeCode ? 'challenge' : 'start' };
     case 'auth/logged_out':
       return { ...state, screen: 'auth' };
+    case 'recovery/opened':
+      return { ...state, recovery: { kind: action.kind, token: null }, screen: 'recovery' };
+    case 'recovery/closed':
+      return { ...state, recovery: null, screen: action.signedIn ? 'start' : 'auth' };
     // The run finished on the server; `finishRun` has already tried to load the leaderboard
     // (or decided a duel doesn't get one) before this fires.
     case 'run/finished':
       return { ...state, screen: action.mode === 'duel' ? 'duel-summary' : 'summary' };
     case 'categories/loaded':
       return { ...state, categories: action.categories };
-    case 'health/loaded':
-      return { ...state, apiBuild: action.commit };
     case 'run/start_requested':
       return { ...state, startError: null };
     case 'run/start_succeeded':
@@ -190,6 +204,7 @@ export default function App() {
   const [state, dispatch] = useReducer(appReducer, initialAppState);
   const {
     screen,
+    recovery,
     categories,
     cameFromPreview,
     challengeCode,
@@ -197,7 +212,6 @@ export default function App() {
     viewingProfile,
     profileReturnScreen,
     startError,
-    apiBuild,
     showMischief,
     notice,
     owlWith,
@@ -273,12 +287,6 @@ export default function App() {
     getCategories()
       .then((data) => dispatch({ type: 'categories/loaded', categories: data.categories }))
       .catch(() => dispatch({ type: 'categories/loaded', categories: [] }));
-  }, []);
-
-  useEffect(() => {
-    getHealth()
-      .then((data) => dispatch({ type: 'health/loaded', commit: data?.commit ?? null }))
-      .catch(() => dispatch({ type: 'health/loaded', commit: null }));
   }, []);
 
   const startRun = async ({ mode, category, canonSource, difficulty }) => {
@@ -396,7 +404,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <Embers />
-      {screen !== 'auth' && screen !== 'preview' && (
+      {screen !== 'auth' && screen !== 'preview' && screen !== 'recovery' && (
         <NavBar
           currentUser={auth.user}
           activeScreen={navActiveScreen}
@@ -438,8 +446,18 @@ export default function App() {
         <AuthScreen
           onAuthenticated={auth.authenticate}
           onTryPreview={() => dispatch({ type: 'preview/entered' })}
+          onForgotPassword={() => dispatch({ type: 'recovery/opened', kind: 'forgot' })}
           startInMode={cameFromPreview ? 'register' : undefined}
         />
+      )}
+      {screen === 'recovery' && recovery && (
+        <Suspense fallback={screenFallback}>
+          <RecoveryScreen
+            kind={recovery.kind}
+            token={recovery.token}
+            onDone={() => dispatch({ type: 'recovery/closed', signedIn: Boolean(auth.user) })}
+          />
+        </Suspense>
       )}
       {screen === 'preview' && (
         <Suspense fallback={screenFallback}>
@@ -537,7 +555,7 @@ export default function App() {
           <AdminSuggestionsScreen categories={categories} token={auth.token} />
         </Suspense>
       )}
-      {screen === 'admin-reports' && auth.user?.is_admin && (
+      {screen === 'admin-reports' && (auth.user?.role === 'admin' || auth.user?.role === 'moderator') && (
         <Suspense fallback={screenFallback}>
           <AdminReportsScreen token={auth.token} />
         </Suspense>
@@ -545,6 +563,11 @@ export default function App() {
       {screen === 'admin-titles' && auth.user?.is_admin && (
         <Suspense fallback={screenFallback}>
           <AdminTitlesScreen token={auth.token} />
+        </Suspense>
+      )}
+      {screen === 'admin-team' && auth.user?.is_admin && (
+        <Suspense fallback={screenFallback}>
+          <AdminTeamScreen token={auth.token} />
         </Suspense>
       )}
       {screen === 'friends' && (
@@ -674,12 +697,9 @@ export default function App() {
         <button type="button" className="colophon-link" onClick={() => dispatch({ type: 'feedback/opened' })}>
           Submit Feedback
         </button>
-        {/* Which build a player is actually looking at. Worth the seven characters: without
-            it, confirming a deploy reached the browser means diffing bundle hashes. */}
-        <p className="colophon-build" title={`frontend build ${BUILD_COMMIT}`}>
-          Set from <span>{BUILD_COMMIT}</span>
-          {apiBuild && apiBuild !== BUILD_COMMIT && <span> · api {apiBuild}</span>}
-        </p>
+        <button type="button" className="colophon-link" onClick={() => dispatch({ type: 'recovery/opened', kind: 'deletion-info' })}>
+          Delete your account
+        </button>
       </div>
       {showFeedback && (
         <Suspense fallback={null}>

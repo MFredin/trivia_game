@@ -1,5 +1,7 @@
 import { toRoman } from '../lib/roman.js';
 
+import PlayerTitle from './PlayerTitle.jsx';
+
 export default function Leaderboard({ entries }) {
   if (entries.length === 0) {
     return <p className="explanation">No completed runs yet — be the first on the board.</p>;
@@ -19,7 +21,10 @@ export default function Leaderboard({ entries }) {
         {entries.map((entry, index) => (
           <tr key={`${entry.username}-${entry.completed_at}`}>
             <td className="rank">{toRoman(index + 1)}</td>
-            <td className="player">{entry.username}</td>
+            <td className="player">
+              {entry.username}
+              <PlayerTitle title={entry.title} className="player-title--inline" />
+            </td>
             <td className="score">{entry.total_score}</td>
             <td className="category">{entry.category ?? 'All'}</td>
           </tr>

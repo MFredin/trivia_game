@@ -1,3 +1,4 @@
+import { titleView } from '../lib/titles.js';
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -36,6 +37,7 @@ router.get('/inbox', async (req, res) => {
       avatar: r.avatar ?? null,
       avatar_style: r.avatar_style ?? {},
       theme: r.theme,
+      title: titleView(r.title),
       online: isOnline(r.other_id),
       is_friend: r.is_friend,
       last: { body: r.body, subject: r.subject, created_at: r.created_at, from_me: r.from_me },
@@ -75,6 +77,7 @@ router.get('/with/:username', async (req, res) => {
       avatar: found.other.avatar ?? null,
       avatar_style: found.other.avatar_style ?? {},
       theme: found.other.theme,
+      title: titleView(found.other.title),
       online: isOnline(found.other.id),
       is_friend: isFriend,
       // Whether an owl can be sent, so the screen can say so instead of letting a send fail: their

@@ -1,6 +1,6 @@
 import express from 'express';
 import { pool } from '../db/pool.js';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requireModerator } from '../middleware/auth.js';
 import { liftAction } from '../services/moderation.js';
 import { displayNameSql } from '../lib/displayName.js';
 
@@ -40,10 +40,10 @@ router.post('/notices/:batch/acknowledge', async (req, res) => {
 
 // The log of everything done to players, newest first, for the moderators' screen — with whether a
 // suspension or ban is still in force, so it can be lifted.
-router.get('/actions', requireAdmin, async (req, res) => {
+router.get('/actions', requireModerator, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT ma.id, ma.batch_id, ma.action, ma.note, ma.days, ma.expires_at, ma.created_at, ma.lifted_at,
-            ${displayNameSql('target')} AS username, admin.username AS admin_username,
+            ma.admin_id, ${displayNameSql('target')} AS username, admin.username AS admin_username,
             (ma.lifted_at IS NULL AND (ma.action = 'ban' OR (ma.action IN ('suspend', 'mute') AND ma.expires_at > now()))) AS active
      FROM moderation_actions ma
      JOIN users target ON target.id = ma.user_id
@@ -51,12 +51,18 @@ router.get('/actions', requireAdmin, async (req, res) => {
      ORDER BY ma.created_at DESC, ma.id DESC
      LIMIT 100`,
   );
-  return res.json({ actions: rows });
+  // Whether the viewer can lift each one: an admin any, a moderator only their own timed ones.
+  return res.json({
+    actions: rows.map(({ admin_id: adminId, ...row }) => ({
+      ...row,
+      can_lift: Boolean(row.active) && (req.role === 'admin' || (row.action !== 'ban' && adminId === req.userId)),
+    })),
+  });
 });
 
-router.post('/actions/:id/lift', requireAdmin, async (req, res) => {
+router.post('/actions/:id/lift', requireModerator, async (req, res) => {
   if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'action_not_found' });
-  const result = await liftAction({ adminId: req.userId, actionId: Number(req.params.id) });
+  const result = await liftAction({ adminId: req.userId, actorRole: req.role, actionId: Number(req.params.id) });
   if (result.error) return res.status(result.error.status).json(result.error.body);
   return res.status(204).end();
 });

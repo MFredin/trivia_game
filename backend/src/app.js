@@ -1,3 +1,4 @@
+import './services/retention.js';
 import express from 'express';
 import cors from 'cors';
 import { sentryRequestWatcher, attachSentryErrorHandler } from './lib/sentry.js';
@@ -21,6 +22,8 @@ import reportsRouter from './routes/reports.js';
 import moderationRouter from './routes/moderation.js';
 import owlPostRouter from './routes/owlPost.js';
 import adminTitlesRouter from './routes/adminTitles.js';
+import adminTeamRouter from './routes/adminTeam.js';
+import accountRecoveryRouter from './routes/accountRecovery.js';
 
 export function createApp() {
   const app = express();
@@ -69,6 +72,8 @@ export function createApp() {
   app.use('/api/moderation', moderationRouter);
   app.use('/api/owlpost', owlPostRouter);
   app.use('/api/admin/titles', adminTitlesRouter);
+  app.use('/api/admin/team', adminTeamRouter);
+  app.use('/api/auth', accountRecoveryRouter);
 
   // Mounted after every route, as Express requires for error-handling middleware. No-op
   // unless SENTRY_DSN is set — see lib/sentry.js. Reports and then hands off to the default

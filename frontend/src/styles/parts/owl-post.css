@@ -345,3 +345,9 @@
   font-weight: 400;
   color: var(--text-muted-on-surface);
 }
+
+.owl-thread-name-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}

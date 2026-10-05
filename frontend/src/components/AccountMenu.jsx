@@ -15,11 +15,15 @@ export default function AccountMenu({ user, active, onViewProfile, onNavigate, o
     { key: 'profile', label: 'My profile', icon: 'user', onSelect: () => onViewProfile(user.username) },
     { key: 'edit-profile', label: 'Edit profile', icon: 'edit', onSelect: () => onNavigate('edit-profile') },
     { key: 'settings', label: 'Settings', icon: 'cog', onSelect: () => onNavigate('settings') },
-    ...(user.is_admin
+    // Staff screens: a moderator has the reports; an admin has those and the rest.
+    ...(user.role === 'moderator' || user.role === 'admin'
+      ? [{ key: 'reports', label: 'Review reports', icon: 'alert', onSelect: () => onNavigate('admin-reports') }]
+      : []),
+    ...(user.role === 'admin'
       ? [
           { key: 'questions', label: 'Review questions', icon: 'check', onSelect: () => onNavigate('admin-suggestions') },
-          { key: 'reports', label: 'Review reports', icon: 'alert', onSelect: () => onNavigate('admin-reports') },
           { key: 'titles', label: 'Manage titles', icon: 'user', onSelect: () => onNavigate('admin-titles') },
+          { key: 'team', label: 'Manage team', icon: 'user-plus', onSelect: () => onNavigate('admin-team') },
         ]
       : []),
     { key: 'logout', label: 'Log out', icon: 'logout', onSelect: onLogout },

@@ -173,11 +173,32 @@ Auth tokens are stateless, last thirty days and cannot be revoked, so `requireAu
 closed on deletion. Deleting requires the password as well as a valid token, and the dialog asks
 for the username typed out.
 
+### Deleting without being able to log in
+
+A public page, "Delete your account" in the footer of every screen (and `/?delete-account`, the address to give
+an app store), explains what deletion removes and how to do it in the app. If the app can send email it also
+takes an email address and sends a one-hour, single-use link; the link names the account and deletes it only
+when its button is pressed (`routes/accountRecovery.js`). It runs the same anonymisation as above.
+
+### Password reset
+
+"Forgot your password?" on the login screen sends a link to choose a new one. The same machinery serves both
+(`services/emailTokens.js`): random 32-byte tokens of which only a SHA-256 is stored, 60 minutes, single use,
+one live link per account and purpose, at most 3 messages per address per day, and the same answer whether or
+not the address has an account, so nobody can use the form to find out who is registered. The token leaves the
+address bar as soon as the page loads.
+
+Mail goes through `lib/mailer.js`. Set `RESEND_API_KEY` and `MAIL_FROM` for real sending, and `APP_URL` for the
+address links point to. Without them in production **nothing is sent and the screens say so**
+(`GET /api/auth/options` → `mail_enabled`: the "Forgot your password?" link is hidden and the deletion page
+points to the feedback link). Outside production the message is printed to the console and held in memory;
+`MAIL_OUTBOX_FILE` also appends it to a file, which is how the browser test reads the link.
+
+Auth tokens last thirty days and cannot be revoked, so a reset does **not** sign out a session that already
+exists elsewhere. Worth fixing before this matters (a token version on the account).
+
 ### Not done yet
 
-- **A public web page for requesting deletion** — Google Play requires one in addition to the
-  in-app flow.
-- **Password reset** — there is no email sending, so a forgotten password cannot be recovered.
 - **Bio moderation beyond the filter** (a human reviewing every bio, or an external moderation service) —
   the filter and the report path are the minimum, not a substitute for a policy.
 - Whether "scores kept, un-named" satisfies the privacy law that applies to the operator is a
@@ -206,9 +227,71 @@ fixed list, so there is nothing to moderate: no free text, no upload.
   test fails if a title requires an achievement that does not exist or two titles share one.
 - **System titles** (Head Student, Head Boy, Head Girl, Prefect, Librarian, Groundskeeper) are given to a
   specific player by an admin and by nothing else (`/api/admin/titles`, the admin **Titles** screen). They are
-  **labels, not powers**: wearing Prefect lets nobody do anything. There is still only one permission level, the
-  admin flag; a real moderator tier would be a separate piece of work.
+  **labels, not powers**: wearing Prefect lets nobody do anything. What someone may do is their role (below).
 - A player chooses which held title to wear (Edit Profile), or none. Taking a granted title back also takes it
   off them at once. Deleting the account clears both. A title shows on the profile, in member lists and in the
   account menu; **not yet on leaderboards or in Owl Post**, which are drawn from different queries.
 - The words are generic school and library terms, not licensed names or marks.
+
+
+## Minimum age: 13 and over
+
+By decision (see `docs/legal/coppa-options.md`, Option A) the Service is for players aged 13 and over; a
+parent-approved mode for younger players is deferred. Registration enforces it:
+
+- **The age question comes first**, before email, name or password: a month and a year, neutral (nothing
+  pre-selected, no hint of the cut-off), the same for everyone (`AgeGate.jsx`).
+- **Under 13 stores nothing**: no account, no email, no name. The server checks the age before it reads
+  anything else (`lib/ageGate.js`, `403 underage`), so the rule holds for a client that skips the screen.
+  A birth date is never stored or logged for anyone; a new account records only *when* the check was passed
+  (`users.age_confirmed_at`).
+- **Counted in whole months**, so someone is never let in early: a player is eligible once the whole of the
+  month they turned thirteen in has passed.
+- **A device that is turned away is turned away again for a day**, by a timestamp in this browser
+  (`trivia_age_gate`), so going Back and picking another year does not work. It is not a defence against a
+  determined liar and is not meant to be.
+- The turned-away screen points parents at `VITE_PARENT_CONTACT_EMAIL` if set.
+
+Not done: accounts that pre-date the check have no age on record, and nobody is asked to confirm one. If one
+turns out to belong to a child it is deleted, and the privacy policy should say that is the process.
+
+
+## How long safety records are kept
+
+An hourly sweep (`services/retention.js`, numbers in `lib/retention.js`) removes what is no longer needed:
+
+| Record | Kept | Counted from |
+|---|---|---|
+| The copy of messages attached to a report | 90 days | the report being closed |
+| A closed report (reason, note, outcome) | 365 days | the report being closed |
+| What was done to a player (warning, suspension, ban) | 365 days | when it stopped mattering: applied, for a warning; ended or lifted, for a suspension or mute; lifted, for a ban |
+
+Open reports, and sanctions still in force, are never swept. A ban's record stays as long as the ban does.
+The same numbers are in the privacy policy; change one and change the other.
+
+## Roles: player, moderator, admin
+
+Two levels of staff, and the difference between them is deliberately small (`lib/roles.js`, tested in
+`rolesRules.test.js` and `moderatorTier.test.js`). The role is read from the account on every request, never
+from the token.
+
+| | Moderator | Admin |
+|---|---|---|
+| Review reports, read evidence, dismiss, see the action log | yes (about players) | yes |
+| Warn, force rename, clear bio, reset avatar, remove scores | yes | yes |
+| Mute and suspend | up to **7 days** | up to 30 days |
+| **Ban** | no | yes |
+| Act on another moderator or an admin | **no** | moderators yes, admins no |
+| Lift a sanction | only their own mutes and suspensions | any, including bans |
+| Send a report up to an admin (escalate) | yes | |
+| Review questions, grant titles, manage the team | no | yes |
+
+- **Escalating.** A moderator who finds a report needs more than they may do (a ban, a longer suspension) sends
+  it up with a note. It stays open, goes to the top of the admins' queue, and says who sent it and why. The
+  suggestion a moderator is shown is cut down to what they can apply, with a cue to escalate if it had to be.
+- **Moderators are made by an admin** on the Team screen (`/api/admin/team`), optionally with the Prefect title;
+  taking the role back takes the title back too. **Admins are made in the database** by whoever runs the
+  service: there is deliberately no route for it, and an admin's role is not changed from the app.
+- A moderator still never browses inboxes: the same evidence a reporter attaches is all anyone sees of a
+  conversation. Every action is logged with who took it, a moderator's included.
+- Deleting an account clears the role. A suspended or banned moderator loses access like anyone else.

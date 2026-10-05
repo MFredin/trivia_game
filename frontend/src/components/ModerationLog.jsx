@@ -66,7 +66,7 @@ export default function ModerationLog({ token, refreshKey }) {
                   </p>
                   <p className="report-row-details">&ldquo;{a.note}&rdquo;</p>
                 </div>
-                {a.active && (
+                {a.can_lift && (
                   <button type="button" className="secondary-button" onClick={() => lift(a.id)}>
                     Lift
                   </button>

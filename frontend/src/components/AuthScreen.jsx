@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
+import AgeGate from './AgeGate.jsx';
+import AgeBlocked from './AgeBlocked.jsx';
+import { ageGateBlocked, markAgeGateBlocked } from '../lib/ageGate.js';
+import { getAuthOptions } from '../api/recovery.js';
 import { login, register } from '../api/auth.js';
 import { isRestriction, restrictionMessage } from '../features/moderation/restrictionMessage.js';
 
@@ -9,7 +13,7 @@ function readInviteCodeFromUrl() {
   return new URLSearchParams(window.location.search).get('invite') || null;
 }
 
-export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode }) {
+export default function AuthScreen({ onAuthenticated, onTryPreview, onForgotPassword, startInMode }) {
   const [inviteCode] = useState(readInviteCodeFromUrl);
   const [mode, setMode] = useState(() => startInMode ?? (readInviteCodeFromUrl() ? 'register' : 'login'));
   const [email, setEmail] = useState('');
@@ -17,6 +21,16 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  // Registering starts with the age question. The answer is held here, in memory, only until it is sent.
+  const [birth, setBirth] = useState(null);
+  const [tooYoung, setTooYoung] = useState(ageGateBlocked);
+  // "Forgot your password?" is offered only where the app can actually send the email.
+  const [canReset, setCanReset] = useState(false);
+  useEffect(() => {
+    getAuthOptions()
+      .then((data) => setCanReset(Boolean(data.mail_enabled)))
+      .catch(() => setCanReset(false));
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -26,10 +40,13 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
       const data =
         mode === 'login'
           ? await login({ email, password })
-          : await register({ email, username, password, inviteCode });
+          : await register({ email, username, password, inviteCode, birth });
       onAuthenticated(data.token, data.user);
     } catch (err) {
-      if (isRestriction(err)) setError(restrictionMessage(err.data));
+      if (err.code === 'underage') {
+        markAgeGateBlocked();
+        setTooYoung(true);
+      } else if (isRestriction(err)) setError(restrictionMessage(err.data));
       else if (err.code === 'invalid_credentials') setError('Wrong email or password.');
       else if (err.code === 'email_or_username_taken') setError('That email or username is already in use.');
       else if (err.code === 'password_too_short') setError('Password needs to be at least 8 characters.');
@@ -49,6 +66,17 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
         </div>
       </div>
       <Plate>
+        {mode === 'register' && tooYoung ? (
+          <AgeBlocked onLogin={() => setMode('login')} />
+        ) : mode === 'register' && !birth ? (
+          <AgeGate
+            onPassed={setBirth}
+            onTooYoung={() => {
+              markAgeGateBlocked();
+              setTooYoung(true);
+            }}
+          />
+        ) : (
         <form className="start-form" onSubmit={handleSubmit}>
           {error && <div className="error-banner">{error}</div>}
           {mode === 'register' && inviteCode && (
@@ -87,12 +115,18 @@ export default function AuthScreen({ onAuthenticated, onTryPreview, startInMode 
           >
             {mode === 'login' ? "Need an account? Register" : 'Already have an account? Log in'}
           </button>
+          {mode === 'login' && canReset && (
+            <button type="button" className="secondary-button" onClick={onForgotPassword}>
+              Forgot your password?
+            </button>
+          )}
           {onTryPreview && (
             <button type="button" className="secondary-button" onClick={onTryPreview}>
               Try it now — no account needed
             </button>
           )}
         </form>
+        )}
       </Plate>
     </div>
   );
