@@ -7,7 +7,16 @@
 > requirements, dates and approved methods.** The FTC's own COPPA FAQ and "Complying with COPPA"
 > guide are the primary sources.
 
-## Where the app stands
+## Decision (October 2026)
+
+**Option A — 13 and over only — was chosen by the founder, and is built:** a neutral month/year question opens
+registration; under 13 stops there with nothing stored, a 24-hour device flag stops an immediate retry, and a
+"for parents" note points to a contact address (`VITE_PARENT_CONTACT_EMAIL`); only a timestamp that the age was
+confirmed is kept, never the date. A parent-approved mode (Option B) is deferred, not ruled out. Still for the
+attorney: whether the app is "directed to children", any country needing a higher age, and accounts that
+predate the gate (never asked). The rest of this document is the original analysis, left as written.
+
+## Where the app stands (before the decision)
 
 - **Registration asks for no age.** Email, username and password only. There is no age screen.
 - **Information that would be a child's personal information if the player were under 13:** the
