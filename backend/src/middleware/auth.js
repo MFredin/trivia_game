@@ -1,3 +1,4 @@
+import { canReviewReports, roleOf } from '../lib/roles.js';
 import { verifyAuthToken } from '../lib/authTokens.js';
 import { pool } from '../db/pool.js';
 import { getAccountAccess, isActiveUser, restrictionNote } from '../repo/users.js';
@@ -49,5 +50,15 @@ export async function optionalAuth(req, res, next) {
 export async function requireAdmin(req, res, next) {
   const { rows } = await pool.query('SELECT is_admin FROM users WHERE id = $1', [req.userId]);
   if (!rows[0]?.is_admin) return res.status(403).json({ error: 'forbidden' });
+  next();
+}
+
+// Staff: a moderator or an admin. Sets `req.role` for the route to use, because what each may do differs
+// (lib/roles.js) and the route is the one that knows what it is about to do. Read fresh, like requireAdmin.
+export async function requireModerator(req, res, next) {
+  const { rows } = await pool.query('SELECT is_admin, is_moderator FROM users WHERE id = $1', [req.userId]);
+  const role = roleOf(rows[0]);
+  if (!canReviewReports(role)) return res.status(403).json({ error: 'forbidden' });
+  req.role = role;
   next();
 }

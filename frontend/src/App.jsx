@@ -46,6 +46,7 @@ const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScr
 const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
 const AdminReportsScreen = lazy(() => import('./components/AdminReportsScreen.jsx'));
 const AdminTitlesScreen = lazy(() => import('./components/AdminTitlesScreen.jsx'));
+const AdminTeamScreen = lazy(() => import('./components/AdminTeamScreen.jsx'));
 const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
@@ -522,7 +523,7 @@ export default function App() {
           <AdminSuggestionsScreen categories={categories} token={auth.token} />
         </Suspense>
       )}
-      {screen === 'admin-reports' && auth.user?.is_admin && (
+      {screen === 'admin-reports' && (auth.user?.role === 'admin' || auth.user?.role === 'moderator') && (
         <Suspense fallback={screenFallback}>
           <AdminReportsScreen token={auth.token} />
         </Suspense>
@@ -530,6 +531,11 @@ export default function App() {
       {screen === 'admin-titles' && auth.user?.is_admin && (
         <Suspense fallback={screenFallback}>
           <AdminTitlesScreen token={auth.token} />
+        </Suspense>
+      )}
+      {screen === 'admin-team' && auth.user?.is_admin && (
+        <Suspense fallback={screenFallback}>
+          <AdminTeamScreen token={auth.token} />
         </Suspense>
       )}
       {screen === 'friends' && (

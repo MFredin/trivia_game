@@ -4,7 +4,8 @@ import ModerationActionModal from './ModerationActionModal.jsx';
 import ModerationLog from './ModerationLog.jsx';
 import { MODERATION_ACTION_BY_ID } from '../constants/moderationActions.js';
 import { REPORT_REASONS } from '../constants/reportReasons.js';
-import { dismissReport, getReports, takeAction } from '../api/reports.js';
+import EscalateModal from './EscalateModal.jsx';
+import { dismissReport, escalateReport, getReports, takeAction } from '../api/reports.js';
 
 const REASON_LABEL = Object.fromEntries(REPORT_REASONS.map((r) => [r.id, r.label]));
 const TABS = [
@@ -52,6 +53,8 @@ export default function AdminReportsScreen({ token }) {
   const [suspensionDays, setSuspensionDays] = useState([1, 7, 30]);
   const [error, setError] = useState(null);
   const [acting, setActing] = useState(null);
+  const [escalating, setEscalating] = useState(null);
+  const [viewerRole, setViewerRole] = useState('admin');
   // Bumped by the Refresh button: reports arrive while this screen is open, and nothing else
   // would fetch them.
   const [refreshKey, setRefreshKey] = useState(0);
@@ -64,6 +67,7 @@ export default function AdminReportsScreen({ token }) {
       .then((data) => {
         setReports(data.reports);
         setSuspensionDays(data.suspension_days);
+        setViewerRole(data.viewer_role);
       })
       .catch(() => setError('Could not load the reports.'));
   }, [tab, token, refreshKey]);
@@ -76,6 +80,14 @@ export default function AdminReportsScreen({ token }) {
     } catch {
       setError('Could not dismiss that report.');
     }
+  };
+
+  const escalate = async (note) => {
+    await escalateReport(escalating.id, note, token);
+    setReports((prev) =>
+      prev.map((r) => (r.id === escalating.id ? { ...r, escalated: { at: new Date().toISOString(), by: 'you', note: note || null } } : r)),
+    );
+    setEscalating(null);
   };
 
   const apply = async (fields) => {
@@ -160,16 +172,25 @@ export default function AdminReportsScreen({ token }) {
                       {r.status === 'open' && (
                         <>
                           <Standing report={r} />
+                          {r.escalated && (
+                            <p className="mod-escalated" role="note">
+                              <b>Sent to an admin</b> by {r.escalated.by}
+                              {r.escalated.note ? `: “${r.escalated.note}”` : '.'}
+                            </p>
+                          )}
                           {r.actionable && (
                             <p className="mod-suggestion">
                               Suggested: <b>{suggestionText(r)}</b>
+                              {r.suggestion.needs_admin && ' — the usual step is more than a moderator can apply, so this is the most you can do; you can also send it to an admin.'}
                             </p>
                           )}
                           {!r.actionable && (
                             <p className="mod-suggestion">
                               {r.reported_username === 'Deleted player'
                                 ? 'This account has been deleted, so there is nothing to do but dismiss the report.'
-                                : 'Admins cannot be moderated from here.'}
+                                : r.reported_role === 'admin'
+                                  ? 'Admins cannot be moderated from here.'
+                                  : 'This is about a member of the team, so it is for an admin to decide.'}
                             </p>
                           )}
                         </>
@@ -182,9 +203,16 @@ export default function AdminReportsScreen({ token }) {
                             Take action…
                           </button>
                         )}
-                        <button type="button" className="secondary-button" onClick={() => dismiss(r.id)}>
-                          Dismiss
-                        </button>
+                        {viewerRole === 'moderator' && !r.escalated && r.reported_username !== 'Deleted player' && (
+                          <button type="button" className="secondary-button" onClick={() => setEscalating(r)}>
+                            Send to an admin…
+                          </button>
+                        )}
+                        {(viewerRole === 'admin' || r.reported_role === 'player') && (
+                          <button type="button" className="secondary-button" onClick={() => dismiss(r.id)}>
+                            Dismiss
+                          </button>
+                        )}
                       </span>
                     )}
                   </li>
@@ -195,6 +223,7 @@ export default function AdminReportsScreen({ token }) {
         )}
       </Plate>
 
+      {escalating && <EscalateModal report={escalating} onSend={escalate} onClose={() => setEscalating(null)} />}
       {acting && (
         <ModerationActionModal report={acting} suspensionDays={suspensionDays} onApply={apply} onClose={() => setActing(null)} />
       )}

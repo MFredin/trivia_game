@@ -206,8 +206,7 @@ fixed list, so there is nothing to moderate: no free text, no upload.
   test fails if a title requires an achievement that does not exist or two titles share one.
 - **System titles** (Head Student, Head Boy, Head Girl, Prefect, Librarian, Groundskeeper) are given to a
   specific player by an admin and by nothing else (`/api/admin/titles`, the admin **Titles** screen). They are
-  **labels, not powers**: wearing Prefect lets nobody do anything. There is still only one permission level, the
-  admin flag; a real moderator tier would be a separate piece of work.
+  **labels, not powers**: wearing Prefect lets nobody do anything. What someone may do is their role (below).
 - A player chooses which held title to wear (Edit Profile), or none. Taking a granted title back also takes it
   off them at once. Deleting the account clears both. A title shows on the profile, in member lists and in the
   account menu; **not yet on leaderboards or in Owl Post**, which are drawn from different queries.
@@ -234,3 +233,31 @@ parent-approved mode for younger players is deferred. Registration enforces it:
 
 Not done: accounts that pre-date the check have no age on record, and nobody is asked to confirm one. If one
 turns out to belong to a child it is deleted, and the privacy policy should say that is the process.
+
+
+## Roles: player, moderator, admin
+
+Two levels of staff, and the difference between them is deliberately small (`lib/roles.js`, tested in
+`rolesRules.test.js` and `moderatorTier.test.js`). The role is read from the account on every request, never
+from the token.
+
+| | Moderator | Admin |
+|---|---|---|
+| Review reports, read evidence, dismiss, see the action log | yes (about players) | yes |
+| Warn, force rename, clear bio, reset avatar, remove scores | yes | yes |
+| Mute and suspend | up to **7 days** | up to 30 days |
+| **Ban** | no | yes |
+| Act on another moderator or an admin | **no** | moderators yes, admins no |
+| Lift a sanction | only their own mutes and suspensions | any, including bans |
+| Send a report up to an admin (escalate) | yes | |
+| Review questions, grant titles, manage the team | no | yes |
+
+- **Escalating.** A moderator who finds a report needs more than they may do (a ban, a longer suspension) sends
+  it up with a note. It stays open, goes to the top of the admins' queue, and says who sent it and why. The
+  suggestion a moderator is shown is cut down to what they can apply, with a cue to escalate if it had to be.
+- **Moderators are made by an admin** on the Team screen (`/api/admin/team`), optionally with the Prefect title;
+  taking the role back takes the title back too. **Admins are made in the database** by whoever runs the
+  service: there is deliberately no route for it, and an admin's role is not changed from the app.
+- A moderator still never browses inboxes: the same evidence a reporter attaches is all anyone sees of a
+  conversation. Every action is logged with who took it, a moderator's included.
+- Deleting an account clears the role. A suspended or banned moderator loses access like anyone else.

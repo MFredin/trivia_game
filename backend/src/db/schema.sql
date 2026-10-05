@@ -453,3 +453,17 @@ CREATE TABLE IF NOT EXISTS user_titles (
 -- When a new account passed the age check at registration (lib/ageGate.js). Only that it was passed:
 -- the birth date asked for at the time is not stored. Accounts that pre-date the check have none.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS age_confirmed_at TIMESTAMPTZ;
+
+-- ---------------------------------------------------------------------------
+-- Moderators (lib/roles.js)
+-- ---------------------------------------------------------------------------
+
+-- A moderator reviews reports and acts on them within limits; an admin (is_admin) can do everything.
+-- Made and unmade by an admin from the Team screen. Promoting an admin still has no route, by design.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_moderator BOOLEAN NOT NULL DEFAULT false;
+
+-- A moderator who finds a report needs more than they may do (a ban, a longer suspension) escalates it:
+-- it stays open, goes to the top of the admins' queue, and carries who sent it up and why.
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ;
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS escalated_by INTEGER REFERENCES users(id);
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS escalation_note TEXT;

@@ -21,3 +21,8 @@ export function dismissReport(id, token) {
 export function takeAction(id, { actions, days, note }, token) {
   return request(`/reports/${id}/action`, { method: 'POST', body: JSON.stringify({ actions, days, note }) }, token);
 }
+
+// A moderator sends a report up to the admins, with a note on why.
+export function escalateReport(id, note, token) {
+  return request(`/reports/${id}/escalate`, { method: 'POST', body: JSON.stringify({ note }) }, token);
+}

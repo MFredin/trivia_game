@@ -77,7 +77,7 @@ export async function register(page, username = uniqueName()) {
 
 // Settings, the profile and Log out live behind the avatar menu; everything else is a link in
 // the running header.
-const ACCOUNT_MENU_ITEMS = ['Settings', 'Edit profile', 'My profile', 'Manage titles', 'Log out'];
+const ACCOUNT_MENU_ITEMS = ['Settings', 'Edit profile', 'My profile', 'Manage titles', 'Manage team', 'Review reports', 'Log out'];
 
 export async function navigateTo(page, label) {
   if (label === 'Owl Post') {
