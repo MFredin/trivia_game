@@ -21,7 +21,6 @@ import { DELETED_PLAYER_NAME } from '../lib/displayName.js';
  */
 export async function deleteAccount(userId) {
   const client = await pool.connect();
-  let deleted = false;
   try {
     await client.query('BEGIN');
 
@@ -65,7 +64,6 @@ export async function deleteAccount(userId) {
     );
 
     await client.query('COMMIT');
-    deleted = true;
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;
@@ -73,7 +71,8 @@ export async function deleteAccount(userId) {
     client.release();
   }
 
-  // After the commit, so a socket is never closed on an account that then fails to delete.
-  if (deleted) for (const ws of getSockets(userId)) ws.close();
-  return deleted;
+  // After the commit, so a socket is never closed on an account that then fails to delete. Reaching here means
+  // it was deleted: an account that was already gone returned false above.
+  for (const ws of getSockets(userId)) ws.close();
+  return true;
 }

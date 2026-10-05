@@ -1,7 +1,11 @@
+import './lib/asyncErrors.js';
 import './services/retention.js';
 import express from 'express';
 import cors from 'cors';
 import { sentryRequestWatcher, attachSentryErrorHandler } from './lib/sentry.js';
+import { errorHandler, notFound } from './lib/errors.js';
+import { securityHeaders } from './lib/securityHeaders.js';
+import { writeLimit } from './lib/writeLimit.js';
 import sessionsRouter from './routes/sessions.js';
 import leaderboardRouter from './routes/leaderboard.js';
 import categoriesRouter from './routes/categories.js';
@@ -32,8 +36,16 @@ export function createApp() {
   // proxy in front, there's no X-Forwarded-For to trust and req.ip falls back to the socket.
   app.set('trust proxy', 1);
   const allowedOrigin = process.env.ALLOWED_ORIGIN;
+  // Without ALLOWED_ORIGIN every website may call this API from a visitor's browser. Right for local
+  // development; in production it is a misconfiguration, so say so in the log rather than fail silently open.
+  if (!allowedOrigin && process.env.NODE_ENV === 'production') {
+    console.warn('ALLOWED_ORIGIN is not set: this API accepts requests from any website. Set it to the frontend URL.');
+  }
+  app.use(securityHeaders);
   app.use(cors(allowedOrigin ? { origin: allowedOrigin.split(',') } : undefined));
-  app.use(express.json());
+  // The default is 100kb; stated so nobody has to know that. Nothing here is larger than a message or a question.
+  app.use(express.json({ limit: '100kb' }));
+  app.use('/api', writeLimit);
   // No-op unless SENTRY_DSN is set — see lib/sentry.js.
   app.use(sentryRequestWatcher);
 
@@ -79,6 +91,10 @@ export function createApp() {
   // unless SENTRY_DSN is set — see lib/sentry.js. Reports and then hands off to the default
   // handler; it never answers the client itself.
   attachSentryErrorHandler(app);
+
+  // After Sentry has seen an error, answer it. These two must stay last.
+  app.use('/api', notFound);
+  app.use(errorHandler);
 
   return app;
 }

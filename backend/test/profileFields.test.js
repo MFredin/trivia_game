@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boot, shutdown, call, json, newPlayer, befriend, skip } from './helpers/app.js';
+import { boot, shutdown, call, json, newPlayer, skip } from './helpers/app.js';
 
 // One boot for the file: the database pool is a module singleton, so a second boot/shutdown pair
 // in the same process would be handed a pool the first had already closed.
