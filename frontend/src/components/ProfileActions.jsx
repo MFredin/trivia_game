@@ -5,10 +5,10 @@ import PopoverMenu from './PopoverMenu.jsx';
 /**
  * What the viewer can do about this player, which depends on how they already stand: someone
  * you are friends with has no "Add", someone who asked you has "Accept" and "Decline".
- * Challenge is offered to everyone but yourself, because the duel lobby never required a
- * friendship — only a username.
+ * Challenge and Send an owl are offered when the other player's settings (and yours) would let
+ * them through, which the server works out; neither needs a friendship unless they ask for one.
  */
-export default function ProfileActions({ relationship, onAdd, onAccept, onDecline, onChallenge, onSendOwl, onEdit, onRemove, onBlock, onReport }) {
+export default function ProfileActions({ relationship, canChallenge, canOwl, onAdd, onAccept, onDecline, onChallenge, onSendOwl, onEdit, onRemove, onBlock, onReport }) {
   if (relationship === 'self') {
     return (
       <div className="profile-actions">
@@ -27,14 +27,16 @@ export default function ProfileActions({ relationship, onAdd, onAccept, onDeclin
           <IconButton icon="x" label="Decline" showLabel onClick={onDecline} />
         </>
       )}
-      <IconButton
-        icon="flag"
-        label="Challenge"
-        showLabel
-        variant={relationship === 'pending_received' ? 'secondary' : 'primary'}
-        onClick={onChallenge}
-      />
-      {relationship === 'friends' && <IconButton icon="owl" label="Send an owl" showLabel onClick={onSendOwl} />}
+      {canChallenge && (
+        <IconButton
+          icon="flag"
+          label="Challenge"
+          showLabel
+          variant={relationship === 'pending_received' ? 'secondary' : 'primary'}
+          onClick={onChallenge}
+        />
+      )}
+      {canOwl && <IconButton icon="owl" label="Send an owl" showLabel onClick={onSendOwl} />}
       {/* Everything that is not a first-class action lives behind one menu, so a profile
           does not open with Block and Report as loud as Challenge. */}
       <PopoverMenu

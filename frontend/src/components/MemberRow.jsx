@@ -16,7 +16,8 @@ const STATUS_CAPTION = {
  *
  * The name opens their profile and is the one big target; the buttons are 44px squares, glyph
  * only on a phone and glyph plus word on a wide screen. The dot is drawn only where presence is
- * actually known (`online` is true or false), never guessed, and an owl is offered only to a friend.
+ * actually known (`online` is true or false), never guessed, and an owl or a challenge is offered only
+ * when the server says the other player would accept it (`can_owl`, `can_challenge`).
  * `answerable` is for a row that asks for a yes or a no without being a friend request (a duel invite).
  */
 export default function MemberRow({
@@ -56,8 +57,8 @@ export default function MemberRow({
           <IconButton icon="x" label="Decline" wideLabel onClick={onDecline} />
         )}
         {member.status === 'none' && onAdd && <IconButton icon="user-plus" label="Add friend" wideLabel onClick={onAdd} />}
-        {onMessage && member.status === 'friends' && <IconButton icon="owl" label="Send an owl" wideLabel onClick={onMessage} />}
-        {onChallenge && <IconButton icon="flag" label="Challenge" variant="primary" wideLabel onClick={onChallenge} />}
+        {onMessage && member.can_owl && <IconButton icon="owl" label="Send an owl" wideLabel onClick={onMessage} />}
+        {onChallenge && member.can_challenge && <IconButton icon="flag" label="Challenge" variant="primary" wideLabel onClick={onChallenge} />}
         {onRemove && <IconButton icon="user-minus" label="Remove friend" wideLabel onClick={onRemove} />}
       </span>
     </li>

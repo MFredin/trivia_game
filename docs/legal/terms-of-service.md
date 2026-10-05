@@ -22,8 +22,7 @@ game built around Harry Potter–themed trivia questions. It includes solo quiz 
 challenge, real-time head-to-head "duels" against other players, leaderboards, achievements, and
 a feature that lets players submit their own trivia questions for review. It also has a social
 side: player profiles (an avatar and a short bio), a member directory, friends, an activity feed,
-the ability to block and report other players, and **Owl Post**, short private messages between
-friends.
+the ability to block and report other players, and **Owl Post**, short private messages between players (anyone by default, or friends only, or off, as each player chooses).
 
 **The Service is an unofficial fan project.** As stated in the app itself:
 
@@ -101,8 +100,10 @@ The avatar is drawn from fixed options; nothing can be uploaded.
 neither of you can find, see, message, or challenge the other. They are not told. You can undo a
 block in Settings.
 
-**Owl Post.** Owl Post lets two players who are friends send each other short plain-text
-messages, with an optional subject. Please understand how it works:
+**Owl Post.** Owl Post lets players send each other short plain-text messages, with an optional
+subject. By default any player can send you one; you can limit it to friends or switch it off in Settings,
+and someone who is not your friend can send only one until you answer. You can block or report anyone
+who writes to you. Please understand how it works:
 
 - It is **not** end-to-end encrypted and **not** a place for anything you would want to keep
   secret. We do not read messages as a matter of course, and moderators cannot browse anyone's

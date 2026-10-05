@@ -1,6 +1,13 @@
 import { pool } from '../db/pool.js';
 import { sendToUser } from '../lib/wsServer.js';
-import { INBOX_LIMIT, RETENTION_DAYS, THREAD_PAGE_SIZE } from '../lib/owlPost.js';
+import {
+  INBOX_LIMIT,
+  NEW_CONTACTS_PER_DAY,
+  RETENTION_DAYS,
+  THREAD_PAGE_SIZE,
+  UNANSWERED_NON_FRIEND_OWLS,
+} from '../lib/owlPost.js';
+import { contactAllowed } from '../lib/contactModes.js';
 import { notBlockedSql } from './blocks.js';
 
 // Housekeeping sweep, the same shape as the activity feed's: no job runner at hobby scale, just a
@@ -18,10 +25,11 @@ setInterval(() => sweepOldMessages().catch(() => {}), SWEEP_INTERVAL_MS).unref()
 
 const refuse = (status, error, extra = {}) => ({ error: { status, body: { error, ...extra } } });
 
-async function findFriend(userId, username) {
+async function findPlayer(userId, username) {
   const { rows } = await pool.query(
     `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.owl_post,
             EXISTS (SELECT 1 FROM friendships f WHERE f.user_id = $1 AND f.friend_user_id = u.id AND f.status = 'accepted') AS is_friend,
+            EXISTS (SELECT 1 FROM messages m WHERE (m.sender_id = $1 AND m.recipient_id = u.id) OR (m.sender_id = u.id AND m.recipient_id = $1)) AS has_history,
             ${notBlockedSql('$1', 'u.id')} AS not_blocked
      FROM users u WHERE u.username = $2 AND u.deleted_at IS NULL`,
     [userId, username],
@@ -32,33 +40,74 @@ async function findFriend(userId, username) {
 }
 
 /**
- * Who a player may read a conversation with: a friend they have not blocked and who has not blocked
- * them. Everything else — a stranger, a blocked player, an unknown name — is the same 404, so the
- * routes cannot be used to find out who has blocked you or who has an account.
+ * How many owls this player has sent that the other has not answered — counted over every message,
+ * deleted or not, so tidying a conversation does not start the allowance over.
+ */
+export async function unansweredCount(senderId, otherId) {
+  const { rows } = await pool.query(
+    `SELECT count(*) AS n FROM messages
+     WHERE sender_id = $1 AND recipient_id = $2
+       AND id > COALESCE((SELECT max(id) FROM messages WHERE sender_id = $2 AND recipient_id = $1), 0)`,
+    [senderId, otherId],
+  );
+  return Number(rows[0].n);
+}
+
+/** How many players who are not friends this player has first written to in the last day. */
+async function newContactsToday(userId) {
+  const { rows } = await pool.query(
+    `SELECT count(*) AS n FROM (
+       SELECT m.recipient_id FROM messages m
+       WHERE m.sender_id = $1
+       GROUP BY m.recipient_id
+       HAVING min(m.created_at) > now() - interval '24 hours'
+     ) first_contacts
+     WHERE NOT EXISTS (
+       SELECT 1 FROM friendships f WHERE f.user_id = $1 AND f.friend_user_id = first_contacts.recipient_id AND f.status = 'accepted'
+     )`,
+    [userId],
+  );
+  return Number(rows[0].n);
+}
+
+/**
+ * Who a player may read a conversation with: someone they have not blocked and who has not blocked
+ * them, and either a friend or someone they have already exchanged owls with (an old conversation
+ * stays readable after a friendship ends or a setting changes). Everything else — a blocked player,
+ * an unknown name, a stranger with no history — is the same 404, so the routes cannot be used to
+ * find out who has blocked you or who has an account.
  */
 export async function resolveConversation(userId, username) {
-  const other = await findFriend(userId, username);
-  if (!other || !other.is_friend || !other.not_blocked) return refuse(404, 'user_not_found');
+  const other = await findPlayer(userId, username);
+  if (!other || !other.not_blocked || !(other.is_friend || other.has_history)) return refuse(404, 'user_not_found');
   return { other };
 }
 
 /**
- * Whether the signed-in player may SEND to this friend: everything reading needs, plus the
- * recipient having Owl Post on, and the sender having it on and not being muted. Whether the
- * recipient is switched off looks like no such player, for the same reason; the sender's own state
- * is theirs to be told about.
+ * Whether the signed-in player may SEND to this player. Blocked or unknown is the same 404 as ever.
+ * Then the sender's own state (switched off, muted), which is theirs to be told about; then the
+ * recipient's setting, which is public on their profile and so is said plainly; then, for someone
+ * who is not a friend, the two limits on strangers.
  */
 export async function resolveRecipient(userId, username) {
-  const found = await resolveConversation(userId, username);
-  if (found.error) return found;
-  if (found.other.owl_post === 'off') return refuse(404, 'user_not_found');
+  const other = await findPlayer(userId, username);
+  if (!other || !other.not_blocked) return refuse(404, 'user_not_found');
 
   const { rows } = await pool.query('SELECT owl_post, muted_until FROM users WHERE id = $1', [userId]);
   if (rows[0].owl_post === 'off') return refuse(403, 'owl_post_off');
   if (rows[0].muted_until && rows[0].muted_until > new Date()) {
     return refuse(403, 'owl_post_muted', { until: rows[0].muted_until });
   }
-  return found;
+
+  if (!contactAllowed(other.owl_post, other.is_friend)) return refuse(403, 'not_accepting_owls');
+
+  if (!other.is_friend) {
+    if ((await unansweredCount(userId, other.id)) >= UNANSWERED_NON_FRIEND_OWLS) return refuse(403, 'awaiting_reply');
+    if (!other.has_history && (await newContactsToday(userId)) >= NEW_CONTACTS_PER_DAY) {
+      return refuse(429, 'too_many_new_contacts');
+    }
+  }
+  return { other };
 }
 
 export async function recentlySent(senderId, recipientId, body) {
@@ -98,13 +147,13 @@ export async function inbox(userId) {
      ),
      latest AS (SELECT DISTINCT ON (other_id) * FROM mine ORDER BY other_id, id DESC)
      SELECT u.id AS other_id, u.username, u.avatar, u.avatar_style, u.theme,
+            EXISTS (SELECT 1 FROM friendships f WHERE f.user_id = $1 AND f.friend_user_id = u.id AND f.status = 'accepted') AS is_friend,
             l.body, l.subject, l.created_at, (l.sender_id = $1) AS from_me,
             (SELECT count(*) FROM messages x
              WHERE x.sender_id = l.other_id AND x.recipient_id = $1 AND x.read_at IS NULL AND NOT x.deleted_by_recipient) AS unread
      FROM latest l
      JOIN users u ON u.id = l.other_id
      WHERE u.deleted_at IS NULL
-       AND EXISTS (SELECT 1 FROM friendships f WHERE f.user_id = $1 AND f.friend_user_id = u.id AND f.status = 'accepted')
        AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY l.created_at DESC
      LIMIT ${INBOX_LIMIT}`,
@@ -116,8 +165,8 @@ export async function inbox(userId) {
 export async function unreadCount(userId) {
   const { rows } = await pool.query(
     `SELECT count(*) AS n FROM messages m
-     JOIN friendships f ON f.user_id = $1 AND f.friend_user_id = m.sender_id AND f.status = 'accepted'
-     WHERE m.recipient_id = $1 AND m.read_at IS NULL AND NOT m.deleted_by_recipient`,
+     WHERE m.recipient_id = $1 AND m.read_at IS NULL AND NOT m.deleted_by_recipient
+       AND ${notBlockedSql('$1', 'm.sender_id')}`,
     [userId],
   );
   return Number(rows[0].n);

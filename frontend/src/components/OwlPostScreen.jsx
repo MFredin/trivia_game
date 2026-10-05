@@ -11,7 +11,7 @@ import ReportModal from './ReportModal.jsx';
  * plain text, and deleted after 90 days (the inbox says so). Reporting from inside a conversation
  * offers to send the recent messages along, because a moderator is otherwise never shown them.
  */
-export default function OwlPostScreen({ user, owl, withUsername, onOpen, onClose, onViewProfile, onBlock, onReport, onGoToCommunity }) {
+export default function OwlPostScreen({ user, owl, withUsername, onOpen, onClose, onViewProfile, onBlock, onReport }) {
   const [dialog, setDialog] = useState(null);
   const [composing, setComposing] = useState(false);
 
@@ -19,9 +19,11 @@ export default function OwlPostScreen({ user, owl, withUsername, onOpen, onClose
     return (
       <OwlCompose
         friends={owl.composeFriends}
+        found={owl.composeFound}
         sending={owl.sending}
         error={owl.composeError}
         onLoad={owl.loadComposeFriends}
+        onSearch={owl.searchRecipients}
         onSend={async (message) => {
           if (await owl.compose(message)) {
             setComposing(false);
@@ -29,7 +31,6 @@ export default function OwlPostScreen({ user, owl, withUsername, onOpen, onClose
           }
         }}
         onCancel={() => setComposing(false)}
-        onGoToCommunity={onGoToCommunity}
       />
     );
   }

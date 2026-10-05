@@ -485,7 +485,6 @@ export default function App() {
             onViewProfile={viewProfile}
             onBlock={blockFromOwlPost}
             onReport={safety.report}
-            onGoToCommunity={() => navigate('friends')}
           />
         </Suspense>
       )}
@@ -502,6 +501,8 @@ export default function App() {
             ownVisibility={auth.user?.friends_visibility}
             onBack={() => dispatch({ type: 'profile/closed' })}
             onChallenge={duels.openLobby}
+            canStartChallenge={auth.user.challenges !== 'off'}
+            canStartOwl={auth.user.owl_post !== 'off'}
             onSendOwl={openOwlThread}
             onViewProfile={viewProfile}
             onEditProfile={() => navigate('edit-profile')}
@@ -545,6 +546,8 @@ export default function App() {
             onDeclineDuel={duels.decline}
             onChallenge={duels.openLobby}
             onMessage={openOwlThread}
+            canStartChallenge={auth.user.challenges !== 'off'}
+            canStartOwl={auth.user.owl_post !== 'off'}
             onViewProfile={viewProfile}
           />
         </Suspense>

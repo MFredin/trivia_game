@@ -318,28 +318,10 @@
   color: var(--text-on-surface);
 }
 
-.owl-compose-recipient {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0;
-  font-weight: 600;
-}
-
 .owl-compose-problem {
   margin: 0;
   font-size: 0.85rem;
   color: var(--oxblood-600);
-}
-
-.owl-compose-link {
-  padding: 0;
-  background: none;
-  border: 0;
-  font: inherit;
-  color: inherit;
-  text-decoration: underline;
-  cursor: pointer;
 }
 
 .owl-compose-actions {
@@ -348,9 +330,18 @@
   gap: 0.6rem;
 }
 
-.owl-compose-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.8rem;
+
+/* A conversation with someone who is not a friend says so, and a stranger's row in the inbox wears a tag. */
+.owl-stranger-note {
+  margin: 0 0 0.9rem;
+}
+
+.owl-row-tag {
+  flex: none;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid rgba(18, 21, 28, 0.35);
+  border-radius: 2px;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-muted-on-surface);
 }

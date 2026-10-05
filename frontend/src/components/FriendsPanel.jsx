@@ -45,7 +45,10 @@ function ActivityRow({ event }) {
   );
 }
 
-export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge, onMessage, onViewProfile }) {
+export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge: startChallenge, onMessage: startOwl, canStartChallenge, canStartOwl, onViewProfile }) {
+  // A player who has switched one off may not start one either, so the rows do not offer it.
+  const onChallenge = canStartChallenge ? startChallenge : undefined;
+  const onMessage = canStartOwl ? startOwl : undefined;
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
   const [newFriend, setNewFriend] = useState('');
@@ -264,8 +267,8 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                     onAdd={() => handleMemberAdd(setSearchResults, r.username)}
                     onAccept={() => handleMemberAccept(setSearchResults, r.username)}
                     onDecline={() => handleMemberDecline(setSearchResults, r.username)}
-                    onChallenge={() => onChallenge(r.username)}
-                    onMessage={() => onMessage(r.username)}
+                    onChallenge={onChallenge && (() => onChallenge(r.username))}
+                    onMessage={onMessage && (() => onMessage(r.username))}
                     onViewProfile={() => onViewProfile(r.username)}
                   />
                 ))}
@@ -286,8 +289,8 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                   onAdd={() => handleMemberAdd(setOnlineMembers, r.username)}
                   onAccept={() => handleMemberAccept(setOnlineMembers, r.username)}
                   onDecline={() => handleMemberDecline(setOnlineMembers, r.username)}
-                  onChallenge={() => onChallenge(r.username)}
-                  onMessage={() => onMessage(r.username)}
+                  onChallenge={onChallenge && (() => onChallenge(r.username))}
+                  onMessage={onMessage && (() => onMessage(r.username))}
                   onViewProfile={() => onViewProfile(r.username)}
                 />
               ))}
@@ -314,8 +317,8 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                     onAdd={() => handleMemberAdd(setAllMembers, r.username)}
                     onAccept={() => handleMemberAccept(setAllMembers, r.username)}
                     onDecline={() => handleMemberDecline(setAllMembers, r.username)}
-                    onChallenge={() => onChallenge(r.username)}
-                    onMessage={() => onMessage(r.username)}
+                    onChallenge={onChallenge && (() => onChallenge(r.username))}
+                    onMessage={onMessage && (() => onMessage(r.username))}
                     onViewProfile={() => onViewProfile(r.username)}
                   />
                 ))}
@@ -431,8 +434,8 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                 member={{ ...f, status: 'friends' }}
                 showStatus={false}
                 onViewProfile={() => onViewProfile(f.username)}
-                onChallenge={() => onChallenge(f.username)}
-                onMessage={() => onMessage(f.username)}
+                onChallenge={onChallenge && (() => onChallenge(f.username))}
+                onMessage={onMessage && (() => onMessage(f.username))}
                 onRemove={() => handleRemove(f.username)}
               />
             ))}

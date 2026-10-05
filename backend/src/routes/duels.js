@@ -9,6 +9,8 @@ import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
 import { getCached, setCached } from '../lib/leaderboardCache.js';
 import { isBlockedEitherWay } from '../services/blocks.js';
+import { CONTACT_MODES, contactAllowed } from '../lib/contactModes.js';
+import { USER_COLUMNS, userView } from '../lib/userView.js';
 import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
@@ -37,6 +39,14 @@ async function findUserByUsername(username) {
   return rows[0] ?? null;
 }
 
+// Who may challenge me: everyone, only friends, or no one (and then I may not challenge either).
+router.patch('/settings', async (req, res) => {
+  const { mode } = req.body ?? {};
+  if (!CONTACT_MODES.includes(mode)) return res.status(400).json({ error: 'invalid_mode' });
+  const { rows } = await pool.query(`UPDATE users SET challenges = $1 WHERE id = $2 RETURNING ${USER_COLUMNS}`, [mode, req.userId]);
+  return res.json({ user: userView(rows[0]) });
+});
+
 router.post('/', async (req, res) => {
   const { opponent_username, category, canon_source, difficulty } = req.body ?? {};
   if (typeof opponent_username !== 'string' || opponent_username.trim().length === 0) {
@@ -55,6 +65,19 @@ router.post('/', async (req, res) => {
   if (opponent.id === req.userId) return res.status(400).json({ error: 'cannot_duel_yourself' });
   // Same answer as an unknown name, so an invite cannot be used to find out who blocked you.
   if (await isBlockedEitherWay(req.userId, opponent.id)) return res.status(404).json({ error: 'user_not_found' });
+
+  // Who may be challenged is each player's choice. The sender's own switch is theirs to be told about;
+  // the other player's is public (it is on their profile), so it is said plainly.
+  const { rows: settings } = await pool.query(
+    `SELECT (SELECT challenges FROM users WHERE id = $1) AS mine,
+            (SELECT challenges FROM users WHERE id = $2) AS theirs,
+            EXISTS (SELECT 1 FROM friendships WHERE user_id = $1 AND friend_user_id = $2 AND status = 'accepted') AS is_friend`,
+    [req.userId, opponent.id],
+  );
+  if (settings[0].mine === 'off') return res.status(403).json({ error: 'challenges_off' });
+  if (!contactAllowed(settings[0].theirs, settings[0].is_friend)) {
+    return res.status(403).json({ error: 'not_accepting_challenges' });
+  }
 
   // A double-click (or re-visiting the Challenge flow before the invite's been answered)
   // shouldn't stack up repeat pending invites cluttering the recipient's screen — return the

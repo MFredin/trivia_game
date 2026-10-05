@@ -32,6 +32,8 @@ export default function ProfileScreen({
   ownVisibility,
   onBack,
   onChallenge,
+  canStartChallenge,
+  canStartOwl,
   onSendOwl,
   onViewProfile,
   onEditProfile,
@@ -104,6 +106,8 @@ export default function ProfileScreen({
           </div>
           <ProfileActions
             relationship={profile.relationship}
+            canChallenge={canStartChallenge && profile.can_challenge}
+            canOwl={canStartOwl && profile.can_owl}
             onAdd={view.add}
             onAccept={view.accept}
             onDecline={view.decline}

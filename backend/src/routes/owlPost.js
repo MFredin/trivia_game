@@ -4,12 +4,14 @@ import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { isOnline } from '../lib/presenceRegistry.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
-import { OWL_POST_MODES, checkMessage, checkSubject } from '../lib/owlPost.js';
+import { checkMessage, checkSubject } from '../lib/owlPost.js';
+import { CONTACT_MODES, contactAllowed } from '../lib/contactModes.js';
 import {
   deleteForMe,
   inbox,
   markRead,
   recentlySent,
+  unansweredCount,
   resolveConversation,
   resolveRecipient,
   storeMessage,
@@ -35,6 +37,7 @@ router.get('/inbox', async (req, res) => {
       avatar_style: r.avatar_style ?? {},
       theme: r.theme,
       online: isOnline(r.other_id),
+      is_friend: r.is_friend,
       last: { body: r.body, subject: r.subject, created_at: r.created_at, from_me: r.from_me },
       unread: Number(r.unread),
     })),
@@ -45,7 +48,7 @@ router.get('/unread', async (req, res) => res.json({ count: await unreadCount(re
 
 router.patch('/settings', async (req, res) => {
   const { mode } = req.body ?? {};
-  if (!OWL_POST_MODES.includes(mode)) return res.status(400).json({ error: 'invalid_mode' });
+  if (!CONTACT_MODES.includes(mode)) return res.status(400).json({ error: 'invalid_mode' });
   const { rows } = await pool.query(`UPDATE users SET owl_post = $1 WHERE id = $2 RETURNING ${USER_COLUMNS}`, [mode, req.userId]);
   return res.json({ user: userView(rows[0]) });
 });
@@ -65,6 +68,7 @@ router.get('/with/:username', async (req, res) => {
 
   const before = /^\d+$/.test(String(req.query.before ?? '')) ? Number(req.query.before) : undefined;
   const page = await thread(req.userId, found.other.id, { before });
+  const isFriend = found.other.is_friend;
   return res.json({
     with: {
       username: found.other.username,
@@ -72,8 +76,11 @@ router.get('/with/:username', async (req, res) => {
       avatar_style: found.other.avatar_style ?? {},
       theme: found.other.theme,
       online: isOnline(found.other.id),
-      // Whether a reply can be sent, so the screen can say so instead of letting a send fail.
-      accepts_owls: found.other.owl_post !== 'off',
+      is_friend: isFriend,
+      // Whether an owl can be sent, so the screen can say so instead of letting a send fail: their
+      // setting allows it, and, for someone who is not a friend, the one-until-they-answer limit.
+      accepts_owls: contactAllowed(found.other.owl_post, isFriend),
+      awaiting_reply: !isFriend && (await unansweredCount(req.userId, found.other.id)) > 0,
     },
     messages: page.messages,
     has_more: page.hasMore,

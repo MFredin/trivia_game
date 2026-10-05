@@ -38,13 +38,16 @@ export default function OwlThread({ thread, user, sending, sendError, onSend, on
   const muted = Boolean(user.muted_until);
   const off = user.owl_post === 'off';
   const theyAreOff = who && who.accepts_owls === false;
+  const waiting = who && who.awaiting_reply === true;
   const blockedReason = muted
     ? `A moderator has stopped you sending owls until ${new Date(user.muted_until).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}.`
     : off
       ? 'Owl Post is switched off, so you cannot send. You can turn it on in Settings.'
       : theyAreOff
-        ? `${thread.username} has switched Owl Post off, so they cannot receive owls right now.`
-        : null;
+        ? `${thread.username} is not accepting owls from you.`
+        : waiting
+          ? `You have sent ${thread.username} an owl. You can write again once they answer.`
+          : null;
 
   return (
     <div>
@@ -80,6 +83,11 @@ export default function OwlThread({ thread, user, sending, sendError, onSend, on
           </div>
         )}
         {thread.loading && <p className="explanation">Fetching&hellip;</p>}
+        {who && who.is_friend === false && (
+          <p className="explanation owl-stranger-note">
+            You and {thread.username} are not friends. You can report or block them from the menu above.
+          </p>
+        )}
 
         {thread.hasMore && (
           <button type="button" className="secondary-button owl-older" onClick={onLoadOlder}>

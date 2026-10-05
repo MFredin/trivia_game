@@ -79,11 +79,11 @@ test('owl post: two friends write to each other', async (t) => {
     await b.locator('#owl-post-off').check();
     await a.getByLabel(/Your owl to/).fill('Are you there?');
     await a.getByRole('button', { name: 'Send', exact: true }).click();
-    await a.getByText(/could not be delivered/i).waitFor();
+    await a.getByText(/not accepting owls from you/i).waitFor();
   });
 });
 
-test('owl post: a new owl can be composed from an empty inbox, to a friend by name', async (t) => {
+test('owl post: a new owl can be composed from an empty inbox, to a friend or a stranger', async (t) => {
   const browser = await launch();
   t.after(() => browser.close());
   const c = (await openPage(browser)).page;
@@ -101,12 +101,11 @@ test('owl post: a new owl can be composed from an empty inbox, to a friend by na
     await c.getByRole('heading', { name: 'Send an owl' }).waitFor();
   });
 
-  await t.test('a name that is not a friend is turned back, with the way to become one', async () => {
+  await t.test('a name no one has is refused in words', async () => {
     await c.getByLabel('To', { exact: true }).fill('nobodyatall');
     await c.getByLabel('Message').fill('Hello?');
     await c.getByRole('button', { name: 'Send', exact: true }).click();
-    await c.getByText(/is not on your friends list/i).waitFor();
-    await c.getByRole('button', { name: /Find people on Community/ }).waitFor();
+    await c.getByText('There is no player by that name.').waitFor();
   });
 
   await t.test('a friend, a subject and a message go through, and the conversation opens', async () => {
@@ -132,5 +131,39 @@ test('owl post: a new owl can be composed from an empty inbox, to a friend by na
     await d.getByRole('button', { name: /Owl Post/ }).waitFor();
     await navigateTo(d, 'Owl Post');
     await d.locator('.owl-row-subject', { hasText: 'Duel night' }).waitFor({ timeout: 15000 });
+  });
+});
+
+test('owl post: open to anyone by default, with a stranger held to one owl until they answer', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const e = (await openPage(browser)).page;
+  const f = (await openPage(browser)).page;
+  const nameE = await register(e);
+  const nameF = await register(f);
+
+  await t.test('a stranger can be written to, and the conversation says they are not friends', async () => {
+    await navigateTo(e, 'Owl Post');
+    await e.getByRole('button', { name: 'Send an owl' }).first().click();
+    await e.getByLabel('To', { exact: true }).fill(nameF);
+    await e.getByLabel('Message').fill('Fancy a duel this evening?');
+    await e.getByRole('button', { name: 'Send', exact: true }).click();
+    await e.locator('.owl-bubble', { hasText: 'Fancy a duel this evening?' }).waitFor();
+    await e.getByText(/are not friends/).waitFor();
+  });
+
+  await t.test('and has to wait for an answer before writing again', async () => {
+    await e.getByText(/You can write again once they answer/).waitFor();
+    assert.equal(await e.getByLabel(/Your owl to/).count(), 0, 'there is no reply box to use');
+  });
+
+  await t.test('the other player sees the stranger marked as one, and answering opens it up', async () => {
+    await navigateTo(f, 'Owl Post');
+    await f.locator('.owl-row-tag', { hasText: 'Not a friend' }).waitFor({ timeout: 15000 });
+    await f.getByRole('button', { name: new RegExp(nameE) }).click();
+    await f.getByLabel(/Your owl to/).fill('Yes, 8 o\u2019clock');
+    await f.getByRole('button', { name: 'Send', exact: true }).click();
+    await e.locator('.owl-bubble', { hasText: 'Yes, 8 o\u2019clock' }).waitFor({ timeout: 15000 });
+    await e.getByLabel(/Your owl to/).waitFor();
   });
 });
