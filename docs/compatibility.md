@@ -34,6 +34,11 @@ DATABASE_URL=… E2E_BASE_URL=http://localhost:5175 node --test e2e/overflow-mat
 WIDTHS=320,390 …   # a subset, while working on one screen
 ```
 
+`popover.test.mjs` opens the account menu at 320–412 px with text at 100–150% (what Android's font-size setting does),
+because the sweep above never opened a menu and missed one that ran off the left edge of 320 and 360 px phones: the
+header wraps, the avatar lands at the left of its row, and a menu anchored to the avatar's right edge opened
+leftwards off the screen. Every `PopoverMenu` now slides itself back inside the screen after it opens.
+
 `layout.test.mjs` (the Gauntlet header regression) and `a11y.test.mjs` (44px touch targets, accessible names) stay as
 they are.
 
@@ -48,6 +53,9 @@ they are.
 - `100dvh` (with `100vh` before it) where a height follows the screen: a phone's address bar moves, `vh` ignores it.
 - The Owl Post thread sizes itself to the room left on the screen (`useFillViewport`) and follows `visualViewport`, so
   the composer stays above a phone's keyboard.
+
+A lesson from that miss: a sweep that only *looks* at screens does not find what only appears when something is
+*opened* (a menu, a dialog, a popover). When a new kind of floating element is added, add it to a test that opens it.
 
 ## What this does not prove
 
