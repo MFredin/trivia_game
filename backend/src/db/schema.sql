@@ -491,3 +491,8 @@ CREATE TABLE IF NOT EXISTS email_token_log (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_email_token_log_user ON email_token_log (user_id, created_at);
+
+-- Which generation of sign-in tokens is current for the account. A token carries the number it was issued
+-- under; changing or resetting the password raises it, and every older token stops working at once.
+-- Tokens issued before this column existed carry no number and count as 0, so nobody is signed out by it.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0;

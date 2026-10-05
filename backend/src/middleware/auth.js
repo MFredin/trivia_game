@@ -1,5 +1,5 @@
 import { canReviewReports, roleOf } from '../lib/roles.js';
-import { verifyAuthToken } from '../lib/authTokens.js';
+import { readAuthToken } from '../lib/authTokens.js';
 import { pool } from '../db/pool.js';
 import { getAccountAccess, isActiveUser, restrictionNote } from '../repo/users.js';
 
@@ -9,14 +9,15 @@ function extractToken(req) {
   return header.slice('Bearer '.length);
 }
 
-// A valid signature is not enough: tokens last thirty days and cannot be revoked, so a deleted,
-// suspended or banned account's token still verifies. Checking the account on every request is
-// what makes those take effect at once rather than whenever the token happens to expire.
+// A valid signature is not enough: tokens last thirty days, so a deleted, suspended or banned account's
+// token still verifies, and so does one from before the password was changed. Checking the account on
+// every request is what makes those take effect at once rather than whenever the token happens to expire.
 export async function requireAuth(req, res, next) {
-  const userId = verifyAuthToken(extractToken(req));
-  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  const claim = readAuthToken(extractToken(req));
+  if (!claim) return res.status(401).json({ error: 'unauthorized' });
+  const { userId } = claim;
   try {
-    const access = await getAccountAccess(userId);
+    const access = await getAccountAccess(userId, claim.version);
     if (access.state === 'gone') return res.status(401).json({ error: 'unauthorized' });
     // 403, not 401: the token is good and the person is known — they are not allowed in. A 401
     // would make the app sign them out and forget why; this lets it say.
@@ -35,9 +36,9 @@ export async function requireAuth(req, res, next) {
 }
 
 export async function optionalAuth(req, res, next) {
-  const userId = verifyAuthToken(extractToken(req));
+  const claim = readAuthToken(extractToken(req));
   try {
-    req.userId = userId && (await isActiveUser(userId)) ? userId : null;
+    req.userId = claim && (await isActiveUser(claim.userId, claim.version)) ? claim.userId : null;
   } catch (err) {
     return next(err);
   }

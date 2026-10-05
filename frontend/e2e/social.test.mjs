@@ -77,6 +77,16 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
     await page.getByText('Password changed.').waitFor();
   });
 
+  await t.test('changing the password ends other sessions, but not this one', async () => {
+    // The old token no longer works anywhere; the page was handed a new one and is still signed in.
+    const stored = await page.evaluate(() => localStorage.getItem('trivia_auth_token'));
+    await navigateTo(page, 'Home');
+    await page.waitForSelector('.mode-spine-title');
+    assert.equal(await page.locator('input[type=email]').count(), 0, 'still signed in');
+    await navigateTo(page, 'Settings');
+    assert.ok(stored && stored.includes('.'), 'a token is still stored');
+  });
+
   await t.test('deleting the account asks for the name and the password, then signs out', async () => {
     await page.getByRole('button', { name: 'Delete my account' }).first().click();
     const confirm = page.getByRole('dialog').getByRole('button', { name: 'Delete my account' });

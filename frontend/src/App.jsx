@@ -233,6 +233,7 @@ export default function App() {
     token: auth.token,
     user: auth.user,
     onUserChanged: auth.updateUser,
+    onTokenReplaced: auth.replaceToken,
     onDeleted: useCallback(() => {
       auth.logout();
       dispatch({ type: 'notice/shown', message: 'Your account has been deleted.' });

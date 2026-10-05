@@ -8,20 +8,23 @@ import { pool } from '../db/pool.js';
  *
  * `state` is 'active', 'suspended' (with `until`), 'banned', or 'gone' (deleted or never existed).
  */
-export async function getAccountAccess(userId) {
+export async function getAccountAccess(userId, tokenVersion) {
   const { rows } = await pool.query(
-    'SELECT deleted_at, banned_at, suspended_until FROM users WHERE id = $1',
+    'SELECT deleted_at, banned_at, suspended_until, token_version FROM users WHERE id = $1',
     [userId],
   );
   const row = rows[0];
   if (!row || row.deleted_at) return { state: 'gone' };
+  // A token from before the password was last changed or reset: the person is known, the credential is not.
+  // Left undefined by callers that have no token (login, which has just checked the password).
+  if (tokenVersion !== undefined && tokenVersion !== row.token_version) return { state: 'gone' };
   if (row.banned_at) return { state: 'banned' };
   if (row.suspended_until && row.suspended_until > new Date()) return { state: 'suspended', until: row.suspended_until };
   return { state: 'active' };
 }
 
-export async function isActiveUser(userId) {
-  return (await getAccountAccess(userId)).state === 'active';
+export async function isActiveUser(userId, tokenVersion) {
+  return (await getAccountAccess(userId, tokenVersion)).state === 'active';
 }
 
 // What the moderator wrote for a player who is currently locked out, so the screen that turns them

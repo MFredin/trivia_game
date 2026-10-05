@@ -4,6 +4,7 @@ import { hashPassword } from '../lib/passwords.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { appUrl, mailEnabled, sendMail } from '../lib/mailer.js';
 import { deleteAccount } from '../services/accountDeletion.js';
+import { revokeSessions } from '../services/sessions.js';
 import { PURPOSES, consumeToken, createToken, logSend, peekToken, recentlySentCount } from '../services/emailTokens.js';
 
 const router = express.Router();
@@ -77,6 +78,8 @@ router.post('/password-reset/confirm', confirmLimit, async (req, res) => {
   const userId = await consumeToken(token, PURPOSES.reset);
   if (!userId) return res.status(400).json({ error: 'invalid_token' });
   await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1 AND deleted_at IS NULL', [userId, hashPassword(password)]);
+  // The usual reason to reset is that someone else may have the old password or a session; end all of them.
+  await revokeSessions(userId);
   return res.status(204).end();
 });
 
