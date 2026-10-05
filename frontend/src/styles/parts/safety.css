@@ -62,6 +62,8 @@
 .report-row-meta {
   margin: 0.15rem 0 0;
   font-size: 0.85rem;
+  /* It names the reporter, and a name can be 40 characters with no break in them. */
+  overflow-wrap: anywhere;
 }
 
 .report-row-details {

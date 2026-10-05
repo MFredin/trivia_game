@@ -1,5 +1,6 @@
 import { toRoman } from '../lib/roman.js';
 
+import TableScroll from './TableScroll.jsx';
 import PlayerTitle from './PlayerTitle.jsx';
 
 export default function Leaderboard({ entries }) {
@@ -8,6 +9,7 @@ export default function Leaderboard({ entries }) {
   }
 
   return (
+    <TableScroll label="Leaderboard">
     <table className="leaderboard-table">
       <thead>
         <tr>
@@ -31,5 +33,6 @@ export default function Leaderboard({ entries }) {
         ))}
       </tbody>
     </table>
+    </TableScroll>
   );
 }

@@ -8,6 +8,13 @@ body,
   height: 100%;
 }
 
+/* iOS Safari enlarges text on its own when a phone is turned sideways, which pushes layouts wider than the
+   screen. The page sizes its own text, so it asks the browser not to. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   /* The page is lit, not painted: a house-coloured lamp glow top-left, a fainter metal

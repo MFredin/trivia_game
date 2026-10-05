@@ -1,5 +1,6 @@
 import { toRoman } from '../lib/roman.js';
 
+import TableScroll from './TableScroll.jsx';
 import PlayerTitle from './PlayerTitle.jsx';
 
 export default function DuelLeaderboard({ entries }) {
@@ -8,6 +9,7 @@ export default function DuelLeaderboard({ entries }) {
   }
 
   return (
+    <TableScroll label="Duel record">
     <table className="leaderboard-table">
       <thead>
         <tr>
@@ -33,5 +35,6 @@ export default function DuelLeaderboard({ entries }) {
         ))}
       </tbody>
     </table>
+    </TableScroll>
   );
 }

@@ -1,6 +1,7 @@
 import HouseDevice from './HouseDevice.jsx';
 import { toRoman } from '../lib/roman.js';
 import { HOUSES } from '../constants/houses.js';
+import TableScroll from './TableScroll.jsx';
 
 const HOUSE_BY_ID = Object.fromEntries(HOUSES.map((h) => [h.id, h]));
 
@@ -11,6 +12,7 @@ export default function HouseCupBoard({ houses, unsorted }) {
 
   return (
     <div>
+      <TableScroll label="House Cup">
       <table className="leaderboard-table">
         <thead>
           <tr>
@@ -44,6 +46,7 @@ export default function HouseCupBoard({ houses, unsorted }) {
           })}
         </tbody>
       </table>
+    </TableScroll>
       {unsorted && unsorted.players > 0 && (
         <p className="explanation" style={{ marginTop: '1rem' }}>
           Plus {unsorted.players} player{unsorted.players === 1 ? '' : 's'} yet to choose a house (Monochrome),
