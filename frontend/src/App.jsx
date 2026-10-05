@@ -383,7 +383,11 @@ export default function App() {
     screen === 'duel-lobby' || screen === 'duel-summary'
       ? 'friends'
       : screen === 'profile'
-        ? profileReturnScreen
+        ? // Your own profile is the avatar's screen, however you got there; someone else's keeps
+          // lit the tab you came from.
+          viewingProfile?.toLowerCase() === auth.user?.username.toLowerCase()
+          ? 'my-profile'
+          : profileReturnScreen
         : screen === 'challenge'
           ? 'start'
           : screen;

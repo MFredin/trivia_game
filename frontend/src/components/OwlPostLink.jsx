@@ -7,7 +7,7 @@ import Icon from './icons.jsx';
 export default function OwlPostLink({ unread, active, onOpen }) {
   const label = unread > 0 ? `Owl Post, ${unread} unread` : 'Owl Post';
   return (
-    <button type="button" className={`owl-link ${active ? 'on' : ''}`} aria-label={label} title={label} onClick={onOpen}>
+    <button type="button" className={`owl-link ${active ? 'on' : ''}`} aria-current={active ? 'page' : undefined} aria-label={label} title={label} onClick={onOpen}>
       <Icon name="owl" size={26} />
       {unread > 0 && (
         <span className="owl-badge owl-link-badge" aria-hidden="true">
