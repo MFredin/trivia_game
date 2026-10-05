@@ -55,6 +55,9 @@
 
 .running-account {
   order: 2;
+  /* Stays at the right of its row when the header wraps and it lands on a line of its own; without this it
+     sat at the left, and the account menu, which opens from the avatar's right edge, ran off the screen. */
+  margin-left: auto;
 }
 
 @media (max-width: 420px) {

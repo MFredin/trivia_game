@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Icon from './icons.jsx';
 
 /**
@@ -11,15 +11,39 @@ import Icon from './icons.jsx';
  * block above them (who the menu belongs to). The trigger's content and class are the
  * caller's, so the same behaviour can be an icon button in one place and an avatar in another.
  */
+// How close to the edge of the screen a menu may come.
+const SCREEN_MARGIN_PX = 8;
+
 export default function PopoverMenu({ label, trigger, triggerClassName, triggerCurrent = false, items, header, align = 'right' }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
+  const menuRef = useRef(null);
 
   const close = useCallback((returnFocus) => {
     setOpen(false);
     if (returnFocus) triggerRef.current?.focus();
   }, []);
+
+  // Keep the menu on the screen. It is anchored to its button's edge, but where the button sits depends on how the
+  // header wrapped: with larger text or a narrow phone the avatar can end up at the left of its row, and a menu
+  // opening leftwards from there ran off the screen with its labels cut off. So after it opens, measure it and slide
+  // it back inside by whatever it overhangs. Re-checked when the window changes size (rotation, text zoom).
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    const keepOnScreen = () => {
+      const menu = menuRef.current;
+      if (!menu) return;
+      menu.style.transform = '';
+      const { left, right } = menu.getBoundingClientRect();
+      const width = document.documentElement.clientWidth;
+      if (left < SCREEN_MARGIN_PX) menu.style.transform = `translateX(${SCREEN_MARGIN_PX - left}px)`;
+      else if (right > width - SCREEN_MARGIN_PX) menu.style.transform = `translateX(${width - SCREEN_MARGIN_PX - right}px)`;
+    };
+    keepOnScreen();
+    window.addEventListener('resize', keepOnScreen);
+    return () => window.removeEventListener('resize', keepOnScreen);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -69,6 +93,7 @@ export default function PopoverMenu({ label, trigger, triggerClassName, triggerC
       </button>
       {open && (
         <div
+          ref={menuRef}
           role="menu"
           aria-label={label}
           className={`popover-menu ${align === 'left' ? 'popover-menu--left' : 'popover-menu--right'}`}
