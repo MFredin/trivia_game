@@ -1,0 +1,116 @@
+/* --- sections of which one shows at a time: the Settings sidebar and the Edit Profile tab row ---
+   These sit on the dark page, not on parchment, so they take the page's silver (the same fitting the
+   running header uses) and mark the current one in --onbg. */
+.section-tabs {
+  display: flex;
+}
+
+.section-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: none;
+  color: var(--silver-200);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: left;
+  /* A touch target: the accessibility test holds every control to 44px. */
+  min-height: 44px;
+}
+
+.section-tab-hint {
+  color: var(--silver-400);
+  font-size: 0.85rem;
+}
+
+.section-tab-pip {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--onbg);
+}
+
+.section-tab:focus-visible {
+  outline: 2px solid var(--onbg);
+  outline-offset: 2px;
+}
+
+/* The row: an underline marks the current one. */
+.section-tabs--tabs {
+  gap: 0.2rem;
+  border-bottom: 1px solid rgba(var(--silver-400-rgb), 0.35);
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+
+.section-tabs--tabs .section-tab {
+  padding: 0.55rem 1rem 0.6rem;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+
+.section-tabs--tabs .section-tab[aria-selected='true'] {
+  border-bottom-color: var(--onbg);
+  font-weight: 600;
+}
+
+/* The rail: an icon, a name and a hint, with a rule down the left of the current one. */
+.section-tabs--rail {
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.section-tabs--rail .section-tab {
+  display: grid;
+  grid-template-columns: 1.4rem minmax(0, 1fr) auto;
+  column-gap: 0.7rem;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid transparent;
+  border-radius: 0 3px 3px 0;
+}
+
+.section-tabs--rail .section-tab svg {
+  grid-row: span 2;
+  color: var(--onbg);
+}
+
+.section-tabs--rail .section-tab-hint {
+  grid-column: 2;
+}
+
+.section-tabs--rail .section-tab[aria-selected='true'] {
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--onbg);
+}
+
+@media (max-width: 720px) {
+  /* On a phone the rail becomes a row of pills that scrolls sideways inside itself. */
+  .section-tabs--rail {
+    flex-direction: row;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.3rem;
+  }
+
+  .section-tabs--rail .section-tab {
+    display: inline-flex;
+    gap: 0.45rem;
+    padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+    border: 1px solid rgba(var(--silver-400-rgb), 0.5);
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .section-tabs--rail .section-tab-hint {
+    display: none;
+  }
+
+  .section-tabs--rail .section-tab[aria-selected='true'] {
+    border-color: var(--onbg);
+  }
+}

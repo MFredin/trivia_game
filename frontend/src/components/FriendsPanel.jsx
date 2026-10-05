@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import Avatar from './Avatar.jsx';
 import MemberRow from './MemberRow.jsx';
+import InviteLink from './InviteLink.jsx';
+import { useInviteLink } from '../features/social/useInviteLink.js';
 import { getActivity } from '../api/activity.js';
 import { acceptFriendRequest, addFriend, declineFriendRequest, getAllMembers, getFriendRequests, getOnlineMembers, listFriends, removeFriend, searchMembers } from '../api/friends.js';
 
@@ -49,6 +51,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
   // A player who has switched one off may not start one either, so the rows do not offer it.
   const onChallenge = canStartChallenge ? startChallenge : undefined;
   const onMessage = canStartOwl ? startOwl : undefined;
+  const invite = useInviteLink(token);
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
   const [newFriend, setNewFriend] = useState('');
@@ -442,6 +445,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           </ul>
         )}
       </Plate>
+      <InviteLink invite={invite} />
     </div>
   );
 }

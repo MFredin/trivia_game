@@ -11,7 +11,7 @@ import { setChallengeMode } from '../../api/duels.js';
  * Privacy changes are applied at once and put back if the server refuses them: a
  * radio button that waits for a round trip before it moves looks broken.
  */
-export function useAccount({ token, user, onUserChanged, onDeleted }) {
+export function useAccount({ token, user, onUserChanged, onTokenReplaced, onDeleted }) {
   const [privacyError, setPrivacyError] = useState(null);
   const [owlPostError, setOwlPostError] = useState(null);
   const [challengesError, setChallengesError] = useState(null);
@@ -66,7 +66,14 @@ export function useAccount({ token, user, onUserChanged, onDeleted }) {
 
   // These two throw on failure, with the server's error code, so the form that asked can say
   // which field was wrong — a wrong current password and a lost connection want different words.
-  const updatePassword = useCallback((fields) => changePassword(fields, token), [token]);
+  // Changing the password ends the account's other sessions, and the reply carries this one's replacement.
+  const updatePassword = useCallback(
+    async (fields) => {
+      const data = await changePassword(fields, token);
+      if (data?.token) onTokenReplaced(data.token);
+    },
+    [token, onTokenReplaced],
+  );
 
   const removeAccount = useCallback(
     async (password) => {

@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws';
-import { verifyAuthToken } from './authTokens.js';
+import { readAuthToken } from './authTokens.js';
 import { markOnline, markOffline, getSockets } from './presenceRegistry.js';
 import { isDuelReaction, allowReaction } from './duelReactions.js';
 import { pool } from '../db/pool.js';
@@ -22,9 +22,10 @@ export function attachWebSocketServer(httpServer) {
       socket.destroy();
       return;
     }
-    const userId = verifyAuthToken(url.searchParams.get('token'));
-    // Same rule as requireAuth: a deleted account's token still verifies.
-    if (!userId || !(await isActiveUser(userId).catch(() => false))) {
+    const claim = readAuthToken(url.searchParams.get('token'));
+    const userId = claim?.userId;
+    // Same rule as requireAuth: a deleted account's token, or one from before a password change, still verifies.
+    if (!claim || !(await isActiveUser(userId, claim.version).catch(() => false))) {
       socket.destroy();
       return;
     }

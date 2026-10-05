@@ -5,33 +5,6 @@
   gap: 1.1rem;
 }
 
-.designer-preview {
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-}
-
-.designer-preview .explanation {
-  margin: 0;
-}
-
-.designer-group {
-  border: none;
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-}
-
-.designer-legend {
-  padding: 0;
-  margin-bottom: 0.45rem;
-  font-family: var(--font-display);
-  font-size: 0.82rem;
-  letter-spacing: 0.02em;
-  font-weight: 600;
-  color: var(--text-muted-on-surface);
-}
-
 .designer-options {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(3.4rem, 1fr));
@@ -176,4 +149,170 @@
 .edit-savebar-actions {
   display: flex;
   gap: 0.5rem;
+}
+
+/* Which part of the avatar is being edited: one row of buttons, each naming what is picked now. */
+.designer-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.designer-group-button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  background: transparent;
+  color: var(--text-on-surface);
+  border: 1px solid rgba(var(--rubric-rgb), 0.45);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  cursor: pointer;
+  min-height: 44px;
+  align-items: center;
+}
+
+.designer-group-button[aria-pressed='true'] {
+  background: var(--text-on-surface);
+  color: var(--parchment-100);
+  border-color: var(--text-on-surface);
+}
+
+.designer-group-value {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+/* --- Edit Profile: a preview that stays in view, beside the tab being edited --- */
+.profile-editor {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.profile-editor-main {
+  min-width: 0;
+}
+
+.profile-preview {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  min-width: 0;
+}
+
+.profile-preview-who {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.profile-preview-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  overflow-wrap: anywhere;
+}
+
+.profile-preview-house,
+.profile-preview-state {
+  margin: 0;
+  color: var(--text-muted-on-surface);
+  font-size: 0.9rem;
+}
+
+.profile-preview-bio {
+  margin: 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(var(--rubric-rgb), 0.2);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+/* Pinned achievements: what is pinned as chips, and the rest in a scrolling list. */
+.pin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.pin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.3rem 0.15rem 0.8rem;
+  border: 1px solid var(--rubric);
+  border-radius: 999px;
+}
+
+.pin-chip-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.pin-count {
+  color: var(--text-muted-on-surface);
+  font-size: 0.9rem;
+}
+
+.pin-search {
+  width: 100%;
+  margin-bottom: 0.6rem;
+}
+
+.pin-list {
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(var(--rubric-rgb), 0.25);
+  border-radius: 3px;
+}
+
+@media (max-width: 720px) {
+  .profile-editor {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+
+  /* The preview becomes a strip across the top that stays while the tab below scrolls. */
+  .profile-preview {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 0.9rem;
+    padding-block: 0.6rem;
+  }
+
+  .profile-preview .avatar {
+    flex: none;
+    width: 56px;
+    height: 56px;
+  }
+
+  .profile-preview-who {
+    align-items: flex-start;
+  }
+
+  .profile-preview-bio,
+  .profile-preview-state {
+    display: none;
+  }
 }

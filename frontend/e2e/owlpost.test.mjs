@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, navigateTo, openPage, register, BASE_URL } from './harness.mjs';
+import { openSection, launch, navigateTo, openPage, register, BASE_URL } from './harness.mjs';
 
 const origin = new URL(BASE_URL).origin;
 
@@ -76,6 +76,7 @@ test('owl post: two friends write to each other', async (t) => {
 
   await t.test('switching Owl Post off stops it from the other side, and says so', async () => {
     await navigateTo(b, 'Settings');
+    await openSection(b, 'Privacy');
     await b.locator('#owl-post-off').check();
     await a.getByLabel(/Your owl to/).fill('Are you there?');
     await a.getByRole('button', { name: 'Send', exact: true }).click();

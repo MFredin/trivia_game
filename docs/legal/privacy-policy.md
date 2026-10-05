@@ -183,8 +183,7 @@ As of this writing, the app stores two things in your browser's `localStorage`:
 
 - your **login session token**, under the key `trivia_auth_token`. This is what keeps you logged in between
   visits; it is removed when you log out or when the server tells the app your session is invalid. Session
-  tokens last 30 days and cannot be cancelled early, even by changing the password. 🚩 *Fixable in code; say so
-  here until it is fixed.*
+  tokens last 30 days, and are ended early on every device when the password is changed or reset.
 - **a timestamp, under `trivia_age_gate`, set only if someone enters an age under 13** at registration. It stops
   the same browser immediately trying again with an older age for 24 hours, and holds no date of birth.
 
@@ -300,9 +299,7 @@ We may update this Privacy Policy as the Service changes. If we do, we will upda
    fixable in code; decide before turning either on in production.
 6. **Hosting provider, email provider, processor terms and backups (Sections 4 and 7).**
 7. **A private contact address (Section 9)** is still needed; the issue tracker is public.
-8. **Session tokens cannot be cancelled (Section 5)** — a password change or reset does not sign out other
-   devices for up to 30 days. A code fix is straightforward; until then this must be disclosed.
-9. **Future IP-address / device-fingerprint persistence.** No IP address is persisted anywhere in the
+8. **Future IP-address / device-fingerprint persistence.** No IP address is persisted anywhere in the
    schema — only used transiently in memory for rate-limiting. If that changes, Section 2 must be
    updated before such a feature ships.
 
@@ -319,5 +316,5 @@ We may update this Privacy Policy as the Service changes. If we do, we will upda
   question, the `age_confirmed_at` timestamp and the `trivia_age_gate` device flag; the moderator role and who
   sees reports; titles and the open Owl Post and challenge settings (already described, now stated as the
   default); retention periods for reports, evidence and moderation actions; password reset and the public
-  deletion page, with the email data they use and the email provider; the 30-day token limitation. Closes the
+  deletion page, with the email data they use and the email provider; that a password change or reset ends other sessions. Closes the
   "public deletion page" and "no retention period" items and reframes the COPPA item as a decision to confirm.

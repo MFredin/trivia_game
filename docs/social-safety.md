@@ -168,7 +168,7 @@ other players' history points at it. In one transaction:
 - **Freed:** the username and email can be registered again; the names `deleted-…` and
   "Deleted player" cannot.
 
-Auth tokens are stateless, last thirty days and cannot be revoked, so `requireAuth`,
+Auth tokens are stateless and last thirty days (a password change or reset ends them early, see below), so `requireAuth`,
 `optionalAuth` and the WebSocket upgrade also check that the account is live; open sockets are
 closed on deletion. Deleting requires the password as well as a valid token, and the dialog asks
 for the username typed out.
@@ -194,8 +194,11 @@ address links point to. Without them in production **nothing is sent and the scr
 points to the feedback link). Outside production the message is printed to the console and held in memory;
 `MAIL_OUTBOX_FILE` also appends it to a file, which is how the browser test reads the link.
 
-Auth tokens last thirty days and cannot be revoked, so a reset does **not** sign out a session that already
-exists elsewhere. Worth fixing before this matters (a token version on the account).
+A reset (and a password change from Settings) ends **every other session**: each token carries the account's
+`token_version`, the request checks it, and changing the password raises it (`services/sessions.js`). Open
+sockets are closed, an old token cannot open a new one, and a password change returns a fresh token so the
+device that made the change stays signed in. Tokens issued before the column existed count as version 0, so
+shipping it signed nobody out.
 
 ### Not done yet
 

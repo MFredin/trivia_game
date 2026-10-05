@@ -53,6 +53,13 @@ export function useAuth({ onAuthenticated, onLoggedOut, onRestricted }) {
     onAuthenticated(newUser);
   }, [onAuthenticated]);
 
+  // The server hands back a new token when it ends the account's other sessions (a password change): keep
+  // using it, or this device would be the one that gets signed out.
+  const replaceToken = useCallback((newToken) => {
+    localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+    setToken(newToken);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     setToken(null);
@@ -73,5 +80,5 @@ export function useAuth({ onAuthenticated, onLoggedOut, onRestricted }) {
   // as the truth rather than patching fields here and hoping the two agree.
   const updateUser = useCallback((nextUser) => setUser(nextUser), []);
 
-  return { token, user, checked, authenticate, logout, selectTheme, updateUser };
+  return { token, user, checked, authenticate, replaceToken, logout, selectTheme, updateUser };
 }

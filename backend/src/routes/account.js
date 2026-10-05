@@ -6,6 +6,7 @@ import { USER_COLUMNS, userView } from '../lib/userView.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { deleteAccount } from '../services/accountDeletion.js';
+import { revokeSessions } from '../services/sessions.js';
 import { isReservedUsername } from '../lib/usernames.js';
 
 const router = express.Router();
@@ -64,7 +65,8 @@ router.patch('/password', credentialRateLimit, async (req, res) => {
   if (!(await passwordMatches(req.userId, current))) return res.status(400).json({ error: 'incorrect_password' });
 
   await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hashPassword(next), req.userId]);
-  return res.status(204).end();
+  // Every other session ends; this one is handed a token that is still good.
+  return res.json({ token: await revokeSessions(req.userId) });
 });
 
 // Deletes the signed-in player's own account — there is no id in the path to prove ownership of.

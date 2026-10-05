@@ -53,7 +53,7 @@ router.post('/register', authRateLimit, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `INSERT INTO users (username, email, password_hash, age_confirmed_at) VALUES ($1, $2, $3, now())
-       RETURNING ${USER_COLUMNS}`,
+       RETURNING ${USER_COLUMNS}, token_version`,
       [username.trim(), email.toLowerCase().trim(), passwordHash],
     );
     const user = rows[0];
@@ -75,7 +75,7 @@ router.post('/register', authRateLimit, async (req, res) => {
       }
     }
 
-    return res.status(201).json({ token: signAuthToken(user.id), user: userView(user) });
+    return res.status(201).json({ token: signAuthToken(user.id, user.token_version), user: userView(user) });
   } catch (err) {
     if (err.code === '23505') {
       return res.status(409).json({ error: 'email_or_username_taken' });
@@ -92,7 +92,7 @@ router.post('/login', authRateLimit, async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = $1`,
+    `SELECT ${USER_COLUMNS}, password_hash, token_version FROM users WHERE email = $1`,
     [email.toLowerCase().trim()],
   );
   const user = rows[0];
@@ -111,7 +111,7 @@ router.post('/login', authRateLimit, async (req, res) => {
     });
   }
 
-  return res.json({ token: signAuthToken(user.id), user: userView(user) });
+  return res.json({ token: signAuthToken(user.id, user.token_version), user: userView(user) });
 });
 
 router.get('/me', requireAuth, async (req, res) => {

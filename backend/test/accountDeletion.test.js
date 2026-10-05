@@ -32,7 +32,7 @@ test('account settings', { skip: skip && 'DATABASE_URL not set' }, async (t) => 
     assert.equal((await change({ current_password: 'password123', new_password: 'short' })).status, 400);
     assert.equal((await login(me.email, 'password123')).status, 200, 'nothing changed yet');
 
-    assert.equal((await change({ current_password: 'password123', new_password: 'a-new-password' })).status, 204);
+    assert.equal((await change({ current_password: 'password123', new_password: 'a-new-password' })).status, 200);
     assert.equal((await login(me.email, 'a-new-password')).status, 200);
     assert.equal((await login(me.email, 'password123')).status, 401, 'the old one is gone');
   });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, navigateTo, openPage, register } from './harness.mjs';
+import { openSection, launch, navigateTo, openPage, register } from './harness.mjs';
 
 // Promoting an admin and unlocking an achievement have no route by design, so this does them the way an
 // operator would: in the database. Skipped where there is no DATABASE_URL to do it with.
@@ -27,6 +27,7 @@ test('titles: earned ones are worn from Edit Profile, system ones are given by a
 
   await t.test('a title you have earned can be picked, saved and shows on your profile; the rest say what they take', async () => {
     await navigateTo(player, 'Edit profile');
+    await openSection(player, 'Title');
     await player.getByText('Your Title').waitFor();
     await player.getByLabel(/^Newcomer/).check();
     await player.getByRole('button', { name: 'Save changes' }).click();
@@ -40,6 +41,7 @@ test('titles: earned ones are worn from Edit Profile, system ones are given by a
 
   await t.test('a system title is not on offer until an admin gives it', async () => {
     await navigateTo(player, 'Edit profile');
+    await openSection(player, 'Title');
     assert.equal(await player.getByLabel(/^Prefect/).count(), 0);
   });
 
@@ -53,6 +55,7 @@ test('titles: earned ones are worn from Edit Profile, system ones are given by a
 
     await player.reload({ waitUntil: 'networkidle' });
     await navigateTo(player, 'Edit profile');
+    await openSection(player, 'Title');
     await player.getByLabel(/^Prefect/).check();
     await player.getByRole('button', { name: 'Save changes' }).click();
     await player.getByText('Saved.').waitFor();

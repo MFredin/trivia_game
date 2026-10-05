@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Plate from './Plate.jsx';
 import AvatarDesigner from './AvatarDesigner.jsx';
 import ProfileAbout from './ProfileAbout.jsx';
+import ProfilePreview from './ProfilePreview.jsx';
+import SectionTabs, { panelProps } from './SectionTabs.jsx';
 import TitlePicker from './TitlePicker.jsx';
 
 // What a refused save says, in the player's terms. The bio's reasons sit beside the bio; the rest
@@ -21,14 +23,25 @@ const SAVE_ERRORS = {
 };
 
 export default function EditProfileScreen({ user, editor, onViewProfile }) {
-  const { customization, loadError, draft, dirty, saving, error, saved, change, setStyle, discard, save } = editor;
+  const { customization, loadError, draft, dirty, dirtyTabs, saving, error, saved, change, setStyle, discard, save } = editor;
+  const [tab, setTab] = useState('avatar');
 
   const locks = useMemo(() => new Map((customization?.locks ?? []).map((l) => [l.key, l])), [customization]);
 
+  const bioError = error ? BIO_ERRORS[error.code] : null;
+  // A refused bio is explained beside the bio, so take the player there rather than leave the reason on a tab they cannot see.
+  useEffect(() => {
+    if (bioError) setTab('about');
+  }, [bioError]);
+
   if (!draft) return null;
 
-  const bioError = error ? BIO_ERRORS[error.code] : null;
   const saveError = error && !bioError ? (SAVE_ERRORS[error.code] ?? 'Could not save your changes. Try again.') : null;
+  const tabs = [
+    { id: 'avatar', label: 'Avatar', dirty: dirtyTabs.avatar },
+    { id: 'title', label: 'Title', dirty: dirtyTabs.title },
+    { id: 'about', label: 'About', dirty: dirtyTabs.about },
+  ];
 
   return (
     <div>
@@ -48,23 +61,31 @@ export default function EditProfileScreen({ user, editor, onViewProfile }) {
         </div>
       )}
 
-      <Plate>
-        <p className="screen-eyebrow" style={{ margin: '0 0 0.8rem' }}>
-          Your Avatar
-        </p>
-        <AvatarDesigner
-          draft={draft}
-          username={user.username}
-          house={user.theme}
-          locks={locks}
-          onSigil={(avatar) => change({ avatar })}
-          onStyle={setStyle}
-        />
-      </Plate>
-
-      <TitlePicker titles={customization?.titles} value={draft.title} onChange={(title) => change({ title })} />
-
-      <ProfileAbout draft={draft} customization={customization} bioError={bioError} onChange={change} />
+      <div className="profile-editor">
+        <ProfilePreview user={user} draft={draft} titles={customization?.titles} dirty={dirty} />
+        <div className="profile-editor-main">
+          <SectionTabs prefix="profile" label="Profile sections" tabs={tabs} active={tab} onChange={setTab} variant="tabs" />
+          <div {...panelProps('profile', tab)}>
+            {tab === 'avatar' && (
+              <Plate>
+                <p className="screen-eyebrow" style={{ margin: '0 0 0.8rem' }}>
+                  Your Avatar
+                </p>
+                <AvatarDesigner
+                  draft={draft}
+                  username={user.username}
+                  house={user.theme}
+                  locks={locks}
+                  onSigil={(avatar) => change({ avatar })}
+                  onStyle={setStyle}
+                />
+              </Plate>
+            )}
+            {tab === 'title' && <TitlePicker titles={customization?.titles} value={draft.title} onChange={(title) => change({ title })} />}
+            {tab === 'about' && <ProfileAbout draft={draft} customization={customization} bioError={bioError} onChange={change} />}
+          </div>
+        </div>
+      </div>
 
       <div className="edit-savebar" role="region" aria-label="Save your changes">
         <span className="edit-savebar-status" role="status">

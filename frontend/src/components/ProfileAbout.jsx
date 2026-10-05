@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Plate from './Plate.jsx';
 import Checkbox from './Checkbox.jsx';
 
@@ -10,6 +11,9 @@ export default function ProfileAbout({ draft, customization, bioError, onChange 
   const limits = customization?.limits ?? { bio: 140, pinned: 3 };
   const earned = customization?.earned ?? [];
   const atLimit = draft.pinned.length >= limits.pinned;
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const visible = q ? earned.filter((a) => `${a.name} ${a.description}`.toLowerCase().includes(q)) : earned;
 
   const togglePin = (id) => {
     const next = draft.pinned.includes(id) ? draft.pinned.filter((p) => p !== id) : [...draft.pinned, id];
@@ -81,26 +85,53 @@ export default function ProfileAbout({ draft, customization, bioError, onChange 
               Pick up to {limits.pinned} to show on your profile, in the order you choose them. With none pinned, your most
               recent are shown.
             </p>
-            {earned.map((a) => {
-              const checked = draft.pinned.includes(a.id);
-              return (
-                <label key={a.id} className="pin-option" htmlFor={`pin-${a.id}`}>
-                  <Checkbox
-                    id={`pin-${a.id}`}
-                    checked={checked}
-                    disabled={!checked && atLimit}
-                    onChange={() => togglePin(a.id)}
-                    mark={draft.pinned.indexOf(a.id) + 1}
-                  />
-                  <span>
-                    <span className="pin-option-name">
-                      {a.name}
-                    </span>
-                    <span className="pin-option-desc">{a.description}</span>
+            <div className="pin-chips" aria-live="polite">
+              {draft.pinned.map((id) => {
+                const a = earned.find((e) => e.id === id);
+                return (
+                  <span key={id} className="pin-chip">
+                    {a?.name ?? id}
+                    <button type="button" className="pin-chip-remove" aria-label={`Unpin ${a?.name ?? id}`} onClick={() => togglePin(id)}>
+                      ×
+                    </button>
                   </span>
-                </label>
-              );
-            })}
+                );
+              })}
+              <span className="pin-count">
+                {draft.pinned.length} of {limits.pinned} pinned
+              </span>
+            </div>
+            {earned.length > 6 && (
+              <input
+                type="search"
+                className="pin-search"
+                aria-label="Search your achievements"
+                placeholder="Search your achievements"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            )}
+            <div className="pin-list">
+              {visible.length === 0 && <p className="explanation">No achievement matches that.</p>}
+              {visible.map((a) => {
+                const checked = draft.pinned.includes(a.id);
+                return (
+                  <label key={a.id} className="pin-option" htmlFor={`pin-${a.id}`}>
+                    <Checkbox
+                      id={`pin-${a.id}`}
+                      checked={checked}
+                      disabled={!checked && atLimit}
+                      onChange={() => togglePin(a.id)}
+                      mark={draft.pinned.indexOf(a.id) + 1}
+                    />
+                    <span>
+                      <span className="pin-option-name">{a.name}</span>
+                      <span className="pin-option-desc">{a.description}</span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
           </>
         )}
       </fieldset>
