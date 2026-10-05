@@ -26,6 +26,9 @@ const GLYPHS = {
     { d: 'M4.5 14h15v7h-15z' },
     { d: 'M4.5 14.5 12 19l7.5-4.5' },
   ],
+  // An open book (Appearance: the bindery) and a shield (Privacy), in the same few strokes as the rest.
+  book: [{ d: 'M3.5 5.5h7a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 0-1.5-1.5h-7z' }, { d: 'M20.5 5.5h-7A1.5 1.5 0 0 0 12 7v12a1.5 1.5 0 0 1 1.5-1.5h7z' }],
+  shield: [{ d: 'M12 3.5 19 6v5.5c0 4.3-3 7.3-7 9-4-1.7-7-4.7-7-9V6z' }],
   lock: [{ d: 'M6 11h12v9H6z' }, { d: 'M8.5 11V8a3.5 3.5 0 0 1 7 0v3' }],
   edit: [{ d: 'M4 20h4L19 9l-4-4L4 16z' }, { d: 'M13.5 6.5l4 4' }],
   more: [

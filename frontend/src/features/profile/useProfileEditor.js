@@ -57,6 +57,21 @@ export function useProfileEditor({ token, user, active, onUserChanged }) {
     );
   }, [user, draft]);
 
+  // Which tab of Edit Profile holds a change, so it can carry a dot.
+  const dirtyTabs = useMemo(() => {
+    if (!user || !draft) return { avatar: false, title: false, about: false };
+    const base = draftFrom(user);
+    return {
+      avatar: draft.avatar !== base.avatar || JSON.stringify(draft.style) !== JSON.stringify(base.style),
+      title: draft.title !== base.title,
+      about:
+        draft.bio.trim() !== base.bio ||
+        draft.favoriteBook !== base.favoriteBook ||
+        draft.favoriteSubject !== base.favoriteSubject ||
+        !sameList(draft.pinned, base.pinned),
+    };
+  }, [user, draft]);
+
   const change = useCallback((fields) => {
     setSaved(false);
     setDraft((prev) => ({ ...prev, ...fields }));
@@ -98,5 +113,5 @@ export function useProfileEditor({ token, user, active, onUserChanged }) {
     }
   }, [draft, user, token, onUserChanged]);
 
-  return { customization, loadError, draft, dirty, saving, error, saved, change, setStyle, discard, save };
+  return { customization, loadError, draft, dirty, dirtyTabs, saving, error, saved, change, setStyle, discard, save };
 }

@@ -57,3 +57,56 @@
 .house-swatch:hover .house-swatch-chip {
   transform: translateY(-2px);
 }
+
+/* --- settings: a rail of sections beside the one that is showing --- */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 14.5rem minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.settings-rail {
+  position: sticky;
+  top: 1rem;
+  min-width: 0;
+}
+
+.settings-rail-note {
+  margin: 0.8rem 0 0 1rem;
+  color: var(--silver-400);
+  font-size: 0.85rem;
+}
+
+.settings-panel {
+  min-width: 0;
+}
+
+.settings-panel:focus-visible {
+  outline: 2px solid var(--onbg);
+  outline-offset: 4px;
+}
+
+/* Deleting an account is set apart from the changes beside it. */
+.plate--danger {
+  box-shadow: 0 0 0 1px var(--oxblood-600);
+}
+
+.plate--danger .screen-eyebrow {
+  color: var(--oxblood-600);
+}
+
+@media (max-width: 720px) {
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+  }
+
+  .settings-rail {
+    position: static;
+  }
+
+  .settings-rail-note {
+    display: none;
+  }
+}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, navigateTo, openPage, register } from './harness.mjs';
+import { openSection, launch, navigateTo, openPage, register } from './harness.mjs';
 
 test('owl post and challenges can each be open, friends only or off', async (t) => {
   const browser = await launch();
@@ -19,12 +19,14 @@ test('owl post and challenges can each be open, friends only or off', async (t) 
   };
   const setting = async (name, value) => {
     await navigateTo(me, 'Settings');
+    await openSection(me, 'Privacy');
     await me.locator(`#${name}-${value}`).check();
     await me.waitForTimeout(500);
   };
 
   await t.test('new accounts are open to both', async () => {
     await navigateTo(me, 'Settings');
+    await openSection(me, 'Privacy');
     assert.equal(await me.locator('#owl-post-open').isChecked(), true);
     assert.equal(await me.locator('#challenges-open').isChecked(), true);
     await openProfileOf(visitor, myName);

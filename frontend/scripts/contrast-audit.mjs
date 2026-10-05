@@ -97,6 +97,7 @@ function build(house) {
   add('body text on parchment', ink, parch, 4.5, '.plate / .choice-text');
   add('muted text on parchment', mutedOnSurface, parch, 4.5, '.explanation / field labels');
   add('rubric eyebrow on parchment', rubric, parch, 4.5, '.plate .screen-eyebrow');
+  add('selected avatar part on its fill', parch, ink, 4.5, '.designer-group-button[aria-pressed=true]');
   add('choice letter on parchment', rubric, parch, 4.5, '.choice-chip');
   add('question numeral on parchment', rubric, parch, 3.0, '.qcard-margin-numeral, 41.6px');
   add('summary numeral on parchment', rubric, parch, 3.0, '.summary-numeral, 67px');
@@ -112,6 +113,10 @@ function build(house) {
   add('nav link on page', t('--silver-400'), page, 4.5, '.running-nav button');
   add('nav active link on page', t('--silver-200'), page, 4.5, '.running-nav button.on');
   add('wordmark on page', t('--silver-200'), page, 3.0, '.running-title');
+  add('section tab label on page', t('--silver-200'), page, 4.5, '.section-tab');
+  add('section tab label on selected rail wash', t('--silver-200'), over(hexrgb('#ffffff'), page, 0.08), 4.5, '.section-tabs--rail .section-tab[aria-selected]');
+  add('section tab hint on page', t('--silver-400'), page, 4.5, '.section-tab-hint, .settings-rail-note');
+  add('section tab marker on page', onbg, page, 3.0, '.section-tab-pip and the selected rule (non-text)');
 
   // on cloth (spines, the Ex Libris board, the question spread's spine strip)
   add('spine label on cloth', tooling, cloth, 4.5, '.mode-spine label');

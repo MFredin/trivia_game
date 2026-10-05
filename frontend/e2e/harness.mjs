@@ -92,6 +92,13 @@ export async function navigateTo(page, label) {
   await page.waitForTimeout(600);
 }
 
+/** Opens one section of Settings or Edit Profile (they show one at a time) and waits for it to be the current one. */
+export async function openSection(page, name) {
+  const tab = page.getByRole('tab', { name: new RegExp(`^${name}`) });
+  await tab.click();
+  await page.waitForSelector(`[role=tab][aria-selected=true]:has-text("${name}")`);
+}
+
 /** Picks a mode on the start screen and begins the run. */
 export async function beginRun(page, mode = 'Classic') {
   await page.locator('.mode-spine-title', { hasText: new RegExp(mode, 'i') }).first().click();

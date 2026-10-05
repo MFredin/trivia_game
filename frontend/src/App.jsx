@@ -492,9 +492,6 @@ export default function App() {
             account={account}
             safety={safety}
             onSelectTheme={auth.selectTheme}
-            token={auth.token}
-            onViewOwnProfile={() => viewProfile(auth.user.username)}
-            onEditProfile={() => navigate('edit-profile')}
           />
         </Suspense>
       )}

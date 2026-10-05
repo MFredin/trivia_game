@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, navigateTo, openPage, register } from './harness.mjs';
+import { openSection, launch, navigateTo, openPage, register } from './harness.mjs';
 
 // One registration for the whole file: sign-ups are limited to ten per IP per quarter hour and
 // the rest of the suite already uses most of them. Everything that needs a second player
@@ -26,15 +26,24 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
     assert.equal(await page.locator('.account-trigger svg text').count(), 1, 'a new account wears its initial');
     assert.equal(await page.getByRole('button', { name: 'Save changes' }).isDisabled(), true, 'nothing to save yet');
 
+    // One part of the avatar shows at a time, chosen from the row above the options.
     await page.getByRole('button', { name: 'Key', exact: true }).click();
+    await page.getByRole('button', { name: /^Shape/ }).click();
     await page.getByRole('button', { name: 'Hexagon' }).click();
+    await page.getByRole('button', { name: /^Colour/ }).click();
     await page.getByRole('button', { name: 'Violet' }).click();
+    assert.match(await page.textContent('.profile-preview-state'), /not saved yet/, 'the preview beside the editor is showing the draft');
+    assert.equal(await page.locator('.profile-preview svg text').count(), 0, 'and has already swapped the initial for the key');
+    assert.equal(await page.locator('[role=tab]:has-text("Avatar") .section-tab-pip').count(), 1, 'the Avatar tab is marked as holding a change');
     assert.equal(await page.locator('.account-trigger svg text').count(), 1, 'the nav keeps the saved avatar until Save');
 
     // Earned choices are shown, locked, with what earns them — and cannot be picked.
+    await page.getByRole('button', { name: /^Frame/ }).click();
     const locked = page.getByRole('button', { name: /^Gilt, locked/ });
     assert.equal(await locked.isDisabled(), true);
 
+    await openSection(page, 'About');
+    assert.equal(await page.locator('[role=tab]:has-text("About") .section-tab-pip').count(), 0, 'nothing is changed on About yet');
     await page.getByLabel('Short bio').fill('Find me at www.example.com');
     await page.getByRole('button', { name: 'Save changes' }).click();
     await page.waitForSelector('#profile-bio-help ~ .error-banner');
@@ -44,6 +53,7 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
     await page.getByRole('button', { name: 'Save changes' }).click();
     await page.getByText('Saved.').waitFor();
     await page.waitForFunction(() => document.querySelectorAll('.account-trigger svg text').length === 0);
+    await openSection(page, 'Avatar');
     assert.equal(await page.getByRole('button', { name: 'Key', exact: true }).getAttribute('aria-pressed'), 'true');
   });
 
@@ -55,6 +65,7 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
 
   await t.test('the friends list defaults to friends-only, and can be changed', async () => {
     await navigateTo(page, 'Settings');
+    await openSection(page, 'Privacy');
     assert.equal(await page.locator('#friends-visibility-friends').isChecked(), true);
     await page.getByLabel('Only me').check();
     await navigateTo(page, 'My profile');
@@ -63,8 +74,23 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
     assert.match(await page.textContent('.profile-head'), new RegExp(`Member since`));
   });
 
+  await t.test('Settings shows one section at a time, and the arrow keys move between them', async () => {
+    await navigateTo(page, 'Settings');
+    await page.getByRole('heading', { name: 'Settings' }).waitFor();
+    assert.equal(await page.locator('.house-swatches').count(), 1, 'it opens on Appearance');
+    assert.equal(await page.getByLabel('Current password').count(), 0, 'the password form is on another section');
+    await page.getByRole('tab', { name: /^Appearance/ }).focus();
+    await page.keyboard.press('ArrowDown');
+    await page.waitForSelector('[role=tab][aria-selected=true]:has-text("Privacy")');
+    assert.equal(await page.locator(':focus').getAttribute('role'), 'tab', 'focus moves with the selection');
+    await page.keyboard.press('End');
+    await page.waitForSelector('[role=tab][aria-selected=true]:has-text("Account")');
+    assert.equal(await page.getByLabel('Current password').count(), 1);
+  });
+
   await t.test('a password change needs the current password', async () => {
     await navigateTo(page, 'Settings');
+    await openSection(page, 'Account');
     await page.getByLabel('Current password').fill('not-the-password');
     await page.getByLabel('New password', { exact: true }).fill('a-better-password');
     await page.getByLabel('New password again').fill('a-better-password');
@@ -83,8 +109,23 @@ test('your own corner: avatar, privacy, password, deleting the account', async (
     await navigateTo(page, 'Home');
     await page.waitForSelector('.mode-spine-title');
     assert.equal(await page.locator('input[type=email]').count(), 0, 'still signed in');
-    await navigateTo(page, 'Settings');
     assert.ok(stored && stored.includes('.'), 'a token is still stored');
+  });
+
+  await t.test('the invite link is on the Community screen, not in Settings', async () => {
+    await navigateTo(page, 'Settings');
+    for (const section of ['Appearance', 'Privacy', 'Account']) {
+      await openSection(page, section);
+      assert.equal(await page.getByLabel('Your invite link').count(), 0, `not in ${section}`);
+    }
+    await navigateTo(page, 'Community');
+    const link = page.getByLabel('Your invite link');
+    await link.waitFor();
+    await page.waitForFunction(() => /\?invite=\w+/.test(document.querySelector('input[aria-label="Your invite link"]')?.value ?? ''));
+    await page.getByRole('button', { name: 'Copy link' }).click();
+    await page.getByRole('button', { name: 'Copied!' }).waitFor();
+    await navigateTo(page, 'Settings');
+    await openSection(page, 'Account');
   });
 
   await t.test('deleting the account asks for the name and the password, then signs out', async () => {

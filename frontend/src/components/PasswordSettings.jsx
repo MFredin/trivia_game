@@ -44,6 +44,9 @@ export default function PasswordSettings({ onChangePassword }) {
       <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
         Change Password
       </p>
+      <p className="explanation" style={{ margin: '0 0 1rem' }}>
+        Changing it signs you out on every other device.
+      </p>
       <form className="start-form" onSubmit={submit}>
         <label htmlFor="current-password">
           Current password

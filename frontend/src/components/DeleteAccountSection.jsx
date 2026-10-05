@@ -6,7 +6,7 @@ export default function DeleteAccountSection({ username, onDelete }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <Plate>
+    <Plate className="plate--danger">
       <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
         Delete Account
       </p>
