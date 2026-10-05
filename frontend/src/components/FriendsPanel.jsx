@@ -200,7 +200,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
       <div className="screen-head">
         <div>
           <p className="screen-eyebrow">Correspondents</p>
-          <h2 className="screen-title">Friends</h2>
+          <h2 className="screen-title">Community</h2>
         </div>
       </div>
 

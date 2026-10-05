@@ -14,7 +14,7 @@ test('a solo run, end to end', async (t) => {
     for (const [label, marker] of [
       ['Leaderboard', /leaderboard|standings|rank/i],
       ['Achievements', /achievement|unlocked/i],
-      ['Friends', /friend|members|activity/i],
+      ['Community', /friend|members|activity/i],
       ['Settings', /binding|house|theme/i],
     ]) {
       await navigateTo(page, label);

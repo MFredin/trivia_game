@@ -421,3 +421,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_created ON messages (created_at);
 -- moment: what a moderator is shown, so they never have to read anyone's inbox, and so the evidence
 -- cannot be tidied away by deleting the messages afterwards.
 ALTER TABLE reports ADD COLUMN IF NOT EXISTS evidence JSONB;
+
+-- A message may carry a short subject, chosen when composing a new owl. Optional, plain text, and
+-- held to the same filter as the message itself.
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS subject TEXT;

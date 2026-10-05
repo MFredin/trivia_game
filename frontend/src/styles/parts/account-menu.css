@@ -7,8 +7,7 @@
   min-height: 44px;
   padding: 0;
   background: none;
-  /* The ring, which "you are on one of my screens" fills in, is shared with the envelope and
-     drawn in chrome.css. */
+  /* "You are on one of my screens" is the underline shared with the envelope, drawn in chrome.css. */
   cursor: pointer;
 }
 

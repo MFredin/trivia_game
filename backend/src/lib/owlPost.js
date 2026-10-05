@@ -3,6 +3,7 @@ import { checkText } from './bioFilter.js';
 // Owl Post is messages between friends: plain text, short, one to one. The limits below are the
 // product's, and each has a reason — see docs/social-safety.md.
 export const MESSAGE_MAX_LENGTH = 500;
+export const SUBJECT_MAX_LENGTH = 60;
 export const THREAD_PAGE_SIZE = 40;
 export const INBOX_LIMIT = 100;
 
@@ -31,4 +32,22 @@ export function checkMessage(input) {
   if (!result.ok) return { ok: false, error: ERRORS[result.reason] };
   if (result.value === '') return { ok: false, error: 'message_empty' };
   return result;
+}
+
+const SUBJECT_ERRORS = {
+  invalid: 'invalid_subject',
+  too_long: 'subject_too_long',
+  has_link: 'subject_has_link',
+  not_allowed: 'subject_not_allowed',
+};
+
+/**
+ * A subject is optional: nothing, or only spaces, means none (`value: null`). When there is one it
+ * gets the message's filter at 60 characters. `{ ok: true, value }` or `{ ok: false, error }`.
+ */
+export function checkSubject(input) {
+  if (input === undefined || input === null) return { ok: true, value: null };
+  const result = checkText(input, SUBJECT_MAX_LENGTH);
+  if (!result.ok) return { ok: false, error: SUBJECT_ERRORS[result.reason] };
+  return { ok: true, value: result.value === '' ? null : result.value };
 }

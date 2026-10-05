@@ -8,14 +8,20 @@ const when = (iso) => {
 };
 
 /** Every conversation, newest first, with what was said last and how many are unread. */
-export default function OwlInbox({ conversations, onOpen }) {
+export default function OwlInbox({ conversations, onOpen, onCompose }) {
   return (
     <Plate>
       {conversations === null && <p className="explanation">Fetching&hellip;</p>}
       {conversations && conversations.length === 0 && (
-        <p className="explanation">
-          No owls yet. Open a friend&rsquo;s profile, or find them on the Friends screen, and choose &ldquo;Send an owl&rdquo;.
-        </p>
+        <div className="owl-empty">
+          <p className="owl-empty-title">Nothing in your owlery yet</p>
+          <p className="explanation">
+            Owl Post is for writing to your friends. Send your first owl, or start one from a friend&rsquo;s row or profile.
+          </p>
+          <button type="button" className="primary-button" onClick={onCompose}>
+            Send an owl
+          </button>
+        </div>
       )}
       {conversations && conversations.length > 0 && (
         <ul className="friend-list">
@@ -31,6 +37,8 @@ export default function OwlInbox({ conversations, onOpen }) {
                   </span>
                   <span className={`owl-row-preview ${c.unread > 0 ? 'is-unread' : ''}`}>
                     {c.last.from_me ? 'You: ' : ''}
+                    {c.last.subject && <strong className="owl-row-subject">{c.last.subject}</strong>}
+                    {c.last.subject ? ' \u2014 ' : ''}
                     {c.last.body}
                   </span>
                 </span>

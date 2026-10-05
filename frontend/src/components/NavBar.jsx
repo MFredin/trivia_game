@@ -6,7 +6,7 @@ import OwlPostLink from './OwlPostLink.jsx';
 const LINKS = [
   { screen: 'start', label: 'Home' },
   { screen: 'leaderboard', label: 'Leaderboard' },
-  { screen: 'friends', label: 'Friends' },
+  { screen: 'friends', label: 'Community' },
   { screen: 'achievements', label: 'Achievements' },
 ];
 

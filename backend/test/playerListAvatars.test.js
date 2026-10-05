@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boot, shutdown, call, json, newPlayer, skip } from './helpers/app.js';
+import { boot, shutdown, call, json, newPlayer, connectSocket, settle, skip } from './helpers/app.js';
 
 // The Friends screen draws a duel invite and an activity line the same way it draws any other
 // player — with their avatar — so both responses have to carry what Avatar needs.
@@ -28,6 +28,19 @@ test('lists that show a player carry their avatar', { skip: skip && 'DATABASE_UR
     const outgoing = (await call('/duels/pending', { token: challenger.token })).body.pending.find((d) => d.direction === 'outgoing');
     assert.equal(outgoing.opponent_username, me.username);
     assert.equal(outgoing.created_by_avatar, 'moon');
+  });
+
+  await t.test('an invite that arrives live carries the challenger\u2019s avatar, like one that was waiting', async (t) => {
+    const rival = await newPlayer();
+    const socket = await connectSocket(rival);
+    t.after(() => socket.close());
+    const made = await call('/duels', { method: 'POST', token: challenger.token, body: json({ opponent_username: rival.username }) });
+    assert.equal(made.status, 201);
+    await settle();
+    const invited = socket.frames.find((f) => f.type === 'duel:invited');
+    assert.equal(invited.duel.created_by_username, challenger.username);
+    assert.equal(invited.duel.created_by_avatar, 'moon');
+    assert.equal(invited.duel.created_by_avatar_style.shape, 'octagon');
   });
 
   await t.test('an activity line carries the avatar of whoever it is about', async () => {

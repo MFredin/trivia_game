@@ -4,7 +4,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { isOnline } from '../lib/presenceRegistry.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
-import { OWL_POST_MODES, checkMessage } from '../lib/owlPost.js';
+import { OWL_POST_MODES, checkMessage, checkSubject } from '../lib/owlPost.js';
 import {
   deleteForMe,
   inbox,
@@ -35,7 +35,7 @@ router.get('/inbox', async (req, res) => {
       avatar_style: r.avatar_style ?? {},
       theme: r.theme,
       online: isOnline(r.other_id),
-      last: { body: r.body, created_at: r.created_at, from_me: r.from_me },
+      last: { body: r.body, subject: r.subject, created_at: r.created_at, from_me: r.from_me },
       unread: Number(r.unread),
     })),
   });
@@ -86,13 +86,17 @@ router.post('/with/:username', burstLimit, dailyLimit, async (req, res) => {
 
   const checked = checkMessage(req.body?.body);
   if (!checked.ok) return res.status(400).json({ error: checked.error });
+  const subject = checkSubject(req.body?.subject);
+  if (!subject.ok) return res.status(400).json({ error: subject.error });
   if (await recentlySent(req.userId, found.other.id, checked.value)) {
     return res.status(409).json({ error: 'duplicate_message' });
   }
 
   const { rows } = await pool.query('SELECT id, username FROM users WHERE id = $1', [req.userId]);
-  const message = await storeMessage(rows[0], found.other.id, checked.value);
-  return res.status(201).json({ message: { id: Number(message.id), body: message.body, created_at: message.created_at, from_me: true } });
+  const message = await storeMessage(rows[0], found.other.id, checked.value, subject.value);
+  return res.status(201).json({
+    message: { id: Number(message.id), body: message.body, subject: message.subject, created_at: message.created_at, from_me: true },
+  });
 });
 
 router.post('/with/:username/read', async (req, res) => {

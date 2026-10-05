@@ -26,7 +26,7 @@ export default function DuelLobbyScreen({ opponentUsername, categories, outgoing
           <div style={{ textAlign: 'center' }}>
             <p className="explanation">Waiting for {opponentUsername} to accept your challenge&hellip;</p>
             <button type="button" className="secondary-button" onClick={onLeave}>
-              Back to Friends
+              Back to Community
             </button>
           </div>
         ) : (

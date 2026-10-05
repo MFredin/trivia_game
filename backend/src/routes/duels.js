@@ -75,11 +75,18 @@ router.post('/', async (req, res) => {
     [req.userId, opponent.id, category ?? null, canonSource, difficulty ?? null, modeConfig.questionCount, modeConfig.timeLimitMs],
   );
   const duel = rows[0];
-  const { rows: meRows } = await pool.query('SELECT username FROM users WHERE id = $1', [req.userId]);
+  const { rows: meRows } = await pool.query('SELECT username, avatar, avatar_style, theme FROM users WHERE id = $1', [req.userId]);
 
   sendToUser(opponent.id, {
     type: 'duel:invited',
-    duel: { ...duelSummary(duel), created_by_username: meRows[0].username },
+    duel: {
+        ...duelSummary(duel),
+        created_by_username: meRows[0].username,
+        // The same fields /duels/pending carries, so an invite that arrives live is drawn like one that was waiting.
+        created_by_avatar: meRows[0].avatar ?? null,
+        created_by_avatar_style: meRows[0].avatar_style ?? {},
+        created_by_theme: meRows[0].theme ?? null,
+      },
   });
   return res.status(201).json({ ...duelSummary(duel), opponent_username: opponent.username });
 });

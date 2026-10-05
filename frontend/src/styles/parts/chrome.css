@@ -114,23 +114,31 @@
   background: var(--silver-200);
 }
 
-/* The two account controls, the envelope and the avatar, are one pair: the same 44px circle with
-   the same silver ring, resting at a hairline, brighter under the pointer and solid on their own
-   screens. Their files carry only what is particular to each. */
+/* The two account controls, the envelope and the avatar, stand in the row without a frame of their
+   own: each is already a shape (a glyph, a sigil), and a ring around it fought the avatar's own
+   frame and the house colours. Where you are is said the way it is for the page links: the same
+   underline, on the rule. Their files carry only what is particular to each. */
 .running-account .owl-link,
 .running-account .account-trigger {
-  border: 2px solid rgba(var(--silver-400-rgb), 0.35);
+  position: relative;
+  border: 0;
   border-radius: 50%;
 }
 
-.running-account .owl-link:hover,
-.running-account .account-trigger:hover {
-  border-color: rgba(var(--silver-400-rgb), 0.75);
+.running-account .owl-link.on::after,
+.running-account .account-trigger.on::after {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  right: 0.3rem;
+  bottom: calc(var(--header-pad) * -1 - 1px);
+  height: 2px;
+  background: var(--silver-200);
 }
 
-.running-account .owl-link.on,
-.running-account .account-trigger.on {
-  border-color: var(--silver-200);
+.running-account .account-trigger:hover .avatar,
+.running-account .account-trigger:focus-visible .avatar {
+  filter: brightness(1.18);
 }
 
 /* --- generic filter-toggle pills (leaderboard scope/window switches). Default styling sits on

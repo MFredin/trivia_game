@@ -69,16 +69,22 @@ export async function recentlySent(senderId, recipientId, body) {
   return rows.length > 0;
 }
 
-export async function storeMessage(sender, recipientId, body) {
+export async function storeMessage(sender, recipientId, body, subject = null) {
   const { rows } = await pool.query(
-    `INSERT INTO messages (sender_id, recipient_id, body) VALUES ($1, $2, $3) RETURNING id, body, created_at`,
-    [sender.id, recipientId, body],
+    `INSERT INTO messages (sender_id, recipient_id, body, subject) VALUES ($1, $2, $3, $4) RETURNING id, body, subject, created_at`,
+    [sender.id, recipientId, body, subject],
   );
   const message = rows[0];
   // Live to the recipient if they are connected; otherwise they find it in the inbox.
   sendToUser(recipientId, {
     type: 'owlpost:message',
-    message: { id: Number(message.id), from_username: sender.username, body: message.body, created_at: message.created_at },
+    message: {
+      id: Number(message.id),
+      from_username: sender.username,
+      body: message.body,
+      subject: message.subject,
+      created_at: message.created_at,
+    },
   });
   return message;
 }
@@ -92,7 +98,7 @@ export async function inbox(userId) {
      ),
      latest AS (SELECT DISTINCT ON (other_id) * FROM mine ORDER BY other_id, id DESC)
      SELECT u.id AS other_id, u.username, u.avatar, u.avatar_style, u.theme,
-            l.body, l.created_at, (l.sender_id = $1) AS from_me,
+            l.body, l.subject, l.created_at, (l.sender_id = $1) AS from_me,
             (SELECT count(*) FROM messages x
              WHERE x.sender_id = l.other_id AND x.recipient_id = $1 AND x.read_at IS NULL AND NOT x.deleted_by_recipient) AS unread
      FROM latest l
@@ -120,7 +126,7 @@ export async function unreadCount(userId) {
 /** One page of a conversation, oldest first, ending just before `before` (a message id) if given. */
 export async function thread(userId, otherId, { before, limit = THREAD_PAGE_SIZE } = {}) {
   const { rows } = await pool.query(
-    `SELECT m.id, m.body, m.created_at, m.read_at, (m.sender_id = $1) AS from_me
+    `SELECT m.id, m.body, m.subject, m.created_at, m.read_at, (m.sender_id = $1) AS from_me
      FROM messages m
      WHERE ((m.sender_id = $1 AND m.recipient_id = $2 AND NOT m.deleted_by_sender)
          OR (m.sender_id = $2 AND m.recipient_id = $1 AND NOT m.deleted_by_recipient))
@@ -161,7 +167,7 @@ export async function deleteForMe(userId, messageId) {
  */
 export async function snapshotConversation(reporterId, reportedId, limit) {
   const { rows } = await pool.query(
-    `SELECT s.username AS sender_username, m.body, m.created_at
+    `SELECT s.username AS sender_username, m.subject, m.body, m.created_at
      FROM messages m JOIN users s ON s.id = m.sender_id
      WHERE (m.sender_id = $1 AND m.recipient_id = $2) OR (m.sender_id = $2 AND m.recipient_id = $1)
      ORDER BY m.id DESC LIMIT $3`,

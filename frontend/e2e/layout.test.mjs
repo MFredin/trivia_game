@@ -52,7 +52,7 @@ test('nothing overflows the viewport at phone width', async (t) => {
       const { page } = await openPage(browser, { width, height: 844 });
       await register(page);
 
-      for (const screen of ['Home', 'Leaderboard', 'Friends', 'Achievements', 'Settings', 'Edit profile', 'Owl Post']) {
+      for (const screen of ['Home', 'Leaderboard', 'Community', 'Achievements', 'Settings', 'Edit profile', 'Owl Post']) {
         await navigateTo(page, screen);
         const r = await overflowReport(page, width);
         assert.equal(r.scrollWidth, r.clientWidth, `${screen} scrolls sideways: ${r.offenders.join(' | ')}`);

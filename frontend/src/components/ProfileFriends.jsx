@@ -25,7 +25,7 @@ export default function ProfileFriends({ friends, isSelf, ownVisibility, onViewP
       )}
 
       {friends.visible && friends.list.length === 0 && !friends.loading && (
-        <p className="explanation">{isSelf ? 'No friends yet — find people on the Friends screen.' : 'No friends yet.'}</p>
+        <p className="explanation">{isSelf ? 'No friends yet — find people on the Community screen.' : 'No friends yet.'}</p>
       )}
 
       {friends.list.length > 0 && (

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { deleteOwl, getInbox, getThread, getUnread, markThreadRead, sendOwl } from '../../api/owlpost.js';
+import { listFriends } from '../../api/friends.js';
 
 const UNREAD_POLL_MS = 60000;
 
@@ -19,6 +20,8 @@ export function useOwlPost({ token, active, withUsername }) {
   const [thread, setThread] = useState(EMPTY_THREAD);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(null);
+  const [composeFriends, setComposeFriends] = useState(null);
+  const [composeError, setComposeError] = useState(null);
   const openWith = useRef(null);
   openWith.current = active ? withUsername : null;
 
@@ -74,7 +77,7 @@ export function useOwlPost({ token, active, withUsername }) {
       const { message } = event;
       if (openWith.current === message.from_username) {
         // The conversation is open: it lands in place and is read at once.
-        setThread((prev) => ({ ...prev, messages: [...prev.messages, { id: message.id, body: message.body, created_at: message.created_at, from_me: false }] }));
+        setThread((prev) => ({ ...prev, messages: [...prev.messages, { id: message.id, body: message.body, subject: message.subject ?? null, created_at: message.created_at, from_me: false }] }));
         markThreadRead(message.from_username, token).then(refreshUnread).catch(() => {});
         return;
       }
@@ -104,6 +107,32 @@ export function useOwlPost({ token, active, withUsername }) {
     [thread.username, token],
   );
 
+  // A new owl is addressed to a friend by name, so the form needs the friends to pick from.
+  const loadComposeFriends = useCallback(() => {
+    setComposeError(null);
+    listFriends(token)
+      .then((data) => setComposeFriends(data.friends))
+      .catch(() => setComposeFriends([]));
+  }, [token]);
+
+  // Like `send`, throws nothing: true when it went, and otherwise the reason is kept for the form.
+  const compose = useCallback(
+    async ({ username, subject, body }) => {
+      setSending(true);
+      setComposeError(null);
+      try {
+        await sendOwl(username, body, token, subject);
+        return true;
+      } catch (err) {
+        setComposeError({ code: err.code, until: err.data?.until ?? null });
+        return false;
+      } finally {
+        setSending(false);
+      }
+    },
+    [token],
+  );
+
   const loadOlder = useCallback(async () => {
     const first = thread.messages[0];
     if (!first || !thread.hasMore) return;
@@ -123,5 +152,19 @@ export function useOwlPost({ token, active, withUsername }) {
     [token],
   );
 
-  return { unread, inbox, thread, sending, sendError, send, loadOlder, remove, handleSocketEvent };
+  return {
+    unread,
+    inbox,
+    thread,
+    sending,
+    sendError,
+    send,
+    composeFriends,
+    composeError,
+    loadComposeFriends,
+    compose,
+    loadOlder,
+    remove,
+    handleSocketEvent,
+  };
 }
