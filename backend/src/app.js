@@ -1,3 +1,4 @@
+import './services/retention.js';
 import express from 'express';
 import cors from 'cors';
 import { sentryRequestWatcher, attachSentryErrorHandler } from './lib/sentry.js';
