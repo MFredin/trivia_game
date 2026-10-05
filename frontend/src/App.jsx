@@ -47,6 +47,7 @@ const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsS
 const AdminReportsScreen = lazy(() => import('./components/AdminReportsScreen.jsx'));
 const AdminTitlesScreen = lazy(() => import('./components/AdminTitlesScreen.jsx'));
 const AdminTeamScreen = lazy(() => import('./components/AdminTeamScreen.jsx'));
+const RecoveryScreen = lazy(() => import('./components/RecoveryScreen.jsx'));
 const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
@@ -61,8 +62,22 @@ const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
 
 // The shell's own state — everything that is not a feature's, kept out of `features/` per
 // ARCHITECTURE.md. Every name here is a field of the reducer state below, not a `useState`.
+// A link from an email (?reset=<token> or ?delete=<token>) opens its page. The token is taken out of the
+// address bar at once, so it does not sit in the history or travel in a Referer header.
+function readRecoveryFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const reset = params.get('reset');
+  const del = params.get('delete');
+  const kind = reset ? 'reset' : del ? 'deletion-confirm' : params.has('delete-account') ? 'deletion-info' : null;
+  if (!kind) return null;
+  window.history.replaceState(null, '', window.location.pathname);
+  return { kind, token: reset ?? del ?? null };
+}
+const initialRecovery = readRecoveryFromUrl();
+
 const initialAppState = {
-  screen: 'auth',
+  recovery: initialRecovery,
+  screen: initialRecovery ? 'recovery' : 'auth',
   categories: [],
   cameFromPreview: false,
   // A challenge link (?challenge=<code>) should land on that challenge's screen once the
@@ -98,9 +113,15 @@ function appReducer(state, action) {
     // A stored token checked out, or AuthScreen just registered/logged someone in. A pending
     // challenge link wins over the ordinary start screen.
     case 'auth/authenticated':
+      // A recovery page opened from an email stays open for someone who happens to be signed in.
+      if (state.screen === 'recovery') return state;
       return { ...state, screen: state.challengeCode ? 'challenge' : 'start' };
     case 'auth/logged_out':
       return { ...state, screen: 'auth' };
+    case 'recovery/opened':
+      return { ...state, recovery: { kind: action.kind, token: null }, screen: 'recovery' };
+    case 'recovery/closed':
+      return { ...state, recovery: null, screen: action.signedIn ? 'start' : 'auth' };
     // The run finished on the server; `finishRun` has already tried to load the leaderboard
     // (or decided a duel doesn't get one) before this fires.
     case 'run/finished':
@@ -183,6 +204,7 @@ export default function App() {
   const [state, dispatch] = useReducer(appReducer, initialAppState);
   const {
     screen,
+    recovery,
     categories,
     cameFromPreview,
     challengeCode,
@@ -382,7 +404,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <Embers />
-      {screen !== 'auth' && screen !== 'preview' && (
+      {screen !== 'auth' && screen !== 'preview' && screen !== 'recovery' && (
         <NavBar
           currentUser={auth.user}
           activeScreen={navActiveScreen}
@@ -424,8 +446,18 @@ export default function App() {
         <AuthScreen
           onAuthenticated={auth.authenticate}
           onTryPreview={() => dispatch({ type: 'preview/entered' })}
+          onForgotPassword={() => dispatch({ type: 'recovery/opened', kind: 'forgot' })}
           startInMode={cameFromPreview ? 'register' : undefined}
         />
+      )}
+      {screen === 'recovery' && recovery && (
+        <Suspense fallback={screenFallback}>
+          <RecoveryScreen
+            kind={recovery.kind}
+            token={recovery.token}
+            onDone={() => dispatch({ type: 'recovery/closed', signedIn: Boolean(auth.user) })}
+          />
+        </Suspense>
       )}
       {screen === 'preview' && (
         <Suspense fallback={screenFallback}>
@@ -664,6 +696,9 @@ export default function App() {
         </p>
         <button type="button" className="colophon-link" onClick={() => dispatch({ type: 'feedback/opened' })}>
           Submit Feedback
+        </button>
+        <button type="button" className="colophon-link" onClick={() => dispatch({ type: 'recovery/opened', kind: 'deletion-info' })}>
+          Delete your account
         </button>
       </div>
       {showFeedback && (

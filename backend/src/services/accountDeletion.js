@@ -47,6 +47,7 @@ export async function deleteAccount(userId) {
     await client.query('DELETE FROM blocks WHERE blocker_id = $1 OR blocked_id = $1', [userId]);
     await client.query('DELETE FROM user_achievements WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM user_titles WHERE user_id = $1', [userId]);
+    await client.query('DELETE FROM email_tokens WHERE user_id = $1', [userId]);
     // Owl Post, both ways: what they sent is theirs to take back, and what they received from a
     // player who is now "Deleted player" has nowhere left to be read.
     await client.query('DELETE FROM messages WHERE sender_id = $1 OR recipient_id = $1', [userId]);

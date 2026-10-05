@@ -173,11 +173,32 @@ Auth tokens are stateless, last thirty days and cannot be revoked, so `requireAu
 closed on deletion. Deleting requires the password as well as a valid token, and the dialog asks
 for the username typed out.
 
+### Deleting without being able to log in
+
+A public page, "Delete your account" in the footer of every screen (and `/?delete-account`, the address to give
+an app store), explains what deletion removes and how to do it in the app. If the app can send email it also
+takes an email address and sends a one-hour, single-use link; the link names the account and deletes it only
+when its button is pressed (`routes/accountRecovery.js`). It runs the same anonymisation as above.
+
+### Password reset
+
+"Forgot your password?" on the login screen sends a link to choose a new one. The same machinery serves both
+(`services/emailTokens.js`): random 32-byte tokens of which only a SHA-256 is stored, 60 minutes, single use,
+one live link per account and purpose, at most 3 messages per address per day, and the same answer whether or
+not the address has an account, so nobody can use the form to find out who is registered. The token leaves the
+address bar as soon as the page loads.
+
+Mail goes through `lib/mailer.js`. Set `RESEND_API_KEY` and `MAIL_FROM` for real sending, and `APP_URL` for the
+address links point to. Without them in production **nothing is sent and the screens say so**
+(`GET /api/auth/options` → `mail_enabled`: the "Forgot your password?" link is hidden and the deletion page
+points to the feedback link). Outside production the message is printed to the console and held in memory;
+`MAIL_OUTBOX_FILE` also appends it to a file, which is how the browser test reads the link.
+
+Auth tokens last thirty days and cannot be revoked, so a reset does **not** sign out a session that already
+exists elsewhere. Worth fixing before this matters (a token version on the account).
+
 ### Not done yet
 
-- **A public web page for requesting deletion** — Google Play requires one in addition to the
-  in-app flow.
-- **Password reset** — there is no email sending, so a forgotten password cannot be recovered.
 - **Bio moderation beyond the filter** (a human reviewing every bio, or an external moderation service) —
   the filter and the report path are the minimum, not a substitute for a policy.
 - Whether "scores kept, un-named" satisfies the privacy law that applies to the operator is a
@@ -234,6 +255,19 @@ parent-approved mode for younger players is deferred. Registration enforces it:
 Not done: accounts that pre-date the check have no age on record, and nobody is asked to confirm one. If one
 turns out to belong to a child it is deleted, and the privacy policy should say that is the process.
 
+
+## How long safety records are kept
+
+An hourly sweep (`services/retention.js`, numbers in `lib/retention.js`) removes what is no longer needed:
+
+| Record | Kept | Counted from |
+|---|---|---|
+| The copy of messages attached to a report | 90 days | the report being closed |
+| A closed report (reason, note, outcome) | 365 days | the report being closed |
+| What was done to a player (warning, suspension, ban) | 365 days | when it stopped mattering: applied, for a warning; ended or lifted, for a suspension or mute; lifted, for a ban |
+
+Open reports, and sanctions still in force, are never swept. A ban's record stays as long as the ban does.
+The same numbers are in the privacy policy; change one and change the other.
 
 ## Roles: player, moderator, admin
 
