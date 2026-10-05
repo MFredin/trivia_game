@@ -1,3 +1,5 @@
+// Setting up a duel with one opponent: category, difficulty, canon, then send the invitation. Shows the waiting state
+// until they answer (the answer arrives over the WebSocket, handled in useDuels).
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';

@@ -1,3 +1,4 @@
+// The Marauder's Map easter egg's reveal, with the way into the Suggest a Question screen.
 import Modal from './Modal.jsx';
 
 export default function MischiefModal({ onClose, onSuggest }) {

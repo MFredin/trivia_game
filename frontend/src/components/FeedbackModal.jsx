@@ -1,3 +1,5 @@
+// The Submit Feedback dialog (footer link): a category and a message, sent with the page it was opened from. Works
+// signed out. Shows "Owl Delivered" once sent.
 import Modal from './Modal.jsx';
 import { useState } from 'react';
 import { submitFeedback } from '../api/feedback.js';

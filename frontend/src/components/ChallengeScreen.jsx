@@ -1,3 +1,5 @@
+// The landing page for a challenge link (?challenge=<code>): who made it and its settings, then "Play". A private
+// challenge is the same run for everyone who opens the link; the featured weekly one is the same, set by the project.
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';

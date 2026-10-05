@@ -163,7 +163,8 @@ test('every screen fits every width, with the worst content in it', { skip: SKIP
   await other.close();
 
   // --- one browser context per width, signed in as the moderator -----------------------------------------
-  const phoneProfile = (({ viewport, defaultBrowserType, ...rest }) => rest)(devices['iPhone 13']);
+  // The iPhone profile minus its viewport (each test sets its own) and its engine choice (WebKit; this runs in Chromium).
+  const { viewport, defaultBrowserType, ...phoneProfile } = devices['iPhone 13'];
   const newPage = async (width, height = HEIGHT_FOR(width)) => {
     const phone = width <= PHONE_MAX || height <= 420;
     const context = await browser.newContext({

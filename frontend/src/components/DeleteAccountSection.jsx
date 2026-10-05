@@ -1,3 +1,5 @@
+// Settings → Account: the plate that opens the delete-account dialog. Deleting needs the password and the username
+// typed out; see DeleteAccountModal and docs/social-safety.md for exactly what is removed and what stays.
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import DeleteAccountModal from './DeleteAccountModal.jsx';

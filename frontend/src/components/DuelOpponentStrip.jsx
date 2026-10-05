@@ -16,6 +16,7 @@ export default function DuelOpponentStrip({ opponentUsername, live, incomingReac
     return () => clearTimeout(timer);
     // Keyed on `at` as well as the reaction id so the same reaction sent twice in a row
     // re-triggers the timer rather than being treated as no change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately keyed on those two fields, not the whole object
   }, [incomingReaction?.reaction, incomingReaction?.at]);
 
   // A local cooldown to match the server's throttle. Without it the buttons stay live while

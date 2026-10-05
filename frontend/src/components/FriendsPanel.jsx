@@ -83,6 +83,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
       .catch(() => {});
   };
 
+  // `refresh` is redefined each render and only needs to run when the token changes (and on the poll below).
   useEffect(refresh, [token]);
 
   // The plain Friends list's online-dot used to only refresh on mount/actions while Online
@@ -98,6 +99,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
     refreshOnline();
     const interval = setInterval(refreshOnline, ONLINE_POLL_MS);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `refresh` is recreated every render; the poll restarts only with the token
   }, [token]);
 
   useEffect(() => {
@@ -132,6 +134,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
 
   useEffect(() => {
     if (discoverTab === 'all' && !allMembersLoaded) loadAllMembers(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loads the first page once, when the tab is first opened
   }, [discoverTab, allMembersLoaded]);
 
   useEffect(() => {

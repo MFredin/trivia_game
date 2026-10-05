@@ -1,3 +1,5 @@
+// Duels (/api/duels): invite someone, answer an invitation, the duel leaderboard, and the Challenges setting (who may
+// invite you). The duel itself is played over the WebSocket, not here.
 import { request } from './request.js';
 
 export function createDuel({ opponentUsername, category, canonSource, difficulty }, token) {

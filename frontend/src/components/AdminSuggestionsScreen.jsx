@@ -1,3 +1,5 @@
+// The review queue for player-written questions (admin only): read a suggestion, adjust any field, set its tiers, then
+// approve (it enters the live bank) or reject with a note the submitter can see.
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import { DIFFICULTY_TIERS } from '../constants/difficulty.js';

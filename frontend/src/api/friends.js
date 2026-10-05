@@ -1,3 +1,5 @@
+// Friends and finding people (/api/friends): the friend list, requests (send, accept, decline), removing a friend,
+// and searching, browsing and seeing who is online.
 import { request } from './request.js';
 
 export function listFriends(token) {

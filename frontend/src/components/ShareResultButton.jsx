@@ -1,3 +1,5 @@
+// Copies a run's result as text. Uses the Clipboard API; where that is unavailable (older browsers, insecure pages) it
+// shows the text in a field to copy by hand.
 import { useRef, useState } from 'react';
 import { copyToClipboard } from '../lib/shareResult.js';
 

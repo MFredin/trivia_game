@@ -1,3 +1,4 @@
+// Settings → Privacy: who may send you owls (open, friends only, off). The wording lives in ContactModeFieldset.
 import ContactModeFieldset from './ContactModeFieldset.jsx';
 
 const OPTIONS = [

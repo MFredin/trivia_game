@@ -1,3 +1,5 @@
+// A player's file: avatar, title, bio, house, lifetime stats, pinned achievements and, if its owner allows, friends.
+// Presentational (see the comment on the component): the page works for any player in any relationship to the viewer.
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';

@@ -1,3 +1,4 @@
+// The end of a duel: both scores and who won, drawn with the house seal.
 import Plate from './Plate.jsx';
 import SealDevice from './SealDevice.jsx';
 import ShareResultButton from './ShareResultButton.jsx';
