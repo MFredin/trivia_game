@@ -118,4 +118,29 @@ test('titles', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
     assert.equal(unlocked.includes('contrib_question_5'), false);
     assert.equal((await customization(author)).titles.find((x) => x.id === 'contributor').held, true, 'and with it the title');
   });
+
+  await t.test('it is worn on the leaderboards and in Owl Post, and not by someone who has none', async () => {
+    const me = await newPlayer();
+    const plain = await newPlayer();
+    const friend = await newPlayer();
+    await unlock(me, 'milestone_50');
+    await choose(me, 'scholar');
+    const score = 80000 + Math.floor(Math.random() * 9000);
+    for (const [player, s] of [[me, score], [plain, score - 1]]) {
+      await pool.query(
+        `INSERT INTO game_sessions (user_id, mode, question_count, time_limit_ms, status, total_score, leaderboard_window, completed_at)
+         VALUES ($1, 'classic', 10, 30000, 'completed', $2, 'any', now())`,
+        [player.id, s],
+      );
+    }
+    const entries = (await call('/leaderboard?mode=classic&window=all&limit=100', { token: friend.token })).body.entries;
+    assert.deepEqual(entries.find((e) => e.total_score === score).title, { id: 'scholar', name: 'Scholar', kind: 'earned' });
+    assert.equal(entries.find((e) => e.total_score === score - 1).title, null);
+
+    // Owl Post: an owl from them, then the inbox and the thread name the title.
+    await call(`/owlpost/with/${friend.username}`, { method: 'POST', token: me.token, body: json({ body: 'hello' }) });
+    const box = (await call('/owlpost/inbox', { token: friend.token })).body.conversations;
+    assert.equal(box[0].title.name, 'Scholar');
+    assert.equal((await call(`/owlpost/with/${me.username}`, { token: friend.token })).body.with.title.name, 'Scholar');
+  });
 });

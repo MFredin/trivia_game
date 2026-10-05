@@ -1,5 +1,6 @@
 import Plate from './Plate.jsx';
 import Avatar from './Avatar.jsx';
+import PlayerTitle from './PlayerTitle.jsx';
 
 const when = (iso) => {
   const d = new Date(iso);
@@ -33,6 +34,7 @@ export default function OwlInbox({ conversations, onOpen, onCompose }) {
                   <span className="member-name">
                     <span className={`online-dot ${c.online ? 'is-online' : ''}`} aria-hidden="true" />
                     {c.username}
+                    <PlayerTitle title={c.title} />
                     {c.is_friend === false && <span className="owl-row-tag">Not a friend</span>}
                     <span className="owl-row-when">{when(c.last.created_at)}</span>
                   </span>

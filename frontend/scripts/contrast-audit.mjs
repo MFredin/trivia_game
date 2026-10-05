@@ -144,6 +144,7 @@ function build(house) {
   add('member caption on parchment', mutedOnSurface, parch, 4.5, '.member-caption / .account-menu-house');
   add('earned title on parchment', mutedOnSurface, parch, 4.5, '.player-title--earned, .title-locked-how');
   add('system title on parchment', rubric, parch, 4.5, '.player-title--system');
+  add('title on the page', t('--silver-200'), page, 4.5, '.player-title--on-page');
   add('reveal correct heading', t('--verdigris-400'), t('--ink-800'), 4.5, '.result-reveal h2');
   add('reveal incorrect heading', onbg, t('--ink-800'), 4.5, '.result-reveal.is-wrong h2');
   add('reveal points on panel', onbg, t('--ink-800'), 3.0, '.result-reveal .points');

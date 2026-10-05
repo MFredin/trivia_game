@@ -4,6 +4,7 @@ import Avatar from './Avatar.jsx';
 import IconButton from './IconButton.jsx';
 import Icon from './icons.jsx';
 import PopoverMenu from './PopoverMenu.jsx';
+import PlayerTitle from './PlayerTitle.jsx';
 import { sendErrorText } from '../features/owlpost/sendErrors.js';
 
 const MESSAGE_MAX = 500;
@@ -59,7 +60,10 @@ export default function OwlThread({ thread, user, sending, sendError, onSend, on
           {who && (
             <button type="button" className="member-id owl-thread-who" onClick={() => onViewProfile(thread.username)}>
               <Avatar username={thread.username} avatar={who.avatar} style={who.avatar_style} house={who.theme} size={40} />
-              <span className="screen-title owl-thread-name">{thread.username}</span>
+              <span className="owl-thread-name-block">
+                <span className="screen-title owl-thread-name">{thread.username}</span>
+                <PlayerTitle title={who.title} onPage />
+              </span>
             </button>
           )}
         </div>

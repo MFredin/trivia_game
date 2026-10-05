@@ -27,7 +27,7 @@ const refuse = (status, error, extra = {}) => ({ error: { status, body: { error,
 
 async function findPlayer(userId, username) {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.owl_post,
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post,
             EXISTS (SELECT 1 FROM friendships f WHERE f.user_id = $1 AND f.friend_user_id = u.id AND f.status = 'accepted') AS is_friend,
             EXISTS (SELECT 1 FROM messages m WHERE (m.sender_id = $1 AND m.recipient_id = u.id) OR (m.sender_id = u.id AND m.recipient_id = $1)) AS has_history,
             ${notBlockedSql('$1', 'u.id')} AS not_blocked
@@ -146,7 +146,7 @@ export async function inbox(userId) {
        WHERE (m.sender_id = $1 AND NOT m.deleted_by_sender) OR (m.recipient_id = $1 AND NOT m.deleted_by_recipient)
      ),
      latest AS (SELECT DISTINCT ON (other_id) * FROM mine ORDER BY other_id, id DESC)
-     SELECT u.id AS other_id, u.username, u.avatar, u.avatar_style, u.theme,
+     SELECT u.id AS other_id, u.username, u.avatar, u.avatar_style, u.theme, u.title,
             EXISTS (SELECT 1 FROM friendships f WHERE f.user_id = $1 AND f.friend_user_id = u.id AND f.status = 'accepted') AS is_friend,
             l.body, l.subject, l.created_at, (l.sender_id = $1) AS from_me,
             (SELECT count(*) FROM messages x

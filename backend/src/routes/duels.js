@@ -11,6 +11,7 @@ import { getCached, setCached } from '../lib/leaderboardCache.js';
 import { isBlockedEitherWay } from '../services/blocks.js';
 import { CONTACT_MODES, contactAllowed } from '../lib/contactModes.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
+import { titleView } from '../lib/titles.js';
 import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
@@ -177,7 +178,7 @@ router.get('/leaderboard', async (req, res) => {
        FROM duel_results
        GROUP BY user_id
      )
-     SELECT ${displayNameSql('u')} AS username, p.wins, p.losses, p.ties, p.total,
+     SELECT ${displayNameSql('u')} AS username, u.title AS title_id, p.wins, p.losses, p.ties, p.total,
        CASE WHEN p.total > 0 THEN round((p.wins::numeric / p.total) * 100, 1) ELSE 0 END AS win_pct
      FROM per_user p
      JOIN users u ON u.id = p.user_id
@@ -189,6 +190,7 @@ router.get('/leaderboard', async (req, res) => {
 
   const entries = rows.map((r) => ({
     username: r.username,
+    title: titleView(r.title_id),
     wins: Number(r.wins),
     losses: Number(r.losses),
     ties: Number(r.ties),
