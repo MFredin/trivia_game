@@ -67,8 +67,20 @@ export async function register(page, username = uniqueName()) {
   return username;
 }
 
+// Settings, the profile and Log out live behind the avatar menu; everything else is a link in
+// the running header.
+const ACCOUNT_MENU_ITEMS = ['Settings', 'Edit profile', 'My profile', 'Log out'];
+
 export async function navigateTo(page, label) {
-  await page.locator('.running-nav button', { hasText: new RegExp(`^${label}$`) }).first().click();
+  if (label === 'Owl Post') {
+    // The envelope in the running header, named with its unread count when there is one.
+    await page.getByRole('button', { name: /^Owl Post/ }).click();
+  } else if (ACCOUNT_MENU_ITEMS.includes(label)) {
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: label }).click();
+  } else {
+    await page.locator('.running-nav button', { hasText: new RegExp(`^${label}$`) }).first().click();
+  }
   await page.waitForTimeout(600);
 }
 

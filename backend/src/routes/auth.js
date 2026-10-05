@@ -5,6 +5,10 @@ import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { signAuthToken } from '../lib/authTokens.js';
 import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
+import { USER_COLUMNS, userView } from '../lib/userView.js';
+import { isReservedUsername } from '../lib/usernames.js';
+import { hashEmail } from '../lib/emailHash.js';
+import { getAccountAccess, restrictionNote } from '../repo/users.js';
 
 const router = express.Router();
 
@@ -13,30 +17,35 @@ const VALID_THEMES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'mon
 
 // Credential-stuffing/brute-force throttle — narrowly scoped to these two routes so normal
 // gameplay traffic is never affected. Keyed by IP; see lib/rateLimiter.js for the tradeoffs.
-const authRateLimit = rateLimit({ max: 10, windowMs: 15 * 60 * 1000 });
-
-function userView(row) {
-  return { id: row.id, username: row.username, email: row.email, theme: row.theme, is_admin: row.is_admin };
-}
+// AUTH_RATE_LIMIT_MAX exists for the browser tests, which sign a dozen players up and in from one
+// address inside one window; production leaves it unset and gets ten.
+const authRateLimit = rateLimit({ max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 10, windowMs: 15 * 60 * 1000 });
 
 router.post('/register', authRateLimit, async (req, res) => {
   const { email, username, password, invite_code } = req.body ?? {};
   if (typeof email !== 'string' || !EMAIL_RE.test(email)) {
     return res.status(400).json({ error: 'invalid_email' });
   }
-  if (typeof username !== 'string' || username.trim().length === 0 || username.length > 40) {
+  if (typeof username !== 'string' || username.trim().length === 0 || username.length > 40 || isReservedUsername(username)) {
     return res.status(400).json({ error: 'invalid_username' });
   }
   if (typeof password !== 'string' || password.length < 8) {
     return res.status(400).json({ error: 'password_too_short' });
   }
 
+  // A banned player's email stays unusable after they delete the account. Answered as an ordinary
+  // collision, so the response does not say that this address is one that was banned.
+  const { rows: bannedRows } = await pool.query('SELECT 1 FROM banned_emails WHERE email_hash = $1', [
+    hashEmail(email),
+  ]);
+  if (bannedRows.length > 0) return res.status(409).json({ error: 'email_or_username_taken' });
+
   const passwordHash = hashPassword(password);
 
   try {
     const { rows } = await pool.query(
       `INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)
-       RETURNING id, username, email, theme, is_admin`,
+       RETURNING ${USER_COLUMNS}`,
       [username.trim(), email.toLowerCase().trim(), passwordHash],
     );
     const user = rows[0];
@@ -75,7 +84,7 @@ router.post('/login', authRateLimit, async (req, res) => {
   }
 
   const { rows } = await pool.query(
-    'SELECT id, username, email, password_hash, theme, is_admin FROM users WHERE email = $1',
+    `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = $1`,
     [email.toLowerCase().trim()],
   );
   const user = rows[0];
@@ -83,11 +92,22 @@ router.post('/login', authRateLimit, async (req, res) => {
     return res.status(401).json({ error: 'invalid_credentials' });
   }
 
+  // After the password, not before: telling someone they are suspended is telling them the account
+  // exists, which should take its password.
+  const access = await getAccountAccess(user.id);
+  if (access.state === 'suspended' || access.state === 'banned') {
+    return res.status(403).json({
+      error: access.state === 'banned' ? 'account_banned' : 'account_suspended',
+      until: access.until,
+      note: await restrictionNote(user.id),
+    });
+  }
+
   return res.json({ token: signAuthToken(user.id), user: userView(user) });
 });
 
 router.get('/me', requireAuth, async (req, res) => {
-  const { rows } = await pool.query('SELECT id, username, email, theme, is_admin FROM users WHERE id = $1', [
+  const { rows } = await pool.query(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [
     req.userId,
   ]);
   if (rows.length === 0) return res.status(404).json({ error: 'user_not_found' });
@@ -122,7 +142,7 @@ router.patch('/theme', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'invalid_theme' });
   }
   const { rows } = await pool.query(
-    'UPDATE users SET theme = $1 WHERE id = $2 RETURNING id, username, email, theme, is_admin',
+    `UPDATE users SET theme = $1 WHERE id = $2 RETURNING ${USER_COLUMNS}`,
     [theme, req.userId],
   );
   return res.json({ user: userView(rows[0]) });

@@ -6,6 +6,7 @@ import { getCached, setCached } from '../lib/leaderboardCache.js';
 import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { dailyKeyFor } from '../lib/questionSelection.js';
 import { optionalAuth } from '../middleware/auth.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
@@ -30,7 +31,10 @@ router.get('/', optionalAuth, async (req, res) => {
   const cached = getCached(cacheKey);
   if (cached) return res.json(cached);
 
-  const conditions = [`gs.mode = $1`, `gs.status = 'completed'`];
+  // Phase 2 anti-cheat (docs/anti-cheat-architecture.md): a shadow-flagged run is excluded from
+  // this PUBLIC board only — it still shows up in the player's own session/profile data, and
+  // it is never auto-banned, just held back pending a human look.
+  const conditions = [`gs.mode = $1`, `gs.status = 'completed'`, `gs.flagged_for_review = false`];
   const params = [mode];
 
   // category and difficulty are the two run attributes that can be genuinely NULL (a player
@@ -76,7 +80,7 @@ router.get('/', optionalAuth, async (req, res) => {
   // player once instead of letting one prolific player fill it with their own past attempts.
   const { rows } = await pool.query(
     `WITH ranked AS (
-       SELECT u.username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
+       SELECT ${displayNameSql('u')} AS username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
               gs.completed_at, (gs.completed_at - gs.created_at) AS duration,
               ROW_NUMBER() OVER (
                 PARTITION BY gs.user_id
@@ -113,7 +117,7 @@ router.get('/house-cup', async (req, res) => {
     `WITH best_per_user AS (
        SELECT DISTINCT ON (gs.user_id) gs.user_id, gs.total_score
        FROM game_sessions gs
-       WHERE gs.status = 'completed'
+       WHERE gs.status = 'completed' AND gs.flagged_for_review = false
        ORDER BY gs.user_id, gs.total_score DESC
      )
      SELECT u.theme, SUM(b.total_score) AS total_score, COUNT(*) AS players

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
+import Avatar from './Avatar.jsx';
+import MemberRow from './MemberRow.jsx';
 import { getActivity } from '../api/activity.js';
 import { acceptFriendRequest, addFriend, declineFriendRequest, getAllMembers, getFriendRequests, getOnlineMembers, listFriends, removeFriend, searchMembers } from '../api/friends.js';
 
@@ -16,73 +18,34 @@ const ACTIVITY_MODE_LABELS = {
   challenge: 'a Challenge',
 };
 
-function ActivityRow({ event }) {
+// What happened, in a sentence, beside who it happened to — drawn with their avatar like a player
+// anywhere else, rather than with a pictograph of its own.
+function activityText(event) {
   if (event.type === 'personal_best') {
     const modeLabel = ACTIVITY_MODE_LABELS[event.payload.mode] ?? event.payload.mode;
-    return (
-      <li className="friend-row">
-        <span className="friend-name">
-          🏆 {event.username} beat their personal best: {event.payload.total_score} in {modeLabel}
-        </span>
-      </li>
-    );
+    return `beat their personal best: ${event.payload.total_score} in ${modeLabel}`;
   }
-  if (event.type === 'achievement_unlocked') {
-    return (
-      <li className="friend-row">
-        <span className="friend-name">
-          🎖️ {event.username} unlocked &ldquo;{event.payload.name}&rdquo;
-        </span>
-      </li>
-    );
-  }
+  if (event.type === 'achievement_unlocked') return `unlocked \u201c${event.payload.name}\u201d`;
   if (event.type === 'duel_win') {
-    return (
-      <li className="friend-row">
-        <span className="friend-name">
-          ⚔️ {event.username} won a duel against {event.payload.opponent_username}, {event.payload.my_score}-
-          {event.payload.opponent_score}
-        </span>
-      </li>
-    );
+    return `won a duel against ${event.payload.opponent_username}, ${event.payload.my_score}\u2013${event.payload.opponent_score}`;
   }
   return null;
 }
 
-function MemberRow({ member, onAdd, onAccept, onDecline, onChallenge, onViewProfile }) {
+function ActivityRow({ event }) {
+  const text = activityText(event);
+  if (!text) return null;
   return (
-    <li className="friend-row">
-      <button type="button" className="friend-name friend-name-link" onClick={onViewProfile}>
-        <span className={`online-dot ${member.online ? 'is-online' : ''}`} aria-hidden="true" />
-        {member.username}
-      </button>
-      <span className="friend-actions">
-        {member.status === 'friends' && <span className="explanation">Friends</span>}
-        {member.status === 'pending_sent' && <span className="explanation">Request sent</span>}
-        {member.status === 'pending_received' && (
-          <>
-            <button type="button" className="primary-button" onClick={onAccept}>
-              Accept
-            </button>
-            <button type="button" className="secondary-button" onClick={onDecline}>
-              Decline
-            </button>
-          </>
-        )}
-        {member.status === 'none' && (
-          <button type="button" className="secondary-button" onClick={onAdd}>
-            Add Friend
-          </button>
-        )}
-        <button type="button" className="primary-button" onClick={onChallenge}>
-          Challenge
-        </button>
+    <li className="friend-row activity-row">
+      <Avatar username={event.username} avatar={event.avatar} style={event.avatar_style} house={event.theme} size={32} />
+      <span className="activity-text">
+        <span className="activity-name">{event.username}</span> {text}
       </span>
     </li>
   );
 }
 
-export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge, onViewProfile }) {
+export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge, onMessage, onViewProfile }) {
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
   const [newFriend, setNewFriend] = useState('');
@@ -302,6 +265,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                     onAccept={() => handleMemberAccept(setSearchResults, r.username)}
                     onDecline={() => handleMemberDecline(setSearchResults, r.username)}
                     onChallenge={() => onChallenge(r.username)}
+                    onMessage={() => onMessage(r.username)}
                     onViewProfile={() => onViewProfile(r.username)}
                   />
                 ))}
@@ -323,7 +287,8 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                   onAccept={() => handleMemberAccept(setOnlineMembers, r.username)}
                   onDecline={() => handleMemberDecline(setOnlineMembers, r.username)}
                   onChallenge={() => onChallenge(r.username)}
-                    onViewProfile={() => onViewProfile(r.username)}
+                  onMessage={() => onMessage(r.username)}
+                  onViewProfile={() => onViewProfile(r.username)}
                 />
               ))}
             </ul>
@@ -350,6 +315,7 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
                     onAccept={() => handleMemberAccept(setAllMembers, r.username)}
                     onDecline={() => handleMemberDecline(setAllMembers, r.username)}
                     onChallenge={() => onChallenge(r.username)}
+                    onMessage={() => onMessage(r.username)}
                     onViewProfile={() => onViewProfile(r.username)}
                   />
                 ))}
@@ -387,17 +353,14 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <h3 className="plate-subhead">Friend Requests</h3>
           <ul className="friend-list">
             {requests.map((r) => (
-              <li key={r.id} className="friend-row">
-                <span className="friend-name">{r.username}</span>
-                <span className="friend-actions">
-                  <button type="button" className="primary-button" onClick={() => handleAccept(r.username)}>
-                    Accept
-                  </button>
-                  <button type="button" className="secondary-button" onClick={() => handleDecline(r.username)}>
-                    Decline
-                  </button>
-                </span>
-              </li>
+              <MemberRow
+                key={r.id}
+                member={{ ...r, status: 'pending_received' }}
+                showStatus={false}
+                onViewProfile={() => onViewProfile(r.username)}
+                onAccept={() => handleAccept(r.username)}
+                onDecline={() => handleDecline(r.username)}
+              />
             ))}
           </ul>
         </Plate>
@@ -408,22 +371,35 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           <h3 className="plate-subhead">Duels</h3>
           <ul className="friend-list">
             {incomingDuels.map((d) => (
-              <li key={d.duel_id} className="friend-row">
-                <span className="friend-name">{d.created_by_username} challenged you</span>
-                <span className="friend-actions">
-                  <button type="button" className="primary-button" onClick={() => onAcceptDuel(d.duel_id)}>
-                    Accept
-                  </button>
-                  <button type="button" className="secondary-button" onClick={() => onDeclineDuel(d.duel_id)}>
-                    Decline
-                  </button>
-                </span>
-              </li>
+              <MemberRow
+                key={d.duel_id}
+                member={{
+                  username: d.created_by_username,
+                  avatar: d.created_by_avatar,
+                  avatar_style: d.created_by_avatar_style,
+                  theme: d.created_by_theme,
+                  status: 'none',
+                }}
+                caption="Challenged you to a duel"
+                answerable
+                onViewProfile={() => onViewProfile(d.created_by_username)}
+                onAccept={() => onAcceptDuel(d.duel_id)}
+                onDecline={() => onDeclineDuel(d.duel_id)}
+              />
             ))}
             {outgoingDuels.map((d) => (
-              <li key={d.duel_id} className="friend-row">
-                <span className="friend-name">Waiting on {d.opponent_username}&hellip;</span>
-              </li>
+              <MemberRow
+                key={d.duel_id}
+                member={{
+                  username: d.opponent_username,
+                  avatar: d.opponent_avatar,
+                  avatar_style: d.opponent_avatar_style,
+                  theme: d.opponent_theme,
+                  status: 'none',
+                }}
+                caption="You challenged them; waiting for an answer"
+                onViewProfile={() => onViewProfile(d.opponent_username)}
+              />
             ))}
           </ul>
         </Plate>
@@ -444,25 +420,21 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
             Send Request
           </button>
         </form>
+        <h3 className="plate-subhead">Your friends</h3>
         {friends.length === 0 ? (
           <p className="explanation">No friends yet — send a request above.</p>
         ) : (
           <ul className="friend-list">
             {friends.map((f) => (
-              <li key={f.id} className="friend-row">
-                <button type="button" className="friend-name friend-name-link" onClick={() => onViewProfile(f.username)}>
-                  <span className={`online-dot ${f.online ? 'is-online' : ''}`} aria-hidden="true" />
-                  {f.username}
-                </button>
-                <span className="friend-actions">
-                  <button type="button" className="primary-button" onClick={() => onChallenge(f.username)}>
-                    Challenge
-                  </button>
-                  <button type="button" className="secondary-button" onClick={() => handleRemove(f.username)}>
-                    Remove
-                  </button>
-                </span>
-              </li>
+              <MemberRow
+                key={f.id}
+                member={{ ...f, status: 'friends' }}
+                showStatus={false}
+                onViewProfile={() => onViewProfile(f.username)}
+                onChallenge={() => onChallenge(f.username)}
+                onMessage={() => onMessage(f.username)}
+                onRemove={() => handleRemove(f.username)}
+              />
             ))}
           </ul>
         )}

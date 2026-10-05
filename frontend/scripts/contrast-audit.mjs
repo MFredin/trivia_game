@@ -65,6 +65,13 @@ for (const m of hj.matchAll(/\{\s*id:\s*'([a-z]+)'[^}]*\}/g)) {
   );
 }
 
+// ---------- parse avatarStyle.js ----------
+const avatarSrc = readFileSync(join(SRC, 'constants', 'avatarStyle.js'), 'utf8');
+const AVATAR_COLORS = [...avatarSrc.matchAll(/\{ id: '([a-z]+)', label: '[^']+', disc: '(#[0-9a-f]{6})', deep: '(#[0-9a-f]{6})', mark: '(#[0-9a-f]{6})' \}/g)].map(
+  (m) => ({ id: m[1], disc: m[2], deep: m[3], mark: m[4] }),
+);
+if (AVATAR_COLORS.length < 9) throw new Error(`expected the avatar colours in constants/avatarStyle.js, found ${AVATAR_COLORS.length}`);
+
 // ---------- the pairings the app renders ----------
 function build(house) {
   const t = (n) => tok(house, n);
@@ -131,6 +138,10 @@ function build(house) {
   add('wrong choice letter on tint', oxblood, wrongBg, 4.5, '.is-wrong .choice-chip');
   add('muted choice text on tint', mutedOnSurface, over(hexrgb('#ffffff'), parch, 0.12), 4.5, '.is-muted');
   add('strike dot on parchment', oxblood, parch, 3.0, '.strike-dot (meaningful)');
+  add('danger label on parchment', oxblood, parch, 4.5, '.icon-button--danger / .popover-menu-item.is-danger');
+  add('danger label on menu wash', oxblood, over(hexrgb('#ffffff'), parch, 0.55), 4.5, '.icon-button--danger on its own fill');
+  add('online status on parchment', successInk, parch, 4.5, '.profile-online');
+  add('member caption on parchment', mutedOnSurface, parch, 4.5, '.member-caption / .account-menu-house');
   add('reveal correct heading', t('--verdigris-400'), t('--ink-800'), 4.5, '.result-reveal h2');
   add('reveal incorrect heading', onbg, t('--ink-800'), 4.5, '.result-reveal.is-wrong h2');
   add('reveal points on panel', onbg, t('--ink-800'), 3.0, '.result-reveal .points');
@@ -154,6 +165,20 @@ function build(house) {
     add(`house.ink on ${pname}`, hexrgb(hd.ink), p, 4.5, 'HouseCupBoard / ProfileScreen');
   }
   add('chip device on cover', hexrgb(hd.accent), hexrgb(hd.cover), 3.0, '.house-swatch-device');
+  // The avatar's glyph and initial sit on the disc's gradient, which runs cover to coverDeep.
+  for (const disc of [hd.cover, hd.coverDeep]) {
+    add('avatar mark on disc', hexrgb(hd.sigil), hexrgb(disc), 3.0, 'Avatar sigil / initial (meaningful)');
+  }
+  // The fixed avatar colours a player can pick instead of their house (constants/avatarStyle.js):
+  // the mark has to read on both ends of the disc's gradient. Listed once, under the house loop's
+  // first pass, since they do not depend on the binding.
+  if (house === 'gryffindor') {
+    for (const c of AVATAR_COLORS) {
+      for (const disc of [c.disc, c.deep]) {
+        add(`avatar colour ${c.id}`, hexrgb(c.mark), hexrgb(disc), 3.0, 'Avatar sigil on a chosen colour (meaningful)');
+      }
+    }
+  }
 
   // ornament — listed, never gated
   add('[orn] dial bezel on parchment', gilt, parch, null, 'decorative');

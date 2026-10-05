@@ -1,5 +1,6 @@
 import { verifyAuthToken } from '../lib/authTokens.js';
 import { pool } from '../db/pool.js';
+import { getAccountAccess, isActiveUser, restrictionNote } from '../repo/users.js';
 
 function extractToken(req) {
   const header = req.headers.authorization;
@@ -7,16 +8,38 @@ function extractToken(req) {
   return header.slice('Bearer '.length);
 }
 
-export function requireAuth(req, res, next) {
+// A valid signature is not enough: tokens last thirty days and cannot be revoked, so a deleted,
+// suspended or banned account's token still verifies. Checking the account on every request is
+// what makes those take effect at once rather than whenever the token happens to expire.
+export async function requireAuth(req, res, next) {
   const userId = verifyAuthToken(extractToken(req));
   if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  try {
+    const access = await getAccountAccess(userId);
+    if (access.state === 'gone') return res.status(401).json({ error: 'unauthorized' });
+    // 403, not 401: the token is good and the person is known — they are not allowed in. A 401
+    // would make the app sign them out and forget why; this lets it say.
+    if (access.state === 'suspended' || access.state === 'banned') {
+      return res.status(403).json({
+        error: access.state === 'banned' ? 'account_banned' : 'account_suspended',
+        until: access.until,
+        note: await restrictionNote(userId),
+      });
+    }
+  } catch (err) {
+    return next(err);
+  }
   req.userId = userId;
   next();
 }
 
-export function optionalAuth(req, res, next) {
+export async function optionalAuth(req, res, next) {
   const userId = verifyAuthToken(extractToken(req));
-  req.userId = userId ?? null;
+  try {
+    req.userId = userId && (await isActiveUser(userId)) ? userId : null;
+  } catch (err) {
+    return next(err);
+  }
   next();
 }
 

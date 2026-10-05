@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useReducer } from 'react';
 import NavBar from './components/NavBar.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import StartScreen from './components/StartScreen.jsx';
@@ -14,6 +14,15 @@ import { useRun } from './features/run/useRun.js';
 import { useDuels } from './features/duels/useDuels.js';
 import { useLeaderboard } from './features/leaderboard/useLeaderboard.js';
 import { useAchievementToasts } from './features/achievements/useAchievementToasts.js';
+import { useAccount } from './features/account/useAccount.js';
+import { useProfile } from './features/social/useProfile.js';
+import { useSafety } from './features/safety/useSafety.js';
+import { useProfileEditor } from './features/profile/useProfileEditor.js';
+import { useModerationNotices } from './features/moderation/useModerationNotices.js';
+import { useOwlPost } from './features/owlpost/useOwlPost.js';
+import { restrictionMessage } from './features/moderation/restrictionMessage.js';
+import ModerationNoticeModal from './components/ModerationNoticeModal.jsx';
+import RenameModal from './components/RenameModal.jsx';
 import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
@@ -31,9 +40,12 @@ const DuelLobbyScreen = lazy(() => import('./components/DuelLobbyScreen.jsx'));
 const DuelSummaryScreen = lazy(() => import('./components/DuelSummaryScreen.jsx'));
 const AchievementsScreen = lazy(() => import('./components/AchievementsScreen.jsx'));
 const SettingsScreen = lazy(() => import('./components/SettingsScreen.jsx'));
+const EditProfileScreen = lazy(() => import('./components/EditProfileScreen.jsx'));
+const OwlPostScreen = lazy(() => import('./components/OwlPostScreen.jsx'));
 const MischiefModal = lazy(() => import('./components/MischiefModal.jsx'));
 const SuggestQuestionScreen = lazy(() => import('./components/SuggestQuestionScreen.jsx'));
 const AdminSuggestionsScreen = lazy(() => import('./components/AdminSuggestionsScreen.jsx'));
+const AdminReportsScreen = lazy(() => import('./components/AdminReportsScreen.jsx'));
 const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
@@ -50,35 +62,175 @@ const BUILD_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : '
 
 const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
 
+// The shell's own state — everything that is not a feature's, kept out of `features/` per
+// ARCHITECTURE.md. Every name here is a field of the reducer state below, not a `useState`.
+const initialAppState = {
+  screen: 'auth',
+  categories: [],
+  cameFromPreview: false,
+  // A challenge link (?challenge=<code>) should land on that challenge's screen once the
+  // visitor is authenticated, whether they arrived already logged in or just registered
+  // through AuthScreen — read once, since the query string doesn't change afterward.
+  challengeCode: new URLSearchParams(window.location.search).get('challenge'),
+  showFeedback: false,
+  viewingProfile: null,
+  profileReturnScreen: 'friends',
+  // Profiles opened from other profiles (a friend's chip), so Back walks back through them
+  // rather than returning to the profile you are already on.
+  profileHistory: [],
+  // A one-line message from something that just happened elsewhere (a block made on a profile
+  // that has since closed), shown until it is clicked away.
+  notice: null,
+  // The Owl Post conversation open on that screen, if any (null is the inbox).
+  owlWith: null,
+  startError: null,
+  apiBuild: null,
+  showMischief: false,
+};
+
+/**
+ * The shell's state machine: every way `screen` (and the handful of fields that travel with
+ * it) can change, named for the event that caused it rather than for the field it touches.
+ *
+ * This used to be a pile of independent `useState` calls, which let `screen` change a tick
+ * away from the data a screen needs (a challenge code, a profile to return to) rather than
+ * with it. Each action below is one of those transitions, made atomic and — because they are
+ * now named and switched on in one place — traceable.
+ */
+function appReducer(state, action) {
+  switch (action.type) {
+    // A stored token checked out, or AuthScreen just registered/logged someone in. A pending
+    // challenge link wins over the ordinary start screen.
+    case 'auth/authenticated':
+      return { ...state, screen: state.challengeCode ? 'challenge' : 'start' };
+    case 'auth/logged_out':
+      return { ...state, screen: 'auth' };
+    // The run finished on the server; `finishRun` has already tried to load the leaderboard
+    // (or decided a duel doesn't get one) before this fires.
+    case 'run/finished':
+      return { ...state, screen: action.mode === 'duel' ? 'duel-summary' : 'summary' };
+    case 'categories/loaded':
+      return { ...state, categories: action.categories };
+    case 'health/loaded':
+      return { ...state, apiBuild: action.commit };
+    case 'run/start_requested':
+      return { ...state, startError: null };
+    case 'run/start_succeeded':
+      return { ...state, screen: 'question' };
+    case 'run/start_failed':
+      return { ...state, startError: action.message };
+    case 'challenge/started':
+      return { ...state, screen: 'question' };
+    case 'run/left':
+      return { ...state, screen: 'start' };
+    case 'challenge/opened':
+      return { ...state, challengeCode: action.code, startError: null, screen: 'challenge' };
+    case 'navigated':
+      return { ...state, startError: null, screen: action.screen };
+    case 'profile/viewed':
+      if (state.screen === 'profile') {
+        return { ...state, profileHistory: [...state.profileHistory, state.viewingProfile], viewingProfile: action.username };
+      }
+      return { ...state, profileReturnScreen: state.screen, profileHistory: [], viewingProfile: action.username, screen: 'profile' };
+    case 'profile/closed':
+      if (state.profileHistory.length > 0) {
+        return {
+          ...state,
+          viewingProfile: state.profileHistory[state.profileHistory.length - 1],
+          profileHistory: state.profileHistory.slice(0, -1),
+        };
+      }
+      return { ...state, screen: state.profileReturnScreen };
+    case 'owlpost/opened':
+      return { ...state, screen: 'owl-post', owlWith: action.username ?? null, startError: null };
+    case 'owlpost/closed':
+      return { ...state, owlWith: null };
+    case 'notice/shown':
+      return { ...state, notice: action.message };
+    case 'notice/dismissed':
+      return { ...state, notice: null };
+    case 'preview/entered':
+      return { ...state, screen: 'preview' };
+    case 'preview/done':
+      return { ...state, cameFromPreview: true, screen: 'auth' };
+    case 'challenge/canceled':
+      return { ...state, screen: 'start' };
+    case 'mischief/opened':
+      return { ...state, showMischief: true };
+    case 'mischief/closed':
+      return { ...state, showMischief: false };
+    case 'mischief/suggest_opened':
+      return { ...state, showMischief: false, screen: 'suggest' };
+    case 'feedback/opened':
+      return { ...state, showFeedback: true };
+    case 'feedback/closed':
+      return { ...state, showFeedback: false };
+    // `useDuels` is handed generic callbacks — it does not know screen names or error copy —
+    // so these two stay as a change-of-screen and a message, not a semantic event.
+    case 'duels/screen_changed':
+      return { ...state, screen: action.screen };
+    case 'duels/start_error':
+      return { ...state, startError: action.message };
+    default:
+      return state;
+  }
+}
+
 /**
  * The shell: which screen is showing, and the wiring between the feature hooks.
  *
  * This component used to hold every feature's state — thirty-odd `useState` calls across auth,
  * the run, duels and the leaderboard, and four hand-written copies of the same "reset the run"
- * block. Each feature now owns its state in a hook under `features/`, and what is left here is
- * routing and composition. See ARCHITECTURE.md.
+ * block. Each feature now owns its state in a hook under `features/`, and what is left here —
+ * routing and composition, per ARCHITECTURE.md — is one `useReducer` rather than a dozen
+ * `useState`s that could change out of step with each other.
  */
 export default function App() {
-  const [screen, setScreen] = useState('auth');
-  const [categories, setCategories] = useState([]);
-  const [cameFromPreview, setCameFromPreview] = useState(false);
-  // A challenge link (?challenge=<code>) should land on that challenge's screen once the
-  // visitor is authenticated, whether they arrived already logged in or just registered
-  // through AuthScreen — read once, since the query string doesn't change afterward.
-  // Settable as well as read: the featured weekly challenge opens the same screen a shared
-  // link does, just without the round trip through the URL.
-  const [challengeCode, setChallengeCode] = useState(() => new URLSearchParams(window.location.search).get('challenge'));
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [viewingProfile, setViewingProfile] = useState(null);
-  const [profileReturnScreen, setProfileReturnScreen] = useState('friends');
-  const [startError, setStartError] = useState(null);
-  const [apiBuild, setApiBuild] = useState(null);
-  const [showMischief, setShowMischief] = useState(false);
+  const [state, dispatch] = useReducer(appReducer, initialAppState);
+  const {
+    screen,
+    categories,
+    cameFromPreview,
+    challengeCode,
+    showFeedback,
+    viewingProfile,
+    profileReturnScreen,
+    startError,
+    apiBuild,
+    showMischief,
+    notice,
+    owlWith,
+  } = state;
+
+  // Stable identities for the two callbacks `useDuels` calls directly (a socket event can fire
+  // between renders), the same way the `useState` setters they replace were already stable.
+  const dispatchScreen = useCallback((target) => dispatch({ type: 'duels/screen_changed', screen: target }), []);
+  const dispatchStartError = useCallback((message) => dispatch({ type: 'duels/start_error', message }), []);
 
   const auth = useAuth({
-    onAuthenticated: useCallback(() => setScreen(challengeCode ? 'challenge' : 'start'), [challengeCode]),
-    onLoggedOut: useCallback(() => setScreen('auth'), []),
+    onAuthenticated: useCallback(() => dispatch({ type: 'auth/authenticated' }), []),
+    onLoggedOut: useCallback(() => dispatch({ type: 'auth/logged_out' }), []),
+    onRestricted: useCallback((data) => dispatch({ type: 'notice/shown', message: restrictionMessage(data) }), []),
   });
+  const notices = useModerationNotices({ token: auth.token });
+
+  const account = useAccount({
+    token: auth.token,
+    user: auth.user,
+    onUserChanged: auth.updateUser,
+    onDeleted: useCallback(() => {
+      auth.logout();
+      dispatch({ type: 'notice/shown', message: 'Your account has been deleted.' });
+    }, [auth.logout]),
+  });
+  const profileEditor = useProfileEditor({
+    token: auth.token,
+    user: auth.user,
+    active: screen === 'edit-profile',
+    onUserChanged: auth.updateUser,
+  });
+  const safety = useSafety({ token: auth.token, active: screen === 'settings' });
+  const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
 
   const leaderboard = useLeaderboard({ authToken: auth.token });
   const toasts = useAchievementToasts();
@@ -89,7 +241,7 @@ export default function App() {
   const finishRun = useCallback(
     async (session) => {
       if (session.mode === 'duel') {
-        setScreen('duel-summary');
+        dispatch({ type: 'run/finished', mode: 'duel' });
         return;
       }
       try {
@@ -97,37 +249,39 @@ export default function App() {
       } catch {
         leaderboard.clear();
       }
-      setScreen('summary');
+      dispatch({ type: 'run/finished', mode: 'solo' });
     },
     [leaderboard.load, leaderboard.clear],
   );
 
   const run = useRun({ authToken: auth.token, onComplete: finishRun });
+  const owl = useOwlPost({ token: auth.token, active: screen === 'owl-post', withUsername: owlWith });
   const duels = useDuels({
     authToken: auth.token,
     currentUser: auth.user,
     run,
-    onScreen: setScreen,
-    onStartError: setStartError,
+    onScreen: dispatchScreen,
+    onStartError: dispatchStartError,
     onAchievement: toasts.push,
+    onOwlPost: owl.handleSocketEvent,
   });
 
-  useSecretPhrase(SECRET_PHRASE, useCallback(() => setShowMischief(true), []));
+  useSecretPhrase(SECRET_PHRASE, useCallback(() => dispatch({ type: 'mischief/opened' }), []));
 
   useEffect(() => {
     getCategories()
-      .then((data) => setCategories(data.categories))
-      .catch(() => setCategories([]));
+      .then((data) => dispatch({ type: 'categories/loaded', categories: data.categories }))
+      .catch(() => dispatch({ type: 'categories/loaded', categories: [] }));
   }, []);
 
   useEffect(() => {
     getHealth()
-      .then((data) => setApiBuild(data?.commit ?? null))
-      .catch(() => setApiBuild(null));
+      .then((data) => dispatch({ type: 'health/loaded', commit: data?.commit ?? null }))
+      .catch(() => dispatch({ type: 'health/loaded', commit: null }));
   }, []);
 
   const startRun = async ({ mode, category, canonSource, difficulty }) => {
-    setStartError(null);
+    dispatch({ type: 'run/start_requested' });
     try {
       const data = await createSession({ mode, category, canonSource, difficulty }, auth.token);
       run.begin({
@@ -137,6 +291,7 @@ export default function App() {
           category: data.category,
           canonSource: data.canon_source,
           difficulty: data.difficulty,
+          questionCount: data.question_count,
           timeLimitMs: data.time_limit_ms,
           timingMode: data.timing_mode,
           maxStrikes: data.max_strikes,
@@ -147,16 +302,19 @@ export default function App() {
         token: data.token,
         issuedAt: data.issued_at,
       });
-      setScreen('question');
+      dispatch({ type: 'run/start_succeeded' });
     } catch (err) {
       if (err.code === 'unauthorized') {
         auth.logout();
       } else if (err.code === 'daily_already_played') {
-        setStartError("You've already played today's Daily Challenge — come back tomorrow.");
+        dispatch({ type: 'run/start_failed', message: "You've already played today's Daily Challenge — come back tomorrow." });
       } else if (err.code === 'no_eligible_questions') {
-        setStartError('No questions match that combination yet — try a different category or canon source.');
+        dispatch({
+          type: 'run/start_failed',
+          message: 'No questions match that combination yet — try a different category or canon source.',
+        });
       } else {
-        setStartError('Something went wrong starting the run. Try again.');
+        dispatch({ type: 'run/start_failed', message: 'Something went wrong starting the run. Try again.' });
       }
     }
   };
@@ -170,6 +328,7 @@ export default function App() {
         category: data.category,
         canonSource: data.canon_source,
         difficulty: data.difficulty,
+        questionCount: data.question_count,
         timeLimitMs: data.time_limit_ms,
         timingMode: data.timing_mode,
         maxStrikes: data.max_strikes,
@@ -179,29 +338,40 @@ export default function App() {
       token: data.token,
       issuedAt: data.issued_at,
     });
-    setScreen('question');
+    dispatch({ type: 'challenge/started' });
   };
 
   const leaveRun = () => {
     run.clear();
-    setScreen('start');
+    dispatch({ type: 'run/left' });
   };
 
   const openChallenge = (code) => {
-    setChallengeCode(code);
-    setStartError(null);
-    setScreen('challenge');
+    dispatch({ type: 'challenge/opened', code });
   };
 
   const navigate = (target) => {
-    setStartError(null);
-    setScreen(target);
+    // The envelope always opens the inbox, not whichever conversation was last open.
+    if (target === 'owl-post') dispatch({ type: 'owlpost/opened', username: null });
+    else dispatch({ type: 'navigated', screen: target });
+  };
+
+  const openOwlThread = (username) => dispatch({ type: 'owlpost/opened', username });
+
+  const blockFromOwlPost = async (username) => {
+    await safety.block(username);
+    dispatch({ type: 'owlpost/closed' });
+    dispatch({ type: 'notice/shown', message: `Blocked ${username}. You can undo this in Settings.` });
+  };
+
+  const blockFromProfile = async (username) => {
+    await safety.block(username);
+    dispatch({ type: 'profile/closed' });
+    dispatch({ type: 'notice/shown', message: `Blocked ${username}. You can undo this in Settings.` });
   };
 
   const viewProfile = (username) => {
-    setProfileReturnScreen(screen);
-    setViewingProfile(username);
-    setScreen('profile');
+    dispatch({ type: 'profile/viewed', username });
   };
 
   if (!auth.checked) {
@@ -225,46 +395,50 @@ export default function App() {
         <NavBar
           currentUser={auth.user}
           activeScreen={navActiveScreen}
+          unreadOwls={owl.unread}
           onNavigate={navigate}
+          onViewProfile={viewProfile}
           onLogout={auth.logout}
-          onSecretFound={() => setShowMischief(true)}
+          onSecretFound={() => dispatch({ type: 'mischief/opened' })}
         />
       )}
       {showMischief && (
         <Suspense fallback={null}>
           <MischiefModal
-            onClose={() => setShowMischief(false)}
-            onSuggest={() => {
-              setShowMischief(false);
-              setScreen('suggest');
-            }}
+            onClose={() => dispatch({ type: 'mischief/closed' })}
+            onSuggest={() => dispatch({ type: 'mischief/suggest_opened' })}
           />
         </Suspense>
       )}
       {screen !== 'auth' && screen !== 'question' && duels.incomingInvites.length > 0 && (
         <DuelInviteBanner invite={duels.incomingInvites[0]} onAccept={duels.accept} onDecline={duels.decline} />
       )}
+      {notice && (
+        // Reuses the duel notice's look: a single dismissible line is all either one is.
+        <div className="duel-notice-banner" role="status" onClick={() => dispatch({ type: 'notice/dismissed' })}>
+          {notice}
+        </div>
+      )}
       {duels.notice && (
         <div className="duel-notice-banner" onClick={duels.dismissNotice}>
           {duels.notice}
         </div>
       )}
+      {/* A moderator's notice, then a forced rename, each shown until dealt with: neither can be
+          closed, because closing would be the same as not having seen it. */}
+      {auth.user && notices.current && <ModerationNoticeModal notice={notices.current} onAcknowledge={notices.acknowledge} />}
+      {auth.user && !notices.current && auth.user.must_rename && <RenameModal onRename={account.rename} />}
       <AchievementToast achievement={toasts.current} onDismiss={toasts.dismiss} />
       {screen === 'auth' && (
         <AuthScreen
           onAuthenticated={auth.authenticate}
-          onTryPreview={() => setScreen('preview')}
+          onTryPreview={() => dispatch({ type: 'preview/entered' })}
           startInMode={cameFromPreview ? 'register' : undefined}
         />
       )}
       {screen === 'preview' && (
         <Suspense fallback={screenFallback}>
-          <PreviewScreen
-            onDone={() => {
-              setCameFromPreview(true);
-              setScreen('auth');
-            }}
-          />
+          <PreviewScreen onDone={() => dispatch({ type: 'preview/done' })} />
         </Suspense>
       )}
       {screen === 'start' && auth.user && (
@@ -287,22 +461,52 @@ export default function App() {
           <AchievementsScreen token={auth.token} />
         </Suspense>
       )}
-      {screen === 'settings' && (
+      {screen === 'settings' && auth.user && (
         <Suspense fallback={screenFallback}>
           <SettingsScreen
-            theme={auth.user?.theme ?? DEFAULT_HOUSE}
+            user={auth.user}
+            account={account}
+            safety={safety}
             onSelectTheme={auth.selectTheme}
             token={auth.token}
             onViewOwnProfile={() => viewProfile(auth.user.username)}
+            onEditProfile={() => navigate('edit-profile')}
           />
+        </Suspense>
+      )}
+      {screen === 'owl-post' && auth.user && (
+        <Suspense fallback={screenFallback}>
+          <OwlPostScreen
+            user={auth.user}
+            owl={owl}
+            withUsername={owlWith}
+            onOpen={openOwlThread}
+            onClose={() => dispatch({ type: 'owlpost/closed' })}
+            onViewProfile={viewProfile}
+            onBlock={blockFromOwlPost}
+            onReport={safety.report}
+          />
+        </Suspense>
+      )}
+      {screen === 'edit-profile' && auth.user && (
+        <Suspense fallback={screenFallback}>
+          <EditProfileScreen user={auth.user} editor={profileEditor} onViewProfile={viewProfile} />
         </Suspense>
       )}
       {screen === 'profile' && viewingProfile && (
         <Suspense fallback={screenFallback}>
           <ProfileScreen
             username={viewingProfile}
-            token={auth.token}
-            onBack={() => setScreen(profileReturnScreen)}
+            view={profileView}
+            ownVisibility={auth.user?.friends_visibility}
+            onBack={() => dispatch({ type: 'profile/closed' })}
+            onChallenge={duels.openLobby}
+            onSendOwl={openOwlThread}
+            onViewProfile={viewProfile}
+            onEditProfile={() => navigate('edit-profile')}
+            onChangeVisibility={() => navigate('settings')}
+            onBlock={blockFromProfile}
+            onReport={safety.report}
           />
         </Suspense>
       )}
@@ -312,7 +516,7 @@ export default function App() {
             code={challengeCode}
             token={auth.token}
             onPlay={startChallengeRun}
-            onCancel={() => setScreen('start')}
+            onCancel={() => dispatch({ type: 'challenge/canceled' })}
           />
         </Suspense>
       )}
@@ -326,6 +530,11 @@ export default function App() {
           <AdminSuggestionsScreen categories={categories} token={auth.token} />
         </Suspense>
       )}
+      {screen === 'admin-reports' && auth.user?.is_admin && (
+        <Suspense fallback={screenFallback}>
+          <AdminReportsScreen token={auth.token} />
+        </Suspense>
+      )}
       {screen === 'friends' && (
         <Suspense fallback={screenFallback}>
           <FriendsPanel
@@ -334,6 +543,7 @@ export default function App() {
             onAcceptDuel={duels.accept}
             onDeclineDuel={duels.decline}
             onChallenge={duels.openLobby}
+            onMessage={openOwlThread}
             onViewProfile={viewProfile}
           />
         </Suspense>
@@ -368,6 +578,7 @@ export default function App() {
             timingMode={session.timingMode}
             sessionCreatedAt={session.createdAt}
             mode={session.mode}
+            questionCount={session.questionCount}
             streak={run.streak}
             strikes={run.strikes}
             maxStrikes={session.maxStrikes}
@@ -446,7 +657,7 @@ export default function App() {
           An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,
           Pottermore, or J.K. Rowling.
         </p>
-        <button type="button" className="colophon-link" onClick={() => setShowFeedback(true)}>
+        <button type="button" className="colophon-link" onClick={() => dispatch({ type: 'feedback/opened' })}>
           Submit Feedback
         </button>
         {/* Which build a player is actually looking at. Worth the seven characters: without
@@ -458,7 +669,7 @@ export default function App() {
       </div>
       {showFeedback && (
         <Suspense fallback={null}>
-          <FeedbackModal onClose={() => setShowFeedback(false)} token={auth.token} page={screen} />
+          <FeedbackModal onClose={() => dispatch({ type: 'feedback/closed' })} token={auth.token} page={screen} />
         </Suspense>
       )}
     </div>

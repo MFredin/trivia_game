@@ -6,3 +6,6 @@ build/
 *.log
 .DS_Store
 .vite/
+# Claude Code agent worktrees (isolation: "worktree" for parallel subagents) — tooling
+# scaffolding, never project content.
+.claude/

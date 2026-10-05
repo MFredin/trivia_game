@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { sentryRequestWatcher, attachSentryErrorHandler } from './lib/sentry.js';
 import sessionsRouter from './routes/sessions.js';
 import leaderboardRouter from './routes/leaderboard.js';
 import categoriesRouter from './routes/categories.js';
@@ -13,6 +14,12 @@ import profileRouter from './routes/profile.js';
 import challengesRouter from './routes/challenges.js';
 import activityRouter from './routes/activity.js';
 import feedbackRouter from './routes/feedback.js';
+import accountRouter from './routes/account.js';
+import accountProfileRouter from './routes/accountProfile.js';
+import blocksRouter from './routes/blocks.js';
+import reportsRouter from './routes/reports.js';
+import moderationRouter from './routes/moderation.js';
+import owlPostRouter from './routes/owlPost.js';
 
 export function createApp() {
   const app = express();
@@ -23,6 +30,8 @@ export function createApp() {
   const allowedOrigin = process.env.ALLOWED_ORIGIN;
   app.use(cors(allowedOrigin ? { origin: allowedOrigin.split(',') } : undefined));
   app.use(express.json());
+  // No-op unless SENTRY_DSN is set — see lib/sentry.js.
+  app.use(sentryRequestWatcher);
 
   // Railway injects RAILWAY_GIT_COMMIT_SHA into every build from a connected repo, so the
   // running service can say which commit it is without anyone having to correlate deploy
@@ -52,6 +61,17 @@ export function createApp() {
   app.use('/api/challenges', challengesRouter);
   app.use('/api/activity', activityRouter);
   app.use('/api/feedback', feedbackRouter);
+  app.use('/api/account', accountRouter);
+  app.use('/api/account', accountProfileRouter);
+  app.use('/api/blocks', blocksRouter);
+  app.use('/api/reports', reportsRouter);
+  app.use('/api/moderation', moderationRouter);
+  app.use('/api/owlpost', owlPostRouter);
+
+  // Mounted after every route, as Express requires for error-handling middleware. No-op
+  // unless SENTRY_DSN is set — see lib/sentry.js. Reports and then hands off to the default
+  // handler; it never answers the client itself.
+  attachSentryErrorHandler(app);
 
   return app;
 }

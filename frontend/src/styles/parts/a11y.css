@@ -60,3 +60,17 @@
 .colophon-link {
   padding: 0.75rem 0.5rem;
 }
+
+/* Text for assistive technology only: a label a sighted player does not need, because the control's
+   placeholder and position already say what it is. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

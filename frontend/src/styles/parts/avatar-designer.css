@@ -1,0 +1,179 @@
+/* --- the avatar designer and the "about you" form on Edit Profile --- */
+.designer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.designer-preview {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.designer-preview .explanation {
+  margin: 0;
+}
+
+.designer-group {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.designer-legend {
+  padding: 0;
+  margin-bottom: 0.45rem;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  color: var(--text-muted-on-surface);
+}
+
+.designer-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.4rem, 1fr));
+  gap: 0.4rem;
+}
+
+.designer-locked {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted-on-surface);
+}
+
+/* A 44px+ target around a 40px avatar. The ring carries "selected" so it does not depend on colour
+   alone. A locked option stays visible, dimmed and padlocked, so it reads as something to earn. */
+.avatar-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.4rem;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.avatar-option:hover:not(:disabled) {
+  border-color: rgba(18, 21, 28, 0.25);
+}
+
+.avatar-option.is-active {
+  border-color: var(--rubric);
+  background: rgba(var(--wash-rgb), 0.14);
+}
+
+.avatar-option.is-locked {
+  cursor: not-allowed;
+}
+
+.avatar-option.is-locked .avatar {
+  opacity: 0.45;
+}
+
+.avatar-option-lock {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--parchment-100);
+  color: var(--text-on-surface);
+  box-shadow: 0 0 0 1px rgba(18, 21, 28, 0.35);
+}
+
+/* --- about you --- */
+.profile-bio-help {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.profile-bio-count {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.pin-fieldset {
+  border: none;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.pin-fieldset legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.pin-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.08);
+  cursor: pointer;
+}
+
+.pin-option:last-child {
+  border-bottom: none;
+}
+
+.pin-option-name {
+  font-weight: 600;
+}
+
+.pin-option-desc {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+}
+
+/* The save bar stays at the foot of the screen while the page scrolls, because the form is long
+   and the button that matters is at its far end. */
+.edit-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--parchment-100);
+  color: var(--text-on-surface);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgba(var(--gilt-rgb), 0.7),
+    0 -10px 30px -12px rgba(0, 0, 0, 0.7);
+}
+
+.edit-savebar-status {
+  font-size: 0.9rem;
+  color: var(--text-muted-on-surface);
+}
+
+.edit-savebar-error {
+  flex-basis: 100%;
+  color: var(--oxblood-600);
+  font-size: 0.9rem;
+}
+
+.edit-savebar-actions {
+  display: flex;
+  gap: 0.5rem;
+}

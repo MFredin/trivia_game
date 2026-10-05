@@ -21,7 +21,7 @@ test('a duel between two players', async (t) => {
     await navigateTo(challenger.page, 'Friends');
     await challenger.page.getByRole('button', { name: 'Search', exact: true }).click();
     await challenger.page.getByLabel('Search members by username').fill(opponentName);
-    await challenger.page.waitForSelector('.friend-list .primary-button', { timeout: 15000 });
+    await challenger.page.waitForSelector('.friend-list .icon-button--primary', { timeout: 15000 });
     await challenger.page.getByRole('button', { name: 'Challenge' }).first().click();
 
     // The lobby: pick nothing, just send.

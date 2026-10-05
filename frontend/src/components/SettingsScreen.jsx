@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import HouseDevice from './HouseDevice.jsx';
 import { HOUSES } from '../constants/houses.js';
+import PrivacySettings from './PrivacySettings.jsx';
+import BlockedPlayers from './BlockedPlayers.jsx';
+import OwlPostSettings from './OwlPostSettings.jsx';
+import PasswordSettings from './PasswordSettings.jsx';
+import DeleteAccountSection from './DeleteAccountSection.jsx';
 import { getInviteCode } from '../api/auth.js';
 
-export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnProfile }) {
+export default function SettingsScreen({ user, onSelectTheme, token, onViewOwnProfile, onEditProfile, account, safety }) {
+  const theme = user.theme;
   const [inviteCode, setInviteCode] = useState(null);
   const [copyLabel, setCopyLabel] = useState('Copy link');
 
@@ -70,6 +76,18 @@ export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnP
           ))}
         </div>
       </Plate>
+      <PrivacySettings
+        value={user.friends_visibility}
+        onChange={account.setFriendsVisibility}
+        error={account.privacyError}
+      />
+      <OwlPostSettings value={user.owl_post} onChange={account.setOwlPost} error={account.owlPostError} />
+      <BlockedPlayers
+        blocked={safety.blocked}
+        loaded={safety.loaded}
+        loadError={safety.loadError}
+        onUnblock={safety.unblock}
+      />
       <Plate>
         <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
           Your Invite Link
@@ -92,11 +110,20 @@ export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnP
           <p className="explanation" style={{ margin: '0 0 1rem' }}>
             Lifetime stats — accuracy, favorite category, duel record, and your day streak.
           </p>
-          <button type="button" className="secondary-button" onClick={onViewOwnProfile}>
-            View my profile
-          </button>
+          <span className="profile-actions">
+            <button type="button" className="secondary-button" onClick={onViewOwnProfile}>
+              View my profile
+            </button>
+            {onEditProfile && (
+              <button type="button" className="secondary-button" onClick={onEditProfile}>
+                Edit avatar &amp; bio
+              </button>
+            )}
+          </span>
         </Plate>
       )}
+      <PasswordSettings onChangePassword={account.updatePassword} />
+      <DeleteAccountSection username={user.username} onDelete={account.removeAccount} />
     </div>
   );
 }

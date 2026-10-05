@@ -4,13 +4,17 @@ export const MODES = {
   // from session creation; once it's up, the in-flight answer is scored as a timeout and the run ends.
   // maxStrikes: null means wrong answers never end the run early; a number ends the run once that
   // many wrong/timed-out answers have accumulated.
-  classic: { questionCount: 10, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: null },
-  daily: { questionCount: 10, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: null },
+  classic: { questionCount: 10, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: null },
+  daily: { questionCount: 10, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: null },
   blitz: { questionCount: 300, timeLimitMs: 60000, timingMode: 'session_total', maxStrikes: null },
-  survival: { questionCount: 300, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: 1 },
-  gauntlet: { questionCount: 300, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: 3 },
-  duel: { questionCount: 10, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: null },
-  // Every private challenge link runs at Classic's fixed config — no per-challenge
-  // customization, kept deliberately simple (see docs/phase5-scaffold.md §1).
-  challenge: { questionCount: 10, timeLimitMs: 20000, timingMode: 'per_question', maxStrikes: null },
+  survival: { questionCount: 300, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: 1 },
+  gauntlet: { questionCount: 300, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: 3 },
+  duel: { questionCount: 10, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: null },
+  // Every private challenge link runs at Classic's fixed time limit; questionCount here is
+  // only the default — a challenge's own row can override it (see routes/challenges.js).
+  challenge: { questionCount: 10, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: null },
 };
+
+// The lengths a challenge creator can pick between. Kept short and round rather than letting
+// the length run free, the same way category/difficulty are a fixed menu, not free text.
+export const CHALLENGE_QUESTION_COUNT_OPTIONS = [10, 15, 25, 30];

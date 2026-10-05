@@ -8,6 +8,8 @@ import { sendToUser } from '../lib/wsServer.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
 import { getCached, setCached } from '../lib/leaderboardCache.js';
+import { isBlockedEitherWay } from '../services/blocks.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
@@ -31,7 +33,7 @@ function duelSummary(duel) {
 }
 
 async function findUserByUsername(username) {
-  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1', [username]);
+  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1 AND deleted_at IS NULL', [username]);
   return rows[0] ?? null;
 }
 
@@ -51,6 +53,8 @@ router.post('/', async (req, res) => {
   const opponent = await findUserByUsername(opponent_username.trim());
   if (!opponent) return res.status(404).json({ error: 'user_not_found' });
   if (opponent.id === req.userId) return res.status(400).json({ error: 'cannot_duel_yourself' });
+  // Same answer as an unknown name, so an invite cannot be used to find out who blocked you.
+  if (await isBlockedEitherWay(req.userId, opponent.id)) return res.status(404).json({ error: 'user_not_found' });
 
   // A double-click (or re-visiting the Challenge flow before the invite's been answered)
   // shouldn't stack up repeat pending invites cluttering the recipient's screen — return the
@@ -82,7 +86,9 @@ router.post('/', async (req, res) => {
 
 router.get('/pending', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT d.*, u_creator.username AS created_by_username, u_opponent.username AS opponent_username
+    `SELECT d.*, ${displayNameSql('u_creator')} AS created_by_username, ${displayNameSql('u_opponent')} AS opponent_username,
+            u_creator.avatar AS creator_avatar, u_creator.avatar_style AS creator_avatar_style, u_creator.theme AS creator_theme,
+            u_opponent.avatar AS opponent_avatar, u_opponent.avatar_style AS opponent_avatar_style, u_opponent.theme AS opponent_theme
      FROM duels d
      JOIN users u_creator ON u_creator.id = d.created_by
      JOIN users u_opponent ON u_opponent.id = d.opponent_id
@@ -94,6 +100,13 @@ router.get('/pending', async (req, res) => {
     ...duelSummary(d),
     created_by_username: d.created_by_username,
     opponent_username: d.opponent_username,
+    // What the list needs to draw each side the way every other list of players does.
+    created_by_avatar: d.creator_avatar ?? null,
+    created_by_avatar_style: d.creator_avatar_style ?? {},
+    created_by_theme: d.creator_theme ?? null,
+    opponent_avatar: d.opponent_avatar ?? null,
+    opponent_avatar_style: d.opponent_avatar_style ?? {},
+    opponent_theme: d.opponent_theme ?? null,
     direction: d.created_by === req.userId ? 'outgoing' : 'incoming',
   }));
   return res.json({ pending });
@@ -134,7 +147,7 @@ router.get('/leaderboard', async (req, res) => {
        FROM duel_results
        GROUP BY user_id
      )
-     SELECT u.username, p.wins, p.losses, p.ties, p.total,
+     SELECT ${displayNameSql('u')} AS username, p.wins, p.losses, p.ties, p.total,
        CASE WHEN p.total > 0 THEN round((p.wins::numeric / p.total) * 100, 1) ELSE 0 END AS win_pct
      FROM per_user p
      JOIN users u ON u.id = p.user_id
@@ -190,6 +203,11 @@ router.post('/:id/accept', async (req, res) => {
     if (!duel) return res.status(404).json({ error: 'duel_not_found' });
     if (duel.opponent_id !== req.userId) return res.status(403).json({ error: 'forbidden' });
     if (duel.status !== 'pending') return res.status(409).json({ error: 'duel_not_pending' });
+    // Blocking withdraws pending invites, so this is only reachable by a block landing between
+    // the invite and the click; treat it as the invite never having existed.
+    if (await isBlockedEitherWay(duel.created_by, duel.opponent_id)) {
+      return res.status(404).json({ error: 'duel_not_found' });
+    }
 
     await pool.query(`UPDATE duels SET status = 'active', started_at = now() WHERE id = $1`, [duel.id]);
 

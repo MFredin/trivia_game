@@ -3,6 +3,8 @@ import { verifyAuthToken } from './authTokens.js';
 import { markOnline, markOffline, getSockets } from './presenceRegistry.js';
 import { isDuelReaction, allowReaction } from './duelReactions.js';
 import { pool } from '../db/pool.js';
+import { isBlockedEitherWay } from '../services/blocks.js';
+import { isActiveUser } from '../repo/users.js';
 
 // The largest frame worth parsing. A reaction is a few dozen bytes; anything approaching this
 // is not one, and refusing it early keeps a malformed or hostile client from handing us a
@@ -14,14 +16,15 @@ const MAX_FRAME_BYTES = 1024;
 export function attachWebSocketServer(httpServer) {
   const wss = new WebSocketServer({ noServer: true });
 
-  httpServer.on('upgrade', (req, socket, head) => {
+  httpServer.on('upgrade', async (req, socket, head) => {
     const url = new URL(req.url, 'http://localhost');
     if (url.pathname !== '/ws') {
       socket.destroy();
       return;
     }
     const userId = verifyAuthToken(url.searchParams.get('token'));
-    if (!userId) {
+    // Same rule as requireAuth: a deleted account's token still verifies.
+    if (!userId || !(await isActiveUser(userId).catch(() => false))) {
       socket.destroy();
       return;
     }
@@ -75,6 +78,9 @@ async function handleClientFrame(ws, raw) {
   if (!participants.includes(ws.userId)) return;
   const opponentId = participants.find((id) => id !== ws.userId);
   if (!opponentId) return;
+  // A duel that was already running when one player blocked the other carries on, but nothing
+  // is relayed between them: a reaction is the only message a player can send another here.
+  if (await isBlockedEitherWay(ws.userId, opponentId)) return;
 
   const { rows: userRows } = await pool.query('SELECT username FROM users WHERE id = $1', [ws.userId]);
 
