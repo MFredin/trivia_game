@@ -11,7 +11,7 @@ import Icon from './icons.jsx';
  * block above them (who the menu belongs to). The trigger's content and class are the
  * caller's, so the same behaviour can be an icon button in one place and an avatar in another.
  */
-export default function PopoverMenu({ label, trigger, triggerClassName, items, header, align = 'right' }) {
+export default function PopoverMenu({ label, trigger, triggerClassName, triggerCurrent = false, items, header, align = 'right' }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
@@ -58,6 +58,7 @@ export default function PopoverMenu({ label, trigger, triggerClassName, items, h
         ref={triggerRef}
         type="button"
         className={triggerClassName}
+        aria-current={triggerCurrent ? 'page' : undefined}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={label}

@@ -27,6 +27,7 @@ export default function AccountMenu({ user, active, onViewProfile, onNavigate, o
     <PopoverMenu
       label="Account menu"
       triggerClassName={`account-trigger ${active ? 'on' : ''}`}
+      triggerCurrent={active}
       trigger={<Avatar username={user.username} avatar={user.avatar} style={user.avatar_style} house={user.theme} size={34} />}
       header={
         <>
