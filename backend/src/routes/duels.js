@@ -86,7 +86,9 @@ router.post('/', async (req, res) => {
 
 router.get('/pending', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT d.*, ${displayNameSql('u_creator')} AS created_by_username, ${displayNameSql('u_opponent')} AS opponent_username
+    `SELECT d.*, ${displayNameSql('u_creator')} AS created_by_username, ${displayNameSql('u_opponent')} AS opponent_username,
+            u_creator.avatar AS creator_avatar, u_creator.avatar_style AS creator_avatar_style, u_creator.theme AS creator_theme,
+            u_opponent.avatar AS opponent_avatar, u_opponent.avatar_style AS opponent_avatar_style, u_opponent.theme AS opponent_theme
      FROM duels d
      JOIN users u_creator ON u_creator.id = d.created_by
      JOIN users u_opponent ON u_opponent.id = d.opponent_id
@@ -98,6 +100,13 @@ router.get('/pending', async (req, res) => {
     ...duelSummary(d),
     created_by_username: d.created_by_username,
     opponent_username: d.opponent_username,
+    // What the list needs to draw each side the way every other list of players does.
+    created_by_avatar: d.creator_avatar ?? null,
+    created_by_avatar_style: d.creator_avatar_style ?? {},
+    created_by_theme: d.creator_theme ?? null,
+    opponent_avatar: d.opponent_avatar ?? null,
+    opponent_avatar_style: d.opponent_avatar_style ?? {},
+    opponent_theme: d.opponent_theme ?? null,
     direction: d.created_by === req.userId ? 'outgoing' : 'incoming',
   }));
   return res.json({ pending });
