@@ -41,6 +41,9 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
         working-directory: backend
+      # Mistakes a reader would also flag (an unused variable, an undefined name); no style rules.
+      - run: npm run lint
+        working-directory: backend
       - run: npm run db:migrate
         working-directory: backend
       - run: npm run db:seed
