@@ -6,6 +6,7 @@ import { USER_COLUMNS, userView } from '../lib/userView.js';
 import { FAVORITE_BOOKS, MAX_PINNED_ACHIEVEMENTS } from '../lib/profileFields.js';
 import { BIO_MAX_LENGTH } from '../lib/bioFilter.js';
 import { categoryNames, describeLocks, earnedAchievements, validateProfileUpdate } from '../services/profileCustomization.js';
+import { describeTitles } from '../services/titles.js';
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.get('/customization', async (req, res) => {
   return res.json({
     locks: describeLocks(earned),
     earned,
+    titles: await describeTitles(req.userId),
     books: FAVORITE_BOOKS,
     subjects: await categoryNames(),
     limits: { bio: BIO_MAX_LENGTH, pinned: MAX_PINNED_ACHIEVEMENTS },

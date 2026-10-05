@@ -431,3 +431,21 @@ ALTER TABLE messages ADD COLUMN IF NOT EXISTS subject TEXT;
 -- owl_post stays 'friends' for them, and everyone could already be challenged, so challenges is 'open'.
 ALTER TABLE users ALTER COLUMN owl_post SET DEFAULT 'open';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS challenges TEXT NOT NULL DEFAULT 'open';
+
+-- ---------------------------------------------------------------------------
+-- Titles (lib/titles.js)
+-- ---------------------------------------------------------------------------
+
+-- The title a player is wearing, by id. Earned titles are not stored: a player has one while they hold
+-- the achievement it hangs on. This column is only what they chose to show, and is cleared when a
+-- granted title is revoked.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS title TEXT;
+
+-- System titles an admin has granted to a person. Nothing else grants one.
+CREATE TABLE IF NOT EXISTS user_titles (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title_id TEXT NOT NULL,
+  granted_by INTEGER REFERENCES users(id),
+  granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, title_id)
+);

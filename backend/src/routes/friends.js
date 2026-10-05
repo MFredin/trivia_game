@@ -6,6 +6,7 @@ import { evaluateAchievements } from '../services/achievements.js';
 import { deriveStatus } from '../lib/friendStatus.js';
 import { isBlockedEitherWay, notBlockedSql } from '../services/blocks.js';
 import { contactAllowed } from '../lib/contactModes.js';
+import { titleView } from '../lib/titles.js';
 
 const router = express.Router();
 
@@ -13,15 +14,16 @@ router.use(requireAuth);
 
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.owl_post, u.challenges
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges
      FROM friendships f
      JOIN users u ON u.id = f.friend_user_id
      WHERE f.user_id = $1 AND f.status = 'accepted'
      ORDER BY u.username`,
     [req.userId],
   );
-  const friends = rows.map(({ owl_post: owlPost, challenges, ...f }) => ({
+  const friends = rows.map(({ owl_post: owlPost, challenges, title, ...f }) => ({
     ...f,
+    title: titleView(title),
     online: isOnline(f.id),
     can_owl: contactAllowed(owlPost, true),
     can_challenge: contactAllowed(challenges, true),
@@ -72,6 +74,7 @@ function memberView(row) {
     avatar: row.avatar ?? null,
     avatar_style: row.avatar_style ?? {},
     theme: row.theme,
+    title: titleView(row.title),
     online: isOnline(row.id),
     status,
     // What this viewer may start with them, so a row offers only what would be accepted. Their
@@ -88,7 +91,7 @@ router.get('/search', async (req, res) => {
   if (q.length < 2) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
@@ -109,7 +112,7 @@ router.get('/online', async (req, res) => {
   if (onlineIds.length === 0) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
@@ -134,7 +137,7 @@ router.get('/members', async (req, res) => {
   const total = Number(countRows[0].total);
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
