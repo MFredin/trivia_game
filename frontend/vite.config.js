@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // The frontend is a static build, so it cannot be asked at runtime which commit it came
-// from — the answer has to be baked in. Railway sets RAILWAY_GIT_COMMIT_SHA during the
+// from — the answer has to be baked in. It is for error tracking only (lib/sentry.js tags a
+// report with it); nothing on the page shows it. Railway sets RAILWAY_GIT_COMMIT_SHA during the
 // build; Vite only forwards VITE_-prefixed vars on its own, so it is injected explicitly.
 const commit = process.env.RAILWAY_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA ?? '';
 

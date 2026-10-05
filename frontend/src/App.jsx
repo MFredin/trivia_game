@@ -27,7 +27,6 @@ import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
 import { startChallenge } from './api/challenges.js';
-import { getHealth } from './api/health.js';
 import { createSession } from './api/sessions.js';
 
 // Fetched on demand. All of this used to sit in the first bundle, so every player on a phone
@@ -57,10 +56,6 @@ const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
 // to nothing at all: a placeholder where a dialog is about to appear reads as a glitch.
 const screenFallback = <p className="screen-loading">Fetching&hellip;</p>;
 
-// Injected at build time by vite.config.js from Railway's RAILWAY_GIT_COMMIT_SHA. Falls back
-// to 'dev' for a local build, which is also how you can tell one at a glance.
-const BUILD_COMMIT = typeof __BUILD_COMMIT__ === 'string' ? __BUILD_COMMIT__ : 'dev';
-
 const SECRET_PHRASE = 'i solemnly swear that i am up to no good';
 
 // The shell's own state — everything that is not a feature's, kept out of `features/` per
@@ -85,7 +80,6 @@ const initialAppState = {
   // The Owl Post conversation open on that screen, if any (null is the inbox).
   owlWith: null,
   startError: null,
-  apiBuild: null,
   showMischief: false,
 };
 
@@ -112,8 +106,6 @@ function appReducer(state, action) {
       return { ...state, screen: action.mode === 'duel' ? 'duel-summary' : 'summary' };
     case 'categories/loaded':
       return { ...state, categories: action.categories };
-    case 'health/loaded':
-      return { ...state, apiBuild: action.commit };
     case 'run/start_requested':
       return { ...state, startError: null };
     case 'run/start_succeeded':
@@ -197,7 +189,6 @@ export default function App() {
     viewingProfile,
     profileReturnScreen,
     startError,
-    apiBuild,
     showMischief,
     notice,
     owlWith,
@@ -273,12 +264,6 @@ export default function App() {
     getCategories()
       .then((data) => dispatch({ type: 'categories/loaded', categories: data.categories }))
       .catch(() => dispatch({ type: 'categories/loaded', categories: [] }));
-  }, []);
-
-  useEffect(() => {
-    getHealth()
-      .then((data) => dispatch({ type: 'health/loaded', commit: data?.commit ?? null }))
-      .catch(() => dispatch({ type: 'health/loaded', commit: null }));
   }, []);
 
   const startRun = async ({ mode, category, canonSource, difficulty }) => {
@@ -674,12 +659,6 @@ export default function App() {
         <button type="button" className="colophon-link" onClick={() => dispatch({ type: 'feedback/opened' })}>
           Submit Feedback
         </button>
-        {/* Which build a player is actually looking at. Worth the seven characters: without
-            it, confirming a deploy reached the browser means diffing bundle hashes. */}
-        <p className="colophon-build" title={`frontend build ${BUILD_COMMIT}`}>
-          Set from <span>{BUILD_COMMIT}</span>
-          {apiBuild && apiBuild !== BUILD_COMMIT && <span> · api {apiBuild}</span>}
-        </p>
       </div>
       {showFeedback && (
         <Suspense fallback={null}>
