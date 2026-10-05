@@ -164,6 +164,21 @@
   background: rgba(var(--silver-400-rgb), 0.12);
 }
 
+/* On a phone a row of tabs that would wrap leaves one orphaned on a line of its own. Four or more
+   sit two to a row; fewer share one row equally. Full-width pills are also easier to hit. */
+@media (max-width: 520px) {
+  .nav-links.on-surface {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .nav-links.on-surface:has(> :nth-child(4)) {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* On-surface variant — for a .nav-links row nested inside a <Plate> (light parchment), where
    the silver chrome above is calibrated for the dark page and goes low-contrast. Colors match
    the rest of the on-surface system (ink-based text, brass accent for the active state), the

@@ -1,16 +1,18 @@
 /* --- a player in a list ---
-   Builds on .friend-row (flex, hairline between rows). The identity half grows and may shrink —
-   a long name wraps inside it — and the actions never do, so even at 390px the buttons stay
-   beside the name rather than dropping under it. */
+   Builds on .friend-row (flex, hairline between rows). The identity half asks for room enough to
+   read a name (the 9rem below), and the actions never shrink. When a row has more buttons than the
+   screen can fit beside that, the buttons drop to a line of their own under the name, at the right,
+   instead of squeezing the name into fragments three letters wide; one or two buttons still sit
+   beside it even at 390px. */
 .member-row {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
 }
 
 .member-id {
   display: flex;
   align-items: center;
-  flex: 1 1 auto;
+  flex: 1 1 9rem;
   gap: 0.75rem;
   min-width: 0;
   min-height: 52px;
@@ -39,7 +41,9 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  overflow-wrap: anywhere;
+  /* Only a name with no break in it (a long handle) is split, and only if it must be. */
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .member-caption {
@@ -51,4 +55,22 @@
   display: flex;
   flex: none;
   gap: 0.4rem;
+  margin-left: auto;
+}
+
+/* A line of the activity feed: the same avatar as everywhere, then a sentence with the name in it. */
+.activity-row {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+.activity-text {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.activity-name {
+  font-weight: 600;
 }
