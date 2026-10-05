@@ -229,15 +229,17 @@ export default function App() {
   });
   const notices = useModerationNotices({ token: auth.token });
 
+  // Taken out of `auth` so the callback below depends on the function itself, not on the whole (new every render) object.
+  const { logout } = auth;
   const account = useAccount({
     token: auth.token,
     user: auth.user,
     onUserChanged: auth.updateUser,
     onTokenReplaced: auth.replaceToken,
     onDeleted: useCallback(() => {
-      auth.logout();
+      logout();
       dispatch({ type: 'notice/shown', message: 'Your account has been deleted.' });
-    }, [auth.logout]),
+    }, [logout]),
   });
   const profileEditor = useProfileEditor({
     token: auth.token,
@@ -249,6 +251,7 @@ export default function App() {
   const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
 
   const leaderboard = useLeaderboard({ authToken: auth.token });
+  const { load: loadBoard, clear: clearBoard } = leaderboard;
   const toasts = useAchievementToasts();
 
   // The run is over on the server; get the player to their result. The leaderboard is a
@@ -261,13 +264,13 @@ export default function App() {
         return;
       }
       try {
-        await leaderboard.load(session, 'global', 'current');
+        await loadBoard(session, 'global', 'current');
       } catch {
-        leaderboard.clear();
+        clearBoard();
       }
       dispatch({ type: 'run/finished', mode: 'solo' });
     },
-    [leaderboard.load, leaderboard.clear],
+    [loadBoard, clearBoard],
   );
 
   const run = useRun({ authToken: auth.token, onComplete: finishRun });
@@ -661,7 +664,6 @@ export default function App() {
           totalScore={run.totalScore}
           mode={session.mode}
           category={session.category}
-          canonSource={session.canonSource}
           difficulty={session.difficulty}
           bestStreak={run.bestStreak}
           correctCount={run.correctCount}

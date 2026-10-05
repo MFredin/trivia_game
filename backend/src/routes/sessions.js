@@ -1,3 +1,14 @@
+// A run of questions from start to finish (/api/sessions): the heart of the game, and the anti-cheat boundary.
+//
+//   POST /                start a run (mode, category, difficulty, canon source)
+//   GET  /:id             one run, finished or not: what the client falls back to if an answer's reply goes missing
+//   POST /:id/next        the next question, with its signed token (lib/tokens.js)
+//   POST /:id/answer      answer it: scored on the server from times it recorded (services/answerFlow.js)
+//   POST /:id/lifeline    use a lifeline (50-50 or skip) in the modes that allow them
+//
+// Nothing that reveals the right answer is sent before it is answered (docs/anti-cheat-architecture.md), and every
+// route that names a run checks it belongs to the caller and answers 404 if it does not.
+
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { getAllQuestions } from '../repo/questions.js';
@@ -14,6 +25,7 @@ import {
   servedQuestionCount,
 } from '../services/sessionQuestions.js';
 import { requireAuth } from '../middleware/auth.js';
+import { isUuid } from '../lib/uuid.js';
 import { FIFTY_FIFTY, SKIP, LIFELINE_MODES, lifelineAvailable, fiftyFiftyHiddenIndices } from '../lib/lifelines.js';
 import { recordAnswer, runPostAnswerBookkeeping } from '../services/answerFlow.js';
 
@@ -118,7 +130,7 @@ router.post('/', requireAuth, async (req, res) => {
  * Returns the session, or null after having already sent the response.
  */
 async function loadOwnedSession(req, res, { requireActive = true } = {}) {
-  const { rows } = await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]);
+  const { rows } = isUuid(req.params.id) ? await pool.query('SELECT * FROM game_sessions WHERE id = $1', [req.params.id]) : { rows: [] };
   const session = rows[0];
   // Same 404 for "no such run" and "not yours", so the endpoint cannot be used to test
   // whether a given id exists.

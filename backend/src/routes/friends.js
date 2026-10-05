@@ -1,3 +1,15 @@
+// Friends and finding people (/api/friends). Every route needs a signed-in player.
+//
+//   GET  /                     this player's friends, with whether each is online and what they accept
+//   GET  /requests, /sent      requests waiting for this player, and ones they have sent
+//   GET  /search, /online, /members     finding people: by name, who is online now, everyone (paged)
+//   POST /                     send a friend request by username
+//   POST /requests/:username/accept | decline
+//   DELETE /:username          remove a friend
+//
+// Blocked players never appear in a list or a search, in either direction (services/blocks.js), and sending a request
+// to someone who has blocked you looks exactly like sending one to someone who does not exist.
+
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';

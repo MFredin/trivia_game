@@ -106,9 +106,7 @@
 
 /* The modal is narrow by default; this one carries a form. */
 .modal-plate:has(.action-fieldset) {
-  max-width: 560px;
-  max-height: calc(100vh - 2.5rem);
-  overflow-y: auto;
+  width: min(100%, 560px);
 }
 
 .modal-plate textarea {

@@ -101,6 +101,8 @@
 /* --- segmented control (canon source): three plain rubric-bordered buttons --- */
 .seg-control {
   display: flex;
+  /* Wraps rather than widening the page when text is enlarged. */
+  flex-wrap: wrap;
 }
 
 .seg {

@@ -1,3 +1,5 @@
+// Every achievement, earned or not, with what it takes. Earned ones are what can be pinned to a profile and what unlock
+// titles and avatar parts (Edit Profile shows which).
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import { getAchievements } from '../api/catalog.js';

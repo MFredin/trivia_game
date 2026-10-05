@@ -7,7 +7,7 @@ import { hashEmail } from '../src/lib/emailHash.js';
 test('what a moderator is offered and advised', async (t) => {
   await t.test('every kind of report has a ladder that ends in a ban', () => {
     for (const reason of REPORT_REASONS) {
-      let last = suggestNext(reason, { priorActioned: 99 });
+      const last = suggestNext(reason, { priorActioned: 99 });
       assert.deepEqual(last.actions, ['ban'], reason);
     }
   });

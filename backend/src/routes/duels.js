@@ -1,3 +1,17 @@
+// Live head-to-head duels (/api/duels), played over the WebSocket in lib/wsServer.js.
+//
+//   POST /               invite a player to a duel (respects their Challenges setting and blocks)
+//   GET  /pending        invitations waiting on this player, and ones they have sent
+//   GET  /leaderboard    wins and losses
+//   GET  /:id            one duel, for either of its two players only
+//   POST /:id/accept     accept: both players are given the same questions and the duel starts
+//   POST /:id/decline    decline
+//   PATCH /settings      who may challenge this player: open, friends only, or off
+//
+// Accepting starts a run for each player (game_sessions rows with the duel's id) drawn with the same settings; the
+// WebSocket carries progress between them. Each route that names a duel checks that the caller is one of its two
+// players before doing anything, and answers 404 (not 403) for anyone else (`loadMyDuel`).
+
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -13,6 +27,7 @@ import { CONTACT_MODES, contactAllowed } from '../lib/contactModes.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
 import { titleView } from '../lib/titles.js';
 import { displayNameSql } from '../lib/displayName.js';
+import { isUuid } from '../lib/uuid.js';
 
 const router = express.Router();
 
@@ -202,13 +217,24 @@ router.get('/leaderboard', async (req, res) => {
   return res.json(result);
 });
 
-router.get('/:id', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]);
+/**
+ * The duel named in the URL, if the caller is one of its two players; otherwise answers 404 and returns null. Anyone
+ * else gets exactly the answer they would for an id that does not exist (and so does a malformed one), so the
+ * endpoint cannot be used to find out which duels there are.
+ */
+async function loadMyDuel(req, res) {
+  const { rows } = isUuid(req.params.id) ? await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]) : { rows: [] };
   const duel = rows[0];
-  if (!duel) return res.status(404).json({ error: 'duel_not_found' });
-  if (duel.created_by !== req.userId && duel.opponent_id !== req.userId) {
-    return res.status(403).json({ error: 'forbidden' });
+  if (!duel || (duel.created_by !== req.userId && duel.opponent_id !== req.userId)) {
+    res.status(404).json({ error: 'duel_not_found' });
+    return null;
   }
+  return duel;
+}
+
+router.get('/:id', async (req, res) => {
+  const duel = await loadMyDuel(req, res);
+  if (!duel) return undefined;
 
   const { rows: sessionRows } = await pool.query('SELECT user_id, total_score, status FROM game_sessions WHERE duel_id = $1', [
     duel.id,
@@ -216,10 +242,11 @@ router.get('/:id', async (req, res) => {
   return res.json({ ...duelSummary(duel), sessions: sessionRows });
 });
 
+// Only the player who was invited can answer an invitation. The inviter is in the duel, so they may know it exists:
+// they are told no (403), not that it is missing.
 router.post('/:id/decline', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]);
-  const duel = rows[0];
-  if (!duel) return res.status(404).json({ error: 'duel_not_found' });
+  const duel = await loadMyDuel(req, res);
+  if (!duel) return undefined;
   if (duel.opponent_id !== req.userId) return res.status(403).json({ error: 'forbidden' });
   if (duel.status !== 'pending') return res.status(409).json({ error: 'duel_not_pending' });
 
@@ -230,9 +257,8 @@ router.post('/:id/decline', async (req, res) => {
 
 router.post('/:id/accept', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]);
-    const duel = rows[0];
-    if (!duel) return res.status(404).json({ error: 'duel_not_found' });
+    const duel = await loadMyDuel(req, res);
+    if (!duel) return undefined;
     if (duel.opponent_id !== req.userId) return res.status(403).json({ error: 'forbidden' });
     if (duel.status !== 'pending') return res.status(409).json({ error: 'duel_not_pending' });
     // Blocking withdraws pending invites, so this is only reachable by a block landing between

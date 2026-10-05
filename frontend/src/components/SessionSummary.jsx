@@ -1,3 +1,5 @@
+// The end of a run: the seal, total score, a folio of ticks and crosses for each question, and the buttons for another run
+// or for sharing the result.
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
 import ShareResultButton from './ShareResultButton.jsx';
@@ -35,7 +37,6 @@ export default function SessionSummary({
   totalScore,
   mode,
   category,
-  canonSource,
   difficulty,
   bestStreak,
   correctCount,

@@ -184,7 +184,7 @@
 
 .duel-invite-name {
   color: var(--parchment-100);
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .duel-invite-actions {

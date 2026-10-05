@@ -1,3 +1,5 @@
+// Settings → Privacy: who may challenge you to a duel (open, friends only, off). Off also stops you challenging anyone
+// or making challenge links.
 import ContactModeFieldset from './ContactModeFieldset.jsx';
 
 const OPTIONS = [

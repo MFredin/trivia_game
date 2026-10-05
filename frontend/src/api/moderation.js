@@ -1,3 +1,5 @@
+// What a moderator's action looks like to the person it was done to and to the staff (/api/moderation): notices to
+// acknowledge, the action log, and lifting a suspension, mute or ban.
 import { request } from './request.js';
 
 export function getNotices(token) {

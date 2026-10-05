@@ -1,3 +1,6 @@
+// The home screen and the way to the first question: choose a mode, then category, difficulty and canon source, and
+// start. Also the Daily Challenge, the featured weekly challenge and opening a challenge by code. It is the first thing a
+// player sees after signing in, so it must stay quick: it loads only what it needs (the rest of the app is lazy).
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';

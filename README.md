@@ -178,7 +178,7 @@ seven missing database indexes, split the frontend bundle (a release now costs a
 player 17 kB gzipped instead of 70 kB), gave the app a keyboard focus ring and WCAG-sized
 touch targets, added CI and the first integration tests, and broke the 2,375-line stylesheet
 into per-feature files. Findings, measurements and the two things deliberately left alone are
-written up in [`docs/platform-audit-2026-09.md`](docs/platform-audit-2026-09.md).
+written up in [`docs/platform-audit-2026-09.md`](docs/platform-audit-2026-09.md). The October code and screen-size audit is [`docs/code-audit-2026-10.md`](docs/code-audit-2026-10.md); what the screen-size test covers is in [`docs/compatibility.md`](docs/compatibility.md).
 
 ### Carried over, not yet scheduled
 

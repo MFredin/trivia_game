@@ -1,3 +1,13 @@
+// How many points a correct answer is worth. Pure and server-side only: the client never computes a score, and the
+// server does it from timestamps it recorded itself (see docs/anti-cheat-architecture.md).
+//
+// points = base(obscurity tier) × design multiplier × divergence bonus × streak bonus × time bonus, rounded.
+//   - the streak bonus is +5% per correct answer in a row, capped at +50%;
+//   - the time bonus is up to +50%, shrinking linearly as the answer takes longer;
+//   - a wrong answer scores 0 and ends the streak.
+// The tables below are the whole balance of the game: change them here and the tests in test/scoring.test.js show
+// what moved.
+
 const BASE_POINTS_BY_OBSCURITY_TIER = {
   'First Year': 100,
   'O.W.L.': 150,

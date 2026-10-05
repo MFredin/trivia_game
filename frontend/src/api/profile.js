@@ -1,3 +1,4 @@
+// A player's public profile (/api/profile/:username) and their friends list, which its owner may hide.
 import { request } from './request.js';
 
 export function getProfile(username, token) {

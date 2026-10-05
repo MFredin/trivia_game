@@ -43,6 +43,16 @@
   min-height: 44px;
 }
 
+/* iOS Safari zooms the whole page in when a field under 16px takes focus, and does not zoom back out: it looks
+   exactly like a layout overflow. So no text field is set below 16px. `max()` keeps a larger size (a bigger
+   root font, a text-zoom setting) rather than pinning every field at 16. This is a floor, so it is written
+   once here, behind `:root` for enough specificity to beat the per-component sizes it replaces (and so those
+   need no changes).
+   Checkboxes, radios and range sliders do not zoom and are left alone. */
+:root :is(input:not([type='range'], [type='checkbox'], [type='radio']), select, textarea) {
+  font-size: max(1rem, 16px);
+}
+
 /* The slider's target is its thumb, not its 4px track: 18px was under the 24px floor.
    The track keeps its own height — only the grip grows. */
 .rs-range::-webkit-slider-thumb {

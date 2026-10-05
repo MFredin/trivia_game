@@ -1,3 +1,9 @@
+// Loads the question bank into the `questions` table (`npm run db:seed`). Safe to re-run: a question that is already
+// there is updated in place, matched by its id, so editing a question in the JSON and seeding again corrects it.
+//
+// Which file is loaded is SEED_FILE (a name inside src/data/), defaulting to the starter bank. Questions written by
+// players and approved in the admin queue are inserted by routes/suggestions.js, not here.
+
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';

@@ -1,3 +1,5 @@
+// Settings → Account: change password. Needs the current one; a successful change ends the account's other sessions
+// and the server returns this device a fresh token (useAccount stores it).
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 

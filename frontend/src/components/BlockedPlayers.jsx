@@ -1,3 +1,5 @@
+// Settings → Privacy: the players you have blocked, each with an Unblock button. Unblocking does not restore a
+// friendship.
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import Avatar from './Avatar.jsx';

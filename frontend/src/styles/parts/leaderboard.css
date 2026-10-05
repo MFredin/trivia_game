@@ -101,3 +101,15 @@
     width: 3.6rem;
   }
 }
+
+/* A table that cannot fit (the narrowest phones, or text enlarged): it scrolls inside this box and leaves the
+   page where it is. See components/TableScroll.jsx. */
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.table-scroll:focus-visible {
+  outline: 2px solid var(--rubric);
+  outline-offset: 2px;
+}

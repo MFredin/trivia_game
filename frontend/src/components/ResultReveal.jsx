@@ -1,3 +1,5 @@
+// What follows an answer: correct or not (or timed out, or passed), the points, the right answer and the explanation,
+// and the button to the next question. The right answer arrives from the server only now; before this it never leaves it.
 export default function ResultReveal({ correct, timedOut, skipped, points, correctAnswer, explanation, onContinue, isLast }) {
   return (
     <div className={`result-reveal ${correct ? '' : 'is-wrong'}`}>

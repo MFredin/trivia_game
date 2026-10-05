@@ -43,7 +43,7 @@ export async function request(path, options = {}, token) {
   try {
     data = body ? JSON.parse(body) : null;
   } catch {
-    data = null;
+    // Not JSON (a proxy's HTML error page, say): leave `data` null and let the status speak.
   }
 
   if (!res.ok || data === null) {

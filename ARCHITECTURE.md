@@ -86,6 +86,18 @@ one non-wrapping flex row in a `1fr` track. Every part of it grows during a run,
 and clipping the question text mid-word. The same pass found two more: the leaderboard ledger
 and the add-a-friend form.
 
+**Anything that shows another person's text must be able to break anywhere.** A name can be 40
+characters with no space in it, a message 500. Use `overflow-wrap: anywhere` (not `break-word`,
+which does not let the text shrink inside a flex row) and `min-width: 0` on the flex or grid
+child that holds it. A table that may not fit goes in `TableScroll`. `e2e/overflow-matrix.test.mjs`
+checks this at eleven widths with worst-case content; `docs/compatibility.md` says what it
+covers and what it cannot.
+
+**Form fields are 16px or larger, dialogs fit the screen, heights follow `dvh`.** One rule in
+`a11y.css` keeps fields from triggering iOS Safari's zoom-on-focus; `.modal-plate` is
+`width: min(100%, 440px)` and its overlay scrolls; a height that tracks the screen uses
+`100dvh` with a `100vh` fallback before it.
+
 **Screens not on the path to playing a quiz are lazily imported.** The shell, the entry screens
 and the run itself load eagerly; everything else is `lazy()` with its own `<Suspense>` boundary,
 so a chunk in flight cannot blank the nav or a run in progress.
@@ -112,6 +124,18 @@ once; per-route middleware is for routers with a genuinely mixed public and priv
 **Every route that names a resource by id proves ownership.** Not because an id is guessable,
 but because an id is not a credential. A resource that exists but is not yours returns the same
 404 as one that does not exist, so the endpoint cannot be used to discover which ids are real.
+
+**An id in a URL is checked before it is queried.** A malformed UUID or integer is a Postgres
+error, which would be a 500 for what is really "no such thing". `lib/uuid.js` (and `/^\d+$/` for
+numeric ids) turn it into the same 404 as an id that is well-formed but absent.
+
+**A route may be `async` and need no try/catch of its own.** Express 4 does not catch a rejected
+promise, so `lib/asyncErrors.js` routes one to the error handler in `lib/errors.js`, which answers
+JSON (500 without the cause, which goes to the log). Before it existed, a database error in any
+route without its own try/catch ended the whole process. A route still catches an error when it
+can do something better than a 500 (`routes/sessions.js` answering an answer that was already
+recorded); it need not catch one just to avoid crashing. `middleware/` and `lib/writeLimit.js` sit
+in front of every route; a tighter limit belongs on the route that needs it.
 
 **The schema is append-only and idempotent.** `schema.sql` is replayed on every deploy, so
 changes are `ADD COLUMN IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS` rather than edits to a

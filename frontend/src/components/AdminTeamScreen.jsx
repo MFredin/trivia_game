@@ -1,3 +1,5 @@
+// Admin only: who the moderators are, adding one by username (optionally with the Prefect title) and removing one.
+// Admins themselves are made in the database, deliberately, so they do not appear here.
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import Checkbox from './Checkbox.jsx';

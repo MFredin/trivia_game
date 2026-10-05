@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { launch, navigateTo, openPage, register, BASE_URL } from './harness.mjs';
+import { launch, openPage, register, BASE_URL } from './harness.mjs';
 
 // Promoting an admin has no route by design (see schema.sql), so this test does it the way an
 // operator would: in the database. Skipped where there is no DATABASE_URL to do it with.

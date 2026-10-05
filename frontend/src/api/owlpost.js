@@ -1,3 +1,5 @@
+// Owl Post (/api/owlpost): the inbox, the unread count, one conversation (paged backwards), sending, marking read,
+// "delete for me", and the setting for who may write to you.
 import { request } from './request.js';
 
 export function getInbox(token) {

@@ -1,3 +1,5 @@
+// Roman numerals for the question number and the leaderboard rank: the ledger and the question margin are numbered the
+// way a book's folios would be. 1 and up; anything lower is shown as I.
 const NUMERALS = [
   [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
   [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],

@@ -1,3 +1,5 @@
+// The difficulty slider's stops: a value (the obscurity tier the server filters on, or '' for any) with the name and
+// description shown to the player. The tier names must match backend/src/lib/difficultyTiers.js.
 export const DIFFICULTY_TIERS = [
   {
     value: '',

@@ -1,3 +1,5 @@
+// A five-stop slider for the difficulty tier (Any, First Year, O.W.L., N.E.W.T., Order of the Phoenix), with what the
+// chosen stop means written under it. Controlled by the start screen.
 import { DIFFICULTY_TIERS } from '../constants/difficulty.js';
 
 export default function DifficultySlider({ value, onChange }) {

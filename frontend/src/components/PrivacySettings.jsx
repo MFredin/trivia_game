@@ -1,3 +1,5 @@
+// Settings → Privacy: who can see your friends list (friends only, everyone, only me). Your stats and achievements are
+// visible to other players regardless.
 import Plate from './Plate.jsx';
 
 const OPTIONS = [

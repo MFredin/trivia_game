@@ -1,3 +1,5 @@
+// The leaderboards (/api/leaderboard): a mode's top scores, filtered by category, difficulty, canon and window, and the
+// House Cup, which totals scores by house.
 import { request } from './request.js';
 
 export function getLeaderboard(mode = 'classic', { category, canonSource, difficulty, scope, window } = {}, token) {

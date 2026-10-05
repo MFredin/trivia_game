@@ -216,6 +216,14 @@
   margin-bottom: 1.5rem;
 }
 
+/* A screen's heading can carry someone's name (a profile, a thread, "Playing as ..."), up to 40 characters with
+   no break in them. min-width: 0 lets a flex child shrink below that, and `anywhere` is what lets the text break
+   so it can: without both, the name widens the page instead of wrapping. */
+.screen-head > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* Rubric labels. On the dark page they take the house's on-page accent (rubric proper is
    calibrated for parchment and goes low-contrast on the page for several houses — the same
    trap design-audit finding #2 was about); nested in a plate or modal they take rubric. */

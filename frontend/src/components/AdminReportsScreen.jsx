@@ -1,3 +1,6 @@
+// The moderation queue: open reports, with the reason, note, the reported player's bio and any messages the reporter
+// attached, and the actions the viewer's role allows (lib/roles on the server decides). Moderators and admins both use
+// it; an admin also sees what moderators have escalated. Closed reports and the action log are other tabs.
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import ModerationActionModal from './ModerationActionModal.jsx';

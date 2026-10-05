@@ -1,3 +1,13 @@
+// Player-written questions (/api/suggestions).
+//
+//   POST /               submit a question for review (validated; held, never served, until approved)
+//   GET  /mine           the submitter's own suggestions and what became of them
+//   GET  /admin          the review queue                        (admin only)
+//   POST /admin/:id/approve | reject                             (admin only; approval may edit tiers and wording)
+//
+// An approved question is added to the live bank (and the bank's cache is invalidated), and the submitter's
+// achievements are re-checked. A rejected one keeps the reviewer's note so the submitter can see why.
+
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
@@ -136,6 +146,7 @@ async function nextQuestionId(category) {
 }
 
 router.post('/admin/:id/approve', requireAuth, requireAdmin, async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'suggestion_not_found' });
   const { rows: draftRows } = await pool.query('SELECT * FROM suggested_questions WHERE id = $1', [req.params.id]);
   const draft = draftRows[0];
   if (!draft) return res.status(404).json({ error: 'suggestion_not_found' });
@@ -218,6 +229,7 @@ router.post('/admin/:id/approve', requireAuth, requireAdmin, async (req, res) =>
 });
 
 router.post('/admin/:id/reject', requireAuth, requireAdmin, async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'suggestion_not_found' });
   const { review_note } = req.body ?? {};
   const { rows } = await pool.query(
     `UPDATE suggested_questions

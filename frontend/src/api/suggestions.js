@@ -1,3 +1,5 @@
+// Player-written questions (/api/suggestions): submit one, see your own, and, for admins, the review queue with
+// approve and reject.
 import { request } from './request.js';
 
 export function submitSuggestion(draft, token) {
