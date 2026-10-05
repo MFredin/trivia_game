@@ -237,24 +237,33 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
               </div>
             ) : (
               <>
-                <div className="start-form-field">
-                  <span className="field-label">Challenge length</span>
+                <div className="start-form-field" role="group" aria-labelledby="challenge-length-label">
+                  <span className="field-label" id="challenge-length-label">
+                    Challenge a friend
+                  </span>
+                  <p className="field-hint">
+                    Make a link anyone can open. They answer the same questions as you, with the category, canon and
+                    difficulty chosen above, and you compare scores.
+                  </p>
+                  <span className="field-sublabel">How many questions?</span>
                   <div className="seg-control">
                     {CHALLENGE_QUESTION_COUNT_OPTIONS.map((count) => (
                       <button
                         key={count}
                         type="button"
-                        className={`seg ${challengeQuestionCount === count ? 'is-active' : ''}`}
+                        className={`seg seg--count ${challengeQuestionCount === count ? 'is-active' : ''}`}
                         onClick={() => setChallengeQuestionCount(count)}
                         aria-pressed={challengeQuestionCount === count}
+                        aria-label={`${count} questions`}
                       >
-                        {count}
+                        <span className="seg-number">{count}</span>
+                        <span className="seg-unit">questions</span>
                       </button>
                     ))}
                   </div>
                 </div>
                 <button type="button" className="secondary-button" onClick={handleCreateChallenge} disabled={creatingChallenge}>
-                  {creatingChallenge ? 'Creating…' : 'Create a Challenge Link'}
+                  {creatingChallenge ? 'Creating…' : `Create a ${challengeQuestionCount}-question challenge link`}
                 </button>
               </>
             )}

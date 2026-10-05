@@ -13,8 +13,9 @@ export function getThread(username, { before } = {}, token) {
   return request(`/owlpost/with/${encodeURIComponent(username)}${query}`, {}, token);
 }
 
-export function sendOwl(username, body, token) {
-  return request(`/owlpost/with/${encodeURIComponent(username)}`, { method: 'POST', body: JSON.stringify({ body }) }, token);
+export function sendOwl(username, body, token, subject) {
+  const payload = subject ? { body, subject } : { body };
+  return request(`/owlpost/with/${encodeURIComponent(username)}`, { method: 'POST', body: JSON.stringify(payload) }, token);
 }
 
 export function markThreadRead(username, token) {

@@ -7,7 +7,8 @@ test('owl post', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
   const { pool } = await boot();
   t.after(shutdown);
 
-  const send = (as, to, body) => call(`/owlpost/with/${to.username}`, { method: 'POST', token: as.token, body: json({ body }) });
+  const send = (as, to, body, subject) =>
+    call(`/owlpost/with/${to.username}`, { method: 'POST', token: as.token, body: json(subject === undefined ? { body } : { body, subject }) });
   const thread = (as, other, query = '') => call(`/owlpost/with/${other.username}${query}`, { token: as.token });
   const inbox = async (as) => (await call('/owlpost/inbox', { token: as.token })).body.conversations;
   const unread = async (as) => (await call('/owlpost/unread', { token: as.token })).body.count;
@@ -177,6 +178,33 @@ test('owl post', { skip: skip && 'DATABASE_URL not set' }, async (t) => {
     const rest = (await thread(b, a, `?before=${first.messages[0].id}`)).body;
     assert.deepEqual(rest.messages.map((m) => m.body), ['m1', 'm2', 'm3', 'm4', 'm5']);
     assert.equal(rest.has_more, false);
+  });
+
+  await t.test('a subject is optional, shown with the message, and filtered like the message', async (t) => {
+    const [a, b] = await friends();
+    const sb = await connectSocket(b);
+    t.after(() => sb.close());
+
+    const plain = await send(a, b, 'no subject here');
+    assert.equal(plain.body.message.subject, null);
+
+    const made = await send(a, b, 'Are you free on Friday?', '  Duel   night ');
+    assert.equal(made.status, 201);
+    assert.equal(made.body.message.subject, 'Duel night');
+
+    await settle();
+    const live = sb.frames.filter((f) => f.type === 'owlpost:message').at(-1);
+    assert.equal(live.message.subject, 'Duel night');
+
+    const seen = (await thread(b, a)).body.messages;
+    assert.deepEqual(seen.map((m) => m.subject), [null, 'Duel night']);
+    assert.equal((await inbox(b))[0].last.subject, 'Duel night');
+
+    const refusedWith = async (subject) => (await send(a, b, 'hello there', subject)).body.error;
+    assert.equal(await refusedWith('x'.repeat(61)), 'subject_too_long');
+    assert.equal(await refusedWith('write to me@example.com'), 'subject_has_link');
+    assert.equal(await refusedWith(5), 'invalid_subject');
+    assert.equal((await thread(b, a)).body.messages.length, 2, 'a refused subject sends nothing');
   });
 
   await t.test('a new owl reaches the recipient live, and only the recipient', async (t) => {

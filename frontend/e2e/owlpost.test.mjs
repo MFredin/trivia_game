@@ -34,7 +34,7 @@ test('owl post: two friends write to each other', async (t) => {
   await b.reload({ waitUntil: 'networkidle' });
 
   await t.test('a friend row offers to send an owl, and the first one goes through', async () => {
-    await navigateTo(a, 'Friends');
+    await navigateTo(a, 'Community');
     await a.getByRole('button', { name: 'Send an owl' }).first().click();
     await a.getByLabel(/Your owl to/).fill('Good luck in the duel!');
     await a.getByRole('button', { name: 'Send', exact: true }).click();
@@ -80,5 +80,57 @@ test('owl post: two friends write to each other', async (t) => {
     await a.getByLabel(/Your owl to/).fill('Are you there?');
     await a.getByRole('button', { name: 'Send', exact: true }).click();
     await a.getByText(/could not be delivered/i).waitFor();
+  });
+});
+
+test('owl post: a new owl can be composed from an empty inbox, to a friend by name', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const c = (await openPage(browser)).page;
+  const d = (await openPage(browser)).page;
+  const nameC = await register(c);
+  const nameD = await register(d);
+  assert.equal(await asPlayer(c, '/friends', 'POST', { username: nameD }), 201);
+  assert.equal(await asPlayer(d, `/friends/requests/${nameC}/accept`, 'POST'), 200);
+  await c.reload({ waitUntil: 'networkidle' });
+
+  await t.test('an empty inbox says what Owl Post is and offers to send the first owl', async () => {
+    await navigateTo(c, 'Owl Post');
+    await c.getByText('Nothing in your owlery yet').waitFor();
+    await c.getByRole('button', { name: 'Send an owl' }).first().click();
+    await c.getByRole('heading', { name: 'Send an owl' }).waitFor();
+  });
+
+  await t.test('a name that is not a friend is turned back, with the way to become one', async () => {
+    await c.getByLabel('To', { exact: true }).fill('nobodyatall');
+    await c.getByLabel('Message').fill('Hello?');
+    await c.getByRole('button', { name: 'Send', exact: true }).click();
+    await c.getByText(/is not on your friends list/i).waitFor();
+    await c.getByRole('button', { name: /Find people on Community/ }).waitFor();
+  });
+
+  await t.test('a friend, a subject and a message go through, and the conversation opens', async () => {
+    await c.getByLabel('To', { exact: true }).fill(nameD.toUpperCase());
+    await c.getByLabel(/Subject/).fill('Duel night');
+    await c.getByLabel('Message').fill('Are you free on Friday?');
+    await c.getByRole('button', { name: 'Send', exact: true }).click();
+    await c.locator('.owl-bubble', { hasText: 'Are you free on Friday?' }).waitFor();
+    await c.locator('.owl-bubble-subject', { hasText: 'Duel night' }).waitFor();
+  });
+
+  await t.test('the subject is filtered like the message', async () => {
+    await navigateTo(c, 'Owl Post');
+    await c.getByRole('button', { name: 'Send an owl' }).first().click();
+    await c.getByLabel('To', { exact: true }).fill(nameD);
+    await c.getByLabel(/Subject/).fill('mail me at a@b.co');
+    await c.getByLabel('Message').fill('Hello again');
+    await c.getByRole('button', { name: 'Send', exact: true }).click();
+    await c.getByText(/subject cannot hold links/i).waitFor();
+  });
+
+  await t.test('the friend sees the subject in their inbox', async () => {
+    await d.getByRole('button', { name: /Owl Post/ }).waitFor();
+    await navigateTo(d, 'Owl Post');
+    await d.locator('.owl-row-subject', { hasText: 'Duel night' }).waitFor({ timeout: 15000 });
   });
 });

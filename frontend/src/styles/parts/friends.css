@@ -175,10 +175,23 @@
   font-size: 0.9rem;
 }
 
+.duel-invite-who {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.duel-invite-name {
+  color: var(--parchment-100);
+  overflow-wrap: break-word;
+}
+
 .duel-invite-actions {
   display: flex;
   gap: 0.5rem;
   flex: none;
+  margin-left: auto;
 }
 
 .duel-notice-banner {

@@ -485,6 +485,7 @@ export default function App() {
             onViewProfile={viewProfile}
             onBlock={blockFromOwlPost}
             onReport={safety.report}
+            onGoToCommunity={() => navigate('friends')}
           />
         </Suspense>
       )}

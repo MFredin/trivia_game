@@ -15,7 +15,7 @@
   min-width: 44px;
   min-height: 44px;
   background: none;
-  /* The ring is shared with the avatar and drawn in chrome.css. */
+  /* No frame: the "you are here" underline is shared with the avatar and drawn in chrome.css. */
   color: var(--silver-400);
   cursor: pointer;
 }
@@ -254,4 +254,103 @@
   .owl-thread-name {
     font-size: 1.2rem;
   }
+}
+
+/* --- a message's subject, and writing a new owl --- */
+.owl-bubble-subject {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.owl-row-subject {
+  font-weight: 600;
+}
+
+.owl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.owl-empty-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.owl-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-width: 40rem;
+}
+
+.owl-compose-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* The shared field style is for a row, where `flex: 1` sets its width; in this column it would set
+   its height. */
+.owl-compose .friend-add-input {
+  flex: none;
+}
+
+.owl-compose-optional {
+  font-weight: 400;
+  color: var(--text-muted-on-surface);
+}
+
+.owl-compose-body {
+  width: 100%;
+  resize: vertical;
+  background: #f6f1e6;
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  border-radius: 3px;
+  padding: 0.75rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-on-surface);
+}
+
+.owl-compose-recipient {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.owl-compose-problem {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--oxblood-600);
+}
+
+.owl-compose-link {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.owl-compose-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.owl-compose-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
 }

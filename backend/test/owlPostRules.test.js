@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MESSAGE_MAX_LENGTH, checkMessage } from '../src/lib/owlPost.js';
+import { MESSAGE_MAX_LENGTH, SUBJECT_MAX_LENGTH, checkMessage, checkSubject } from '../src/lib/owlPost.js';
 import { rot13 } from '../src/lib/rot13.js';
 
 const refused = (text, error) => {
@@ -40,5 +40,23 @@ test('what an owl may say', async (t) => {
 
   await t.test('is a string', () => {
     for (const v of [null, undefined, 3, {}, []]) refused(v, 'invalid_message');
+  });
+});
+
+test('what an owl\u2019s subject may say', async (t) => {
+  await t.test('is optional: nothing, or only spaces, is no subject', () => {
+    for (const none of [undefined, null, '', '   ']) assert.deepEqual(checkSubject(none), { ok: true, value: null });
+  });
+
+  await t.test('is tidied and kept short', () => {
+    assert.equal(checkSubject('  Duel   on Friday? ').value, 'Duel on Friday?');
+    assert.equal(checkSubject('a'.repeat(SUBJECT_MAX_LENGTH)).ok, true);
+    assert.equal(checkSubject('a'.repeat(SUBJECT_MAX_LENGTH + 1)).error, 'subject_too_long');
+  });
+
+  await t.test('must be text, and gets the same filter as the message', () => {
+    assert.equal(checkSubject(7).error, 'invalid_subject');
+    assert.equal(checkSubject('see example.com').error, 'subject_has_link');
+    assert.equal(checkSubject(rot13('shpx')).error, 'subject_not_allowed');
   });
 });

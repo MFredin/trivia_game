@@ -121,6 +121,44 @@
   color: var(--parchment-100);
 }
 
+/* A count with its unit under it, so "10" reads as ten questions and not as a bare number. */
+.seg--count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05rem;
+  min-width: 4.2rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.seg-number {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.seg-unit {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+/* One line of what a control is for, between its name and its options. */
+.field-hint {
+  margin: 0.2rem 0 0.7rem;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+  max-width: 34rem;
+}
+
+.field-sublabel {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-on-surface);
+}
+
 /* --- the Ex Libris board: the start room's left leaf, a full cloth binding rather than a
    thin spine strip, carrying a parchment card with the house, mode and its ledger note --- */
 .book-spread--exlibris .book-spread-leaf.left {

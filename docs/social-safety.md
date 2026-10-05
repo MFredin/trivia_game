@@ -116,6 +116,12 @@ the most constrained.
   blocked you or who has an account. Blocking ends the friendship and so ends the conversation for both.
 - **Plain text, 500 characters**, through the same filter as bios (`lib/bioFilter.js`): no links, emails,
   handles or phone numbers, and the blocklist through the usual disguises. Line breaks are collapsed.
+- **A new owl is addressed to a friend, by name.** The Owl Post screen has a form (to, an optional
+  subject, the message) whose "to" is picked from your friends list; a name that is not a friend is
+  turned back in the form, and the server gives the same `404 user_not_found` as ever. This does not
+  widen who can be written to: opening Owl Post to anyone would change the safety model, not just the UI.
+- **The subject** is optional, 60 characters, through the same filter as the message, and is copied into
+  report evidence with the message.
 - **Rate limited per sender:** 20 a minute and 300 a day, and the same message to the same person twice
   within a minute is refused.
 - **A switch.** Each player can turn Owl Post **off** in Settings: they cannot send or receive, and their
