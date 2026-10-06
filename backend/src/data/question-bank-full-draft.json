@@ -96,7 +96,10 @@
       ],
       "explanation": "Neville's greatest fear is Professor Snape, and Lupin has him imagine Snape in his grandmother's clothes to make it 'ridiculous.'",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-005",
@@ -879,7 +882,10 @@
       ],
       "explanation": "Ron's greatest fear, shown when the class faces a boggart, is a giant spider.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-013",
@@ -963,7 +969,10 @@
       ],
       "explanation": "Remus Lupin was bitten as a child and transforms into a werewolf each full moon.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-017",
@@ -2315,7 +2324,10 @@
       ],
       "explanation": "Snape casts Anapneo to clear the throat of a choking party guest at Slughorn's Christmas gathering.",
       "source_ref": "Half-Blood Prince",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "SPL-042",
@@ -2625,7 +2637,10 @@
       ],
       "explanation": "Hedwig, Harry's owl and a gift from Hagrid, is a Snowy Owl.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "CRE-007",
@@ -2730,7 +2745,10 @@
       ],
       "explanation": "Dementors guard Azkaban and drain the happiness and eventually the souls of those near them.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-012",
@@ -2772,7 +2790,10 @@
       ],
       "explanation": "A boggart takes the shape of whatever the person facing it fears most.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-014",
@@ -2940,7 +2961,10 @@
       ],
       "explanation": "Grindylows infest the Black Lake and attack the champions during the Second Task's underwater trial.",
       "source_ref": "Goblet of Fire",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-022",
@@ -4524,7 +4548,10 @@
       ],
       "explanation": "The sink hiding the Chamber of Secrets' entrance is in the girls' bathroom haunted by Moaning Myrtle.",
       "source_ref": "Chamber of Secrets",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "LOC-048",
@@ -5523,7 +5550,10 @@
       ],
       "explanation": "The Deathday Party, including its ghostly guests and gloomy food, does not appear in the Chamber of Secrets film at all.",
       "source_ref": "Chamber of Secrets, book vs. film",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "DIV-016",
@@ -6349,7 +6379,10 @@
       ],
       "explanation": "The mirror's inscription reads backwards as 'I show not your face but your heart's desire.'",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "OBJ-007",
@@ -6538,7 +6571,10 @@
       ],
       "explanation": "Hagrid buys Hedwig for Harry as an eleventh-birthday present in Diagon Alley.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "OBJ-016",
@@ -7523,7 +7559,10 @@
       ],
       "explanation": "The Firebolt, the fastest broom of its time, arrives with no note, prompting McGonagall to confiscate it for safety checks.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "QDT-013",
@@ -7834,7 +7873,10 @@
       ],
       "explanation": "The presence of Dementors overwhelms Harry mid-flight, and he faints and falls, costing Gryffindor the match.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "QDT-028",
@@ -9451,7 +9493,10 @@
       ],
       "explanation": "Nearly Headless Nick, properly Sir Nicholas de Mimsy-Porpington, haunts Gryffindor Tower.",
       "source_ref": "Established throughout the series",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HOU-006",
@@ -9472,7 +9517,10 @@
       ],
       "explanation": "The Bloody Baron, a stern and imposing ghost, is Slytherin's house ghost.",
       "source_ref": "Established throughout the series",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HOU-007",
@@ -9493,7 +9541,10 @@
       ],
       "explanation": "The Grey Lady, revealed in Deathly Hallows to be Helena Ravenclaw, haunts Ravenclaw Tower.",
       "source_ref": "Deathly Hallows",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HOU-008",
@@ -9514,7 +9565,10 @@
       ],
       "explanation": "The cheerful Fat Friar is Hufflepuff's resident ghost.",
       "source_ref": "Established throughout the series",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HOU-009",
@@ -9766,7 +9820,10 @@
       ],
       "explanation": "Professor Binns simply got up to teach one day after dying in his armchair and never stopped, unaware he was a ghost.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HOU-021",
@@ -11725,7 +11782,10 @@
       ],
       "explanation": "Sir Nicholas, nicknamed Nearly Headless Nick, is the resident ghost of Gryffindor House.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-066",
@@ -11767,7 +11827,10 @@
       ],
       "explanation": "Peeves is a poltergeist, not a ghost, known for pranks like dropping objects on students' heads.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-069",
@@ -12124,7 +12187,10 @@
       ],
       "explanation": "Dumbledore returns James Potter's old Invisibility Cloak to Harry as a Christmas gift.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "CHR-086",
@@ -12271,7 +12337,10 @@
       ],
       "explanation": "Cuthbert Binns is the only ghost who teaches at Hogwarts, droning on in History of Magic.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-093",
@@ -13741,7 +13810,10 @@
       ],
       "explanation": "Binns famously never noticed his own death, leaving his body behind and continuing to teach as a ghost.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-164",
@@ -14497,7 +14569,10 @@
       ],
       "explanation": "The Grey Lady is Helena Ravenclaw, who stole her mother Rowena's diadem before her own death.",
       "source_ref": "Deathly Hallows",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-200",
@@ -14518,7 +14593,10 @@
       ],
       "explanation": "The Bloody Baron killed Helena Ravenclaw when she refused him, then took his own life out of guilt, which is why he wears chains as penance.",
       "source_ref": "Deathly Hallows",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-201",
@@ -15043,7 +15121,10 @@
       ],
       "explanation": "Eldred Worple, author of a vampire biography, brings his vampire subject Sanguini to Slughorn's Christmas party.",
       "source_ref": "Half-Blood Prince",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "CHR-226",
@@ -15316,7 +15397,10 @@
       ],
       "explanation": "As a student, Tom Riddle charmed Helena Ravenclaw's ghost into revealing where she had hidden her mother's diadem.",
       "source_ref": "Deathly Hallows",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CHR-239",
@@ -15862,7 +15946,10 @@
       ],
       "explanation": "The mountain troll Quirrell releases on Halloween carries a huge wooden club.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-067",
@@ -15883,7 +15970,10 @@
       ],
       "explanation": "Harry and Ron use the Levitation Charm to make the troll's own club knock it unconscious.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-068",
@@ -16072,7 +16162,10 @@
       ],
       "explanation": "The Riddikulus charm forces a Boggart into a comical form, defusing the fear it represents.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-077",
@@ -16135,7 +16228,10 @@
       ],
       "explanation": "Casting a Patronus is the only known way to repel a Dementor.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-080",
@@ -16702,7 +16798,10 @@
       ],
       "explanation": "Luna warns that Nargles like to infest mistletoe.",
       "source_ref": "Order of the Phoenix",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "CRE-107",
@@ -16828,7 +16927,10 @@
       ],
       "explanation": "The Wolfsbane Potion lets a werewolf keep their human mind while transformed, though it doesn't prevent the transformation itself.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-113",
@@ -16870,7 +16972,10 @@
       ],
       "explanation": "Fenrir Greyback attacked Remus Lupin as a child, infecting him with lycanthropy.",
       "source_ref": "Established from Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-115",
@@ -17059,7 +17164,10 @@
       ],
       "explanation": "Myrtle Warren died after meeting the Basilisk's gaze directly, and she haunts a Hogwarts bathroom as Moaning Myrtle.",
       "source_ref": "Chamber of Secrets",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-124",
@@ -17143,7 +17251,10 @@
       ],
       "explanation": "Red Caps lurk around old battle sites and dungeons, attacking anyone who wanders too close.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-128",
@@ -17164,7 +17275,10 @@
       ],
       "explanation": "Hinkypunks lure travelers off safe paths and into bogs using a lantern-like light.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-129",
@@ -18130,7 +18244,10 @@
       ],
       "explanation": "Kappas are said to be pacified by offerings of cucumber, according to wizarding lore on the creature.",
       "source_ref": "Established across the series",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-175",
@@ -18172,7 +18289,10 @@
       ],
       "explanation": "A Banshee's wail is said to foretell death, making it a feared, if rarely seen, creature.",
       "source_ref": "Established across the series",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-177",
@@ -19327,7 +19447,10 @@
       ],
       "explanation": "A Boggart struggles to settle on a single shape when facing a group, since it reacts to whichever fear is strongest in the room at that moment.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-232",
@@ -19432,7 +19555,10 @@
       ],
       "explanation": "Lupin gives Harry chocolate right after the Dementor attack, as it is known to help counter its draining effects.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "CRE-237",
@@ -19786,7 +19912,10 @@
       ],
       "explanation": "The book gives Ron his own vision in the Mirror of Erised; the film cuts this scene, showing only Harry's reflection.",
       "source_ref": "Sorcerer's Stone, book vs. film",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "DIV-054",
@@ -19806,7 +19935,10 @@
       ],
       "explanation": "The book gives Ron his own vision in the Mirror of Erised; the film cuts this scene, showing only Harry's reflection.",
       "source_ref": "Sorcerer's Stone, book vs. film",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "DIV-055",
@@ -21666,7 +21798,10 @@
       ],
       "explanation": "The book includes this poignant, small detail from the St. Mungo's visit; the film's shortened version leaves it out.",
       "source_ref": "Order of the Phoenix, book vs. film",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "DIV-148",
@@ -25366,7 +25501,10 @@
       ],
       "explanation": "The film gives the Yule Ball's band performance a far more elaborate visual treatment than the book's comparatively brief description.",
       "source_ref": "Goblet of Fire (film)",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "DIV-333",
@@ -26746,7 +26884,10 @@
       ],
       "explanation": "The book makes a running joke of Ron's lace-trimmed robes; the film shows unflattering robes but plays down this specific detail.",
       "source_ref": "Goblet of Fire, book vs. film",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "DIV-402",
@@ -27957,7 +28098,10 @@
       ],
       "explanation": "The Yule Ball is a grand Christmas dance held at Hogwarts during the Triwizard Tournament.",
       "source_ref": "Goblet of Fire",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "HIS-063",
@@ -28440,7 +28584,10 @@
       ],
       "explanation": "Every Christmas, Molly Weasley knits homemade jumpers bearing each family member's initial, later including Harry.",
       "source_ref": "Established throughout the series (e.g., Philosopher's Stone, Goblet of Fire)",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "HIS-086",
@@ -28461,7 +28608,10 @@
       ],
       "explanation": "Hogwarts marks Halloween each year with a lavish feast in the Great Hall.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HIS-087",
@@ -29343,7 +29493,10 @@
       ],
       "explanation": "Hogwarts' Great Hall is traditionally decorated with twelve towering Christmas trees each December.",
       "source_ref": "Philosopher's Stone / Chamber of Secrets",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "HIS-129",
@@ -31191,7 +31344,10 @@
       ],
       "explanation": "October 31, 1981 marks Voldemort's first downfall, when his Killing Curse rebounded off baby Harry.",
       "source_ref": "Established throughout the series",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HIS-217",
@@ -32829,7 +32985,10 @@
       ],
       "explanation": "Peeves delights in chaos, from throwing objects to disrupting lessons and feasts.",
       "source_ref": "Established throughout the series",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HOU-095",
@@ -34068,7 +34227,10 @@
       ],
       "explanation": "Slughorn collects well-connected students, and Belby's uncle Damocles is credited with inventing Wolfsbane Potion.",
       "source_ref": "Half-Blood Prince",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "HOU-154",
@@ -34278,7 +34440,10 @@
       ],
       "explanation": "Peeves fears and obeys only the intimidating Bloody Baron among all the school's ghosts.",
       "source_ref": "Established throughout the series",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "HOU-164",
@@ -34782,7 +34947,10 @@
       ],
       "explanation": "Roger Davies, Ravenclaw's Quidditch captain, is Fleur Delacour's date to the Yule Ball.",
       "source_ref": "Goblet of Fire",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "HOU-188",
@@ -39297,7 +39465,10 @@
       ],
       "explanation": "Strings of fairy lights, actual live fairies, decorate the rose bushes in the garden during the Yule Ball.",
       "source_ref": "Goblet of Fire",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "LOC-208",
@@ -39843,7 +40014,10 @@
       ],
       "explanation": "Hagrid tends a pumpkin patch next to his hut, growing the massive pumpkins used for Halloween decorations.",
       "source_ref": "Established across the series",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "LOC-234",
@@ -40095,7 +40269,10 @@
       ],
       "explanation": "The Firebolt arrives with no name attached, later revealed to be a gift from Sirius Black.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "OBJ-053",
@@ -40851,7 +41028,10 @@
       ],
       "explanation": "Harry buys a large pile of sweets, including Pumpkin Pasties, from the trolley witch on his first train ride to Hogwarts.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "OBJ-089",
@@ -40872,7 +41052,10 @@
       ],
       "explanation": "Cauldron Cakes are one of the many treats available from the Hogwarts Express trolley.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "OBJ-090",
@@ -41082,7 +41265,10 @@
       ],
       "explanation": "Hermione gives Harry a Broomstick Servicing Kit to help him maintain his Firebolt.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "OBJ-100",
@@ -41523,7 +41709,10 @@
       ],
       "explanation": "McGonagall takes the unexplained Firebolt away for safety checks before eventually returning it to Harry.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "OBJ-121",
@@ -42636,7 +42825,10 @@
       ],
       "explanation": "Helena Ravenclaw, the Grey Lady, eventually reveals to Harry where she hid her mother's diadem.",
       "source_ref": "Deathly Hallows",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "OBJ-174",
@@ -43287,7 +43479,10 @@
       ],
       "explanation": "The Bloody Baron wears chains and bloodstains as a permanent, visible mark of his crime against Helena Ravenclaw.",
       "source_ref": "Order of the Phoenix",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "OBJ-205",
@@ -43308,7 +43503,10 @@
       ],
       "explanation": "The ghosts prefer their food decayed, so Nick's deathday party features deliberately spoiled dishes.",
       "source_ref": "Chamber of Secrets",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "OBJ-206",
@@ -44274,7 +44472,10 @@
       ],
       "explanation": "The troll incident during the Halloween feast is what first brings Harry, Ron, and Hermione together as friends.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "PLT-060",
@@ -44295,7 +44496,10 @@
       ],
       "explanation": "Harry and Ron rush to warn Hermione and end up fighting the troll in the girls' bathroom.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "PLT-061",
@@ -44379,7 +44583,10 @@
       ],
       "explanation": "Harry sees his parents, James and Lily, for the first time, alongside himself in the reflection.",
       "source_ref": "Philosopher's Stone",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "PLT-065",
@@ -45891,7 +46098,10 @@
       ],
       "explanation": "Hermione's date with the Durmstrang champion causes a stir, especially with Ron.",
       "source_ref": "Goblet of Fire",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "PLT-137",
@@ -48138,7 +48348,10 @@
       ],
       "explanation": "Sirius gives Harry a two-way mirror for emergency communication, but Harry forgets about it until after Sirius's death.",
       "source_ref": "Order of the Phoenix",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "PLT-244",
@@ -49062,7 +49275,10 @@
       ],
       "explanation": "Hagrid relies on dragon dung as fertilizer to grow his prize-winning pumpkins.",
       "source_ref": "Prisoner of Azkaban",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "POT-093",
@@ -51498,7 +51714,10 @@
       ],
       "explanation": "Luna cautions Harry about Nargles lurking in the mistletoe during the Slug Club Christmas party.",
       "source_ref": "Half-Blood Prince",
-      "needs_factcheck": true
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     },
     {
       "id": "POT-209",
@@ -59310,7 +59529,10 @@
       ],
       "explanation": "Inferi are corpses controlled by a Dark wizard, encountered guarding the locket Horcrux's cave; Dumbledore repels them with conjured fire.",
       "source_ref": "Half-Blood Prince",
-      "needs_factcheck": false
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
     },
     {
       "id": "SPL-176",
@@ -60949,6 +61171,1324 @@
       "explanation": "All D.A. members, not a special subset, rely on the same Protean-Charmed fake Galleons that Hermione enchanted to alert them to meeting times.",
       "source_ref": "Order of the Phoenix",
       "needs_factcheck": true
+    },
+    {
+      "id": "SEA-HAL-001",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "Which creature is found petrified on Halloween night in Chamber of Secrets, hanging from a torch bracket?",
+      "correct_answer": "Mrs Norris, Filch's cat",
+      "distractors": [
+        "Nearly Headless Nick",
+        "Peeves",
+        "Colin Creevey"
+      ],
+      "explanation": "Argus Filch's cat is found stiff as a board beside a message on the wall after the Halloween feast.",
+      "source_ref": "Chamber of Secrets",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-002",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "What is written on the wall beside the petrified Mrs Norris on Halloween night?",
+      "correct_answer": "The Chamber of Secrets has been opened. Enemies of the heir, beware.",
+      "distractors": [
+        "Beware the Heir of Gryffindor",
+        "The Basilisk walks tonight",
+        "Mudbloods, you are next"
+      ],
+      "explanation": "The warning is painted in foot-high letters on the wall.",
+      "source_ref": "Chamber of Secrets",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-003",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Where are Harry, Ron and Hermione coming from when Harry first hears the cold voice in the walls on Halloween night?",
+      "correct_answer": "Nearly Headless Nick's deathday party",
+      "distractors": [
+        "The Halloween feast in the Great Hall",
+        "A detention with Filch",
+        "The Gryffindor common room"
+      ],
+      "explanation": "The three leave the party in the dungeons, and only Harry can hear the voice.",
+      "source_ref": "Chamber of Secrets",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-004",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Whose voice is it that only Harry can hear moving through the walls on Halloween night?",
+      "correct_answer": "The Basilisk",
+      "distractors": [
+        "The Bloody Baron",
+        "Moaning Myrtle",
+        "Peeves"
+      ],
+      "explanation": "Harry can understand it because it speaks Parseltongue; it travels through the school's pipes.",
+      "source_ref": "Chamber of Secrets",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-005",
+      "category": "Wizarding History & Culture",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Some distractors",
+      "question_text": "On what date in 1492 did Nearly Headless Nick die, making Halloween his deathday?",
+      "correct_answer": "31 October",
+      "distractors": [
+        "1 November",
+        "25 December",
+        "2 February"
+      ],
+      "explanation": "Nick's deathday party is held on the anniversary, and the five-hundredth was the one Harry attended.",
+      "source_ref": "Chamber of Secrets",
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-006",
+      "category": "Houses & Hogwarts Life",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "Order of the Phoenix",
+      "design_tier": "Some distractors",
+      "question_text": "How many blows did it take to try to behead Nearly Headless Nick, leaving him hanging by a flap of skin?",
+      "correct_answer": "Forty-five",
+      "distractors": [
+        "Three",
+        "Nineteen",
+        "A hundred"
+      ],
+      "explanation": "The blunt axe is the origin of his nickname.",
+      "source_ref": "Chamber of Secrets",
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-007",
+      "category": "Houses & Hogwarts Life",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Which ghostly sporting club refuses to admit Nearly Headless Nick because of his head?",
+      "correct_answer": "The Headless Hunt",
+      "distractors": [
+        "The Wailing Wanderers",
+        "The Phantom Pack",
+        "The Spectral Squad"
+      ],
+      "explanation": "Sir Patrick Delaney-Podmore leads the club and turns Nick away.",
+      "source_ref": "Chamber of Secrets",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-008",
+      "category": "Houses & Hogwarts Life",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "What stains the clothing of the Bloody Baron, the Slytherin house ghost?",
+      "correct_answer": "Silver blood",
+      "distractors": [
+        "Green slime",
+        "Ink",
+        "Soot"
+      ],
+      "explanation": "Ghostly blood is silver, and it is the first thing Harry notices about him.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-009",
+      "category": "Houses & Hogwarts Life",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "Which drink, made from a gourd, is a staple at Hogwarts meals?",
+      "correct_answer": "Pumpkin juice",
+      "distractors": [
+        "Butterbeer",
+        "Firewhisky",
+        "Gillywater"
+      ],
+      "explanation": "It is served in goblets at the feasts, and sold on the Hogwarts Express.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-010",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "Which professor bursts into the Great Hall to announce the troll in the dungeons before fainting?",
+      "correct_answer": "Professor Quirrell",
+      "distractors": [
+        "Professor Snape",
+        "Professor Flitwick",
+        "Hagrid"
+      ],
+      "explanation": "He gasps \"Troll in the dungeons!\" and collapses, which starts the panic.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-011",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Who gives Harry the Marauder's Map in time for him to sneak into Hogsmeade on Halloween?",
+      "correct_answer": "Fred and George Weasley",
+      "distractors": [
+        "Remus Lupin",
+        "Sirius Black",
+        "Hagrid"
+      ],
+      "explanation": "The twins hand it over so Harry can slip out of the castle unnoticed.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-012",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "Whose portrait is slashed on Halloween night when Sirius Black breaks into the castle?",
+      "correct_answer": "The Fat Lady",
+      "distractors": [
+        "The Grey Lady",
+        "Sir Cadogan",
+        "Violet"
+      ],
+      "explanation": "The Fat Lady flees her frame after Sirius attacks it, and refuses to return until she has a guard.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-013",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Where do all the Hogwarts students sleep after Sirius Black breaks into the castle on Halloween?",
+      "correct_answer": "In the Great Hall, in sleeping bags",
+      "distractors": [
+        "In the Gryffindor common room",
+        "In the dungeons",
+        "In the Hospital Wing"
+      ],
+      "explanation": "The teachers search the castle while the students are kept together.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-014",
+      "category": "Places & Locations",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Where does Professor Lupin keep the Boggart before his lesson?",
+      "correct_answer": "In an old wardrobe in the staff room",
+      "distractors": [
+        "In a trunk in the dungeons",
+        "In a locked cupboard in the Defence classroom",
+        "In a hollow of the Whomping Willow"
+      ],
+      "explanation": "He opens the wardrobe in front of the class.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-015",
+      "category": "Magical Creatures",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "How does Neville make his Boggart, which takes Snape's form, funny?",
+      "correct_answer": "By dressing it in his grandmother's clothes",
+      "distractors": [
+        "By turning it into a mouse",
+        "By making it sneeze",
+        "By shrinking it"
+      ],
+      "explanation": "It ends up in a vulture-topped hat, a green dress and a red handbag.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-016",
+      "category": "Magical Creatures",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Direct",
+      "question_text": "What does Seamus Finnigan's Boggart turn into?",
+      "correct_answer": "A banshee",
+      "distractors": [
+        "A mummy",
+        "A severed hand",
+        "A giant spider"
+      ],
+      "explanation": "Seamus's fear is a screaming banshee.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-017",
+      "category": "Magical Creatures",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Direct",
+      "question_text": "What does Dean Thomas's Boggart turn into?",
+      "correct_answer": "A severed hand",
+      "distractors": [
+        "A banshee",
+        "A mummy",
+        "A rat"
+      ],
+      "explanation": "Dean sees a hand crawling across the floor.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": true,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-HAL-018",
+      "category": "Magical Creatures",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "What does a Dementor's Kiss do to its victim?",
+      "correct_answer": "Sucks out their soul",
+      "distractors": [
+        "Makes them forget everything",
+        "Turns them to stone",
+        "Ages them rapidly"
+      ],
+      "explanation": "The victim is left alive but empty, without a soul.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": false,
+      "themes": [
+        "halloween"
+      ]
+    },
+    {
+      "id": "SEA-YUL-001",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "Who anonymously sends Harry his father's Invisibility Cloak for Christmas in his first year?",
+      "correct_answer": "Albus Dumbledore",
+      "distractors": [
+        "Hagrid",
+        "Professor McGonagall",
+        "Sirius Black"
+      ],
+      "explanation": "The note says it was left in the sender's keeping before James died.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-002",
+      "category": "Objects & Artifacts",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "What does Hagrid give Harry for Christmas in his first year?",
+      "correct_answer": "A wooden flute, carved by Hagrid",
+      "distractors": [
+        "A pair of woollen socks",
+        "A leather-bound photo album",
+        "A book of spells"
+      ],
+      "explanation": "Hagrid's flute makes a noise like an owl, which Harry thinks is a fitting present.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-003",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "What does Hermione send Harry for Christmas in their first year?",
+      "correct_answer": "A large box of Chocolate Frogs",
+      "distractors": [
+        "A book on Quidditch",
+        "A box of Every Flavour Beans",
+        "A scarf"
+      ],
+      "explanation": "It arrives with the rest of his first pile of presents.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-004",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Which Weasley brothers stay at Hogwarts over Christmas in Harry's first year, besides Ron?",
+      "correct_answer": "Fred, George and Percy",
+      "distractors": [
+        "Bill and Charlie",
+        "Fred and George only",
+        "Percy only"
+      ],
+      "explanation": "Their parents are visiting Charlie in Romania.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-005",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "What do Fred, George and Lee Jordan enchant snowballs to do in the winter of Harry's first year?",
+      "correct_answer": "Bounce off the back of Professor Quirrell's turban",
+      "distractors": [
+        "Follow Filch around the castle",
+        "Freeze in midair",
+        "Sing carols"
+      ],
+      "explanation": "The snowballs follow Quirrell around the grounds and bounce off his turban.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-006",
+      "category": "Places & Locations",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Where does Harry first find the Mirror of Erised?",
+      "correct_answer": "In an unused classroom",
+      "distractors": [
+        "In the Restricted Section of the library",
+        "In Dumbledore's office",
+        "In the dungeons"
+      ],
+      "explanation": "He stumbles on it while exploring under the Invisibility Cloak.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-007",
+      "category": "Objects & Artifacts",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "What does the inscription on the Mirror of Erised say when read in a mirror?",
+      "correct_answer": "I show not your face but your heart's desire",
+      "distractors": [
+        "I show you the future as it will be",
+        "I show only the truth, never a lie",
+        "I reflect what you most fear"
+      ],
+      "explanation": "The words are carved above the frame, written backwards.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-008",
+      "category": "Objects & Artifacts",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "What does Dumbledore tell Harry he sees when he looks into the Mirror of Erised?",
+      "correct_answer": "Himself holding a pair of thick, woollen socks",
+      "distractors": [
+        "His sister Ariana",
+        "A stack of books",
+        "The Elder Wand"
+      ],
+      "explanation": "He says one can never have too many socks.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-009",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "What does Dobby give Harry for Christmas in Goblet of Fire?",
+      "correct_answer": "A pair of hand-knitted socks",
+      "distractors": [
+        "A woollen hat",
+        "A jar of sweets",
+        "A broomstick polish kit"
+      ],
+      "explanation": "The socks are odd and made by Dobby himself.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-010",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "Which of Harry's friends tells Professor McGonagall about the mysterious Firebolt, afraid it might be cursed?",
+      "correct_answer": "Hermione Granger",
+      "distractors": [
+        "Ron Weasley",
+        "Neville Longbottom",
+        "Fred Weasley"
+      ],
+      "explanation": "She fears it could be from Sirius Black.",
+      "source_ref": "Prisoner of Azkaban",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-011",
+      "category": "Wizarding History & Culture",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Which wizarding band plays at the Yule Ball?",
+      "correct_answer": "The Weird Sisters",
+      "distractors": [
+        "The Cauldron Quartet",
+        "The Siren Choir",
+        "The Moaning Myrtles"
+      ],
+      "explanation": "The band is a huge draw among the students.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-012",
+      "category": "Wizarding History & Culture",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Who traditionally opens the dancing at the Yule Ball?",
+      "correct_answer": "The Triwizard champions and their partners",
+      "distractors": [
+        "The Hogwarts prefects",
+        "The headmasters",
+        "The oldest students"
+      ],
+      "explanation": "This is why Harry and Ron must find dates.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-013",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Which professor tells Harry that the champions are expected to have partners for the Yule Ball?",
+      "correct_answer": "Professor McGonagall",
+      "distractors": [
+        "Professor Snape",
+        "Professor Flitwick",
+        "Professor Moody"
+      ],
+      "explanation": "She makes it clear that he must dance with a partner.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-014",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Which Hogwarts student does Harry take to the Yule Ball?",
+      "correct_answer": "Parvati Patil",
+      "distractors": [
+        "Cho Chang",
+        "Padma Patil",
+        "Ginny Weasley"
+      ],
+      "explanation": "He asks her after being turned down by Cho.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-015",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Who is Ron's partner at the Yule Ball?",
+      "correct_answer": "Padma Patil",
+      "distractors": [
+        "Parvati Patil",
+        "Lavender Brown",
+        "Romilda Vane"
+      ],
+      "explanation": "Ron ends up with Parvati's twin sister.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-016",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Who is Cedric Diggory's partner at the Yule Ball?",
+      "correct_answer": "Cho Chang",
+      "distractors": [
+        "Fleur Delacour",
+        "Hannah Abbott",
+        "Padma Patil"
+      ],
+      "explanation": "The two are seen together all evening.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-017",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Some distractors",
+      "question_text": "Who does Neville Longbottom take to the Yule Ball?",
+      "correct_answer": "Ginny Weasley",
+      "distractors": [
+        "Luna Lovegood",
+        "Hannah Abbott",
+        "Susan Bones"
+      ],
+      "explanation": "Ginny is a year younger, so she can only go as a guest.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-018",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Who is Draco Malfoy's partner at the Yule Ball?",
+      "correct_answer": "Pansy Parkinson",
+      "distractors": [
+        "Millicent Bulstrode",
+        "Daphne Greengrass",
+        "Hermione Granger"
+      ],
+      "explanation": "She is a fellow Slytherin.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-019",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Who does Hagrid dance with at the Yule Ball?",
+      "correct_answer": "Madame Maxime",
+      "distractors": [
+        "Professor McGonagall",
+        "Professor Sprout",
+        "Madam Pomfrey"
+      ],
+      "explanation": "The two half-giants spend the evening together.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-020",
+      "category": "Books vs. Movies",
+      "canon_tags": [
+        "book"
+      ],
+      "divergence": true,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Trick phrasing",
+      "question_text": "What colour is Hermione's dress at the Yule Ball in the book, rather than in the film?",
+      "correct_answer": "Periwinkle blue",
+      "distractors": [
+        "Pink",
+        "Gold",
+        "Emerald green"
+      ],
+      "explanation": "The film chose a pink gown, which is a visible change from the book.",
+      "source_ref": "Goblet of Fire, book vs. film",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-021",
+      "category": "Places & Locations",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "How is the Great Hall decorated for the Yule Ball?",
+      "correct_answer": "With sparkling silver frost and garlands of mistletoe and ivy",
+      "distractors": [
+        "With flaming torches and black banners",
+        "With ice sculptures and red roses",
+        "With floating candles and pumpkins"
+      ],
+      "explanation": "The house tables are replaced by smaller ones.",
+      "source_ref": "Goblet of Fire",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-022",
+      "category": "Places & Locations",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Where does Harry spend Christmas with the Weasleys and Sirius in his fifth year?",
+      "correct_answer": "Number 12, Grimmauld Place",
+      "distractors": [
+        "The Burrow",
+        "Hogwarts",
+        "Privet Drive"
+      ],
+      "explanation": "The Order's headquarters is decorated for the holiday.",
+      "source_ref": "Order of the Phoenix",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-023",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Which creature attacks Arthur Weasley while he guards the Department of Mysteries before Christmas in fifth year?",
+      "correct_answer": "Nagini",
+      "distractors": [
+        "A Basilisk",
+        "A Dementor",
+        "Fenrir Greyback"
+      ],
+      "explanation": "Harry sees the attack in a vision.",
+      "source_ref": "Order of the Phoenix",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-024",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Where do Harry and the Weasleys visit Mr Weasley on Christmas Day in Order of the Phoenix?",
+      "correct_answer": "St Mungo's Hospital",
+      "distractors": [
+        "The Ministry of Magic",
+        "The Burrow",
+        "The Hogwarts Hospital Wing"
+      ],
+      "explanation": "They arrive with Christmas presents.",
+      "source_ref": "Order of the Phoenix",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-025",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "Which former Defence teacher does the group meet as a patient at St Mungo's on Christmas Day?",
+      "correct_answer": "Gilderoy Lockhart",
+      "distractors": [
+        "Quirinus Quirrell",
+        "Remus Lupin",
+        "Alastor Moody"
+      ],
+      "explanation": "He has lost his memory and signs autographs for anyone who stops.",
+      "source_ref": "Order of the Phoenix",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-026",
+      "category": "Houses & Hogwarts Life",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Which exclusive club does Professor Slughorn host his Christmas party for?",
+      "correct_answer": "The Slug Club",
+      "distractors": [
+        "The Horn Society",
+        "The Select Circle",
+        "The Gobstones Club"
+      ],
+      "explanation": "He collects students he thinks will go far.",
+      "source_ref": "Half-Blood Prince",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-027",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Who accompanies Harry to Slughorn's Christmas party?",
+      "correct_answer": "Luna Lovegood",
+      "distractors": [
+        "Ginny Weasley",
+        "Hermione Granger",
+        "Cho Chang"
+      ],
+      "explanation": "He asks her as a friend, and she is delighted.",
+      "source_ref": "Half-Blood Prince",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-028",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Who does Hermione take to Slughorn's Christmas party to make Ron jealous?",
+      "correct_answer": "Cormac McLaggen",
+      "distractors": [
+        "Neville Longbottom",
+        "Seamus Finnigan",
+        "Zacharias Smith"
+      ],
+      "explanation": "The evening does not go as she planned.",
+      "source_ref": "Half-Blood Prince",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-029",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Which student is dragged in by Filch after being caught gatecrashing Slughorn's Christmas party?",
+      "correct_answer": "Draco Malfoy",
+      "distractors": [
+        "Vincent Crabbe",
+        "Gregory Goyle",
+        "Marcus Flint"
+      ],
+      "explanation": "Snape escorts him away.",
+      "source_ref": "Half-Blood Prince",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-030",
+      "category": "Objects & Artifacts",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Some distractors",
+      "question_text": "What is the title of Eldred Worple's book about his life among the vampires?",
+      "correct_answer": "Blood Brothers: My Life Amongst the Vampires",
+      "distractors": [
+        "Fangs and Fortune",
+        "The Vampire Chronicles",
+        "Night Wanderers"
+      ],
+      "explanation": "Worple brings a vampire guest to Slughorn's Christmas party.",
+      "source_ref": "Half-Blood Prince",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-031",
+      "category": "Places & Locations",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "In which village do Harry and Hermione spend Christmas Eve in Deathly Hallows?",
+      "correct_answer": "Godric's Hollow",
+      "distractors": [
+        "Hogsmeade",
+        "Ottery St Catchpole",
+        "Little Whinging"
+      ],
+      "explanation": "It is where Harry's parents lived and died.",
+      "source_ref": "Deathly Hallows",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-032",
+      "category": "Plot & Events",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Some distractors",
+      "question_text": "Who lures Harry and Hermione into a house in Godric's Hollow on Christmas Eve?",
+      "correct_answer": "Bathilda Bagshot, whose body Nagini inhabits",
+      "distractors": [
+        "Rita Skeeter",
+        "Aberforth Dumbledore",
+        "Xenophilius Lovegood"
+      ],
+      "explanation": "The old historian turns out to be Voldemort's snake.",
+      "source_ref": "Deathly Hallows",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-033",
+      "category": "Wizarding History & Culture",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Some distractors",
+      "question_text": "What line is carved on Lily and James Potter's gravestone?",
+      "correct_answer": "The last enemy that shall be destroyed is death.",
+      "distractors": [
+        "Love conquers all.",
+        "In death we are reunited.",
+        "Their love lives forever."
+      ],
+      "explanation": "Harry doesn't understand it until much later.",
+      "source_ref": "Deathly Hallows",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-034",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Direct",
+      "question_text": "Which Weasley brother's fiancée, Fleur Delacour, spends Christmas at the Burrow in Half-Blood Prince?",
+      "correct_answer": "Bill Weasley",
+      "distractors": [
+        "Charlie Weasley",
+        "Percy Weasley",
+        "Fred Weasley"
+      ],
+      "explanation": "Mrs Weasley is not delighted by the visit.",
+      "source_ref": "Half-Blood Prince",
+      "needs_factcheck": false,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-035",
+      "category": "Characters",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "N.E.W.T.",
+      "design_tier": "Some distractors",
+      "question_text": "Which singer is Molly Weasley's favourite, played on the wireless at Christmas?",
+      "correct_answer": "Celestina Warbeck",
+      "distractors": [
+        "Gilderoy Lockhart",
+        "Eldred Worple",
+        "Madam Rosmerta"
+      ],
+      "explanation": "Mrs Weasley sings along to her songs while she cooks.",
+      "source_ref": "Half-Blood Prince",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-036",
+      "category": "Objects & Artifacts",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "O.W.L.",
+      "design_tier": "Some distractors",
+      "question_text": "What does Percy Weasley do with the Christmas jumper his mother knits him during his estrangement from the family?",
+      "correct_answer": "Sends it back unopened",
+      "distractors": [
+        "Wears it to the Ministry",
+        "Gives it to Fred and George",
+        "Burns it"
+      ],
+      "explanation": "It is a sign of how bitter the split has become.",
+      "source_ref": "Order of the Phoenix",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
+    },
+    {
+      "id": "SEA-YUL-037",
+      "category": "Objects & Artifacts",
+      "canon_tags": [
+        "book",
+        "movie"
+      ],
+      "divergence": false,
+      "obscurity_tier": "First Year",
+      "design_tier": "Direct",
+      "question_text": "What colour is the first hand-knitted jumper Mrs Weasley sends Harry?",
+      "correct_answer": "Emerald green",
+      "distractors": [
+        "Maroon",
+        "Navy blue",
+        "Yellow"
+      ],
+      "explanation": "Ron's own jumper from his mother is maroon.",
+      "source_ref": "Philosopher's Stone",
+      "needs_factcheck": true,
+      "themes": [
+        "yule"
+      ]
     }
   ]
 }

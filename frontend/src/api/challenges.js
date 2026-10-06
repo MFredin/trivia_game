@@ -24,3 +24,9 @@ export function startChallenge(code, token) {
 export function getFeaturedChallenge() {
   return request('/challenges/featured');
 }
+
+// The season running now, or { season: null } between seasons. Like the featured challenge, asking for it is also what
+// creates it server-side.
+export function getSeasonChallenge() {
+  return request('/challenges/season');
+}

@@ -79,6 +79,12 @@ export const ACHIEVEMENTS = [
   },
 
   {
+    id: 'explorer_season',
+    category: 'Explorer',
+    name: 'Feast Guest',
+    description: 'Complete a seasonal run.',
+  },
+  {
     id: 'explorer_all_categories',
     category: 'Explorer',
     name: 'Well-Rounded',

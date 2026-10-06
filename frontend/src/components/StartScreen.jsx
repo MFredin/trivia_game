@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
 import HouseDevice from './HouseDevice.jsx';
-import { createChallenge, getFeaturedChallenge } from '../api/challenges.js';
+import { createChallenge, getFeaturedChallenge, getSeasonChallenge } from '../api/challenges.js';
 import { getProfile } from '../api/profile.js';
 import { copyToClipboard } from '../lib/shareResult.js';
 import { HOUSES, DEFAULT_HOUSE } from '../constants/houses.js';
@@ -73,6 +73,7 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
   const [creatingChallenge, setCreatingChallenge] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy link');
   const [featured, setFeatured] = useState(null);
+  const [season, setSeason] = useState(null);
 
   const house = HOUSE_BY_ID[currentUser?.theme ?? DEFAULT_HOUSE] ?? HOUSE_BY_ID[DEFAULT_HOUSE];
 
@@ -83,6 +84,13 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
     getFeaturedChallenge()
       .then(setFeatured)
       .catch(() => setFeatured(null));
+  }, []);
+
+  // The same quiet rule for the season: null between seasons, and a failed fetch leaves the screen as it was.
+  useEffect(() => {
+    getSeasonChallenge()
+      .then((data) => setSeason(data.season))
+      .catch(() => setSeason(null));
   }, []);
 
   useEffect(() => {
@@ -273,6 +281,27 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
           </div>
         )}
       </Plate>
+
+      {/* A seasonal bundle, for the few weeks around its occasion. The same card and the same screen as the weekly
+          challenge below: nothing is lost by skipping it, and it comes back next year. */}
+      {season && (
+        <Plate className="featured-week season-card">
+          <div className="featured-week-body">
+            <div>
+              <p className="screen-eyebrow">In season</p>
+              <h3 className="featured-week-title">{season.label}</h3>
+              <p className="featured-week-note">
+                {season.blurb}
+                {season.players > 0 &&
+                  ` · ${season.players} ${season.players === 1 ? 'player has' : 'players have'} finished it`}
+              </p>
+            </div>
+            <button type="button" className="primary-button" onClick={() => onOpenChallenge(season.code)}>
+              Play it
+            </button>
+          </div>
+        </Plate>
+      )}
 
       {/* This week's rotating themed quiz — the Daily Challenge's lighter sibling. Rendered
           only once it has loaded, so a failed fetch leaves the start screen exactly as it was
