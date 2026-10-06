@@ -66,8 +66,8 @@ cannot be explained is a failure that has not been understood yet.
 Railway deploys `main` automatically, one service per directory. Which means:
 
 1. **`main` is deployed.** Merging is shipping. Nothing lands there without a green PR.
-2. **Migrations run before the new code starts.** `preDeployCommand = ["npm run db:migrate"]`
-   in `backend/railway.toml`. A schema change and the code that needs it can therefore ship in
+2. **Migrations run before the new code starts.** `preDeploy: "npm run db:migrate"`
+   in `.railway/railway.ts`. A schema change and the code that needs it can therefore ship in
    one commit.
 3. **A redeploy does not run pre-deploy.** Railway replays the previous deployment's snapshot,
    so a redeploy does not migrate. Forcing a real build is the only way to run a migration that

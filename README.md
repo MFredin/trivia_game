@@ -190,8 +190,8 @@ deployed, so nothing lands there without a green pull request.
 
 This is a two-service monorepo. `backend/` runs the API and the WebSocket server on the same
 port, as a persistent Node process. `frontend/` is a static build served by `serve`. Each service
-has its own `railway.toml`. Create two Railway services from the same GitHub repo, each with a
-different root directory:
+is configured in `.railway/railway.ts` (see [`docs/railway-iac-migration.md`](docs/railway-iac-migration.md)).
+Create two Railway services from the same GitHub repo, each with a different root directory:
 
 1. **Postgres.** Add a Postgres plugin to the project. It provides `DATABASE_URL`.
 2. **Backend service**, root directory `backend`:
@@ -199,7 +199,7 @@ different root directory:
      (two different long random strings; the backend will not start without both) and
      `NODE_ENV=production`. Add the optional variables from [Configuration](#configuration) as
      needed.
-   - Every build runs `npm run db:migrate` as a pre-deploy step (set in `railway.toml`). A
+   - Every build runs `npm run db:migrate` as a pre-deploy step (set in `.railway/railway.ts`). A
      **redeploy** replays the previous snapshot and does not run it, so a schema change needs a
      push or a fresh build.
    - The question bank is not seeded automatically. After a deploy that changes it, run
@@ -259,6 +259,7 @@ An admin can then appoint moderators and grant titles from the app.
 | [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
 | `docs/*-audit-*.md` | Dated audits: platform, stack, design, code, question bank |
 | [`docs/phase4-scaffold.md`](docs/phase4-scaffold.md), [`docs/phase5-scaffold.md`](docs/phase5-scaffold.md) | The specs behind the growth and retention phases (both shipped) |
+| [`docs/railway-iac-migration.md`](docs/railway-iac-migration.md) | Railway configuration as code: what replaced `railway.toml`, the steps left to apply it, and how to work with it |
 | [`docs/discord-bot-plan.md`](docs/discord-bot-plan.md) | The Discord bot (tabled): how to build it, get it live, and which Discord review processes apply |
 
 ## Roadmap
@@ -268,8 +269,10 @@ with the Second Edition design overhaul, the social-safety work and the audits l
 is still open is a working plan, not a commitment:
 
 - **Discord bot tie-in**: parked until there are bot credentials.
-- **Railway Config as Code**: `railway.toml` is deprecated in favour of `.railway/railway.ts`.
-  Existing files keep working until **2026-12-01**.
+- **Railway Infrastructure as Code**: `.railway/railway.ts` replaces the `railway.toml` files, which
+  Railway stops reading on **2026-12-01**. The file is in the repo but not yet applied to Railway; the
+  remaining steps need the Railway CLI and are in
+  [`docs/railway-iac-migration.md`](docs/railway-iac-migration.md).
 - **Audit follow-ups**: a report-only frontend Content Security Policy, the Vite 8 upgrade, and a
   pass on real iOS and Android devices (the screen-size test is a Chromium emulation).
 - **Before launch**: set the email variables above, have an attorney review `docs/legal/`, and

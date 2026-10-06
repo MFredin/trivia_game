@@ -1,0 +1,53 @@
+# Plans Railway Infrastructure as Code changes on every PR that touches .railway/**, and applies
+# them once that PR merges to main: the "plan on PR, apply on merge" recipe from
+# https://docs.railway.com/infrastructure-as-code. It only runs when .railway/** changes. The
+# test and build gate for everything else is .github/workflows/ci.yml.
+#
+# Needs a RAILWAY_TOKEN repo secret (a Railway project token scoped to the production
+# environment); docs/railway-iac-migration.md says how to create it and, importantly, WHEN. Until
+# the secret exists the Railway steps below are skipped, so the run stays green instead of failing
+# on every PR that touches .railway/**.
+#
+# The skip is a step-level `if` on a job-level env var on purpose. GitHub does not allow the
+# `secrets` context in a job-level `if`, and a workflow file that does is rejected outright: the
+# run shows zero jobs and a failure, which is what this file did before.
+name: Railway config
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - ".railway/**"
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+  id-token: write
+jobs:
+  plan:
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Plan the Railway configuration
+        if: env.RAILWAY_TOKEN != ''
+        uses: railwayapp/config@v1
+        with:
+          command: plan
+          railway-token: ${{ secrets.RAILWAY_TOKEN }}
+  apply:
+    if: github.event.action == 'closed' && github.event.pull_request.merged && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - name: Apply the Railway configuration
+        if: env.RAILWAY_TOKEN != ''
+        uses: railwayapp/config@v1
+        with:
+          command: apply
+          railway-token: ${{ secrets.RAILWAY_TOKEN }}

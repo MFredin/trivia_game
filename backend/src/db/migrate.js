@@ -2,7 +2,7 @@
 //
 // The schema is written to be run repeatedly: every statement is CREATE ... IF NOT EXISTS or ADD COLUMN IF NOT
 // EXISTS, so a new column or table is added by appending to schema.sql and nothing is ever dropped or rewritten.
-// Railway runs this before each deploy starts the new code (backend/railway.toml). It is a deliberate non-framework:
+// Railway runs this before each deploy starts the new code (.railway/railway.ts). It is a deliberate non-framework:
 // there is no migration history to keep in step, at the cost that a destructive change has to be done by hand.
 
 import { readFileSync } from 'node:fs';
