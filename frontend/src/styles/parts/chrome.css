@@ -8,7 +8,12 @@
      rule instead of floating above it. */
   --header-pad: 0.9rem;
   display: flex;
-  justify-content: space-between;
+  /* flex-end, not space-between: the wordmark's own auto margin pushes the links and the account controls to the
+     right together, and flex-end keeps whatever wraps onto a line of its own at the right too. That is what keeps
+     the account menu, which opens from the avatar's right edge, on screen on a narrow phone. Giving the account
+     controls `margin-left: auto` for that instead splits the free space with the wordmark's margin, and on a wide
+     screen the links drift to the middle of the header. */
+  justify-content: flex-end;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem 1.4rem;
@@ -55,9 +60,6 @@
 
 .running-account {
   order: 2;
-  /* Stays at the right of its row when the header wraps and it lands on a line of its own; without this it
-     sat at the left, and the account menu, which opens from the avatar's right edge, ran off the screen. */
-  margin-left: auto;
 }
 
 @media (max-width: 420px) {
