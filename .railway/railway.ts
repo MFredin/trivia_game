@@ -1,4 +1,4 @@
-import { defineRailway, preserve, project, service } from "railway/iac";
+import { defineRailway, github, preserve, project, service } from "railway/iac";
 
 // Railway stops reading railway.toml-style Config as Code files on 2026-12-01. This file replaces
 // backend/railway.toml and frontend/railway.toml, which were removed in the same change. The
@@ -16,11 +16,13 @@ export const partial = "trivia_game";
 
 export default defineRailway(() => {
   const backend = service("trivia_game", {
-    // `source` is omitted on both services. Each is already linked to the MFredin/trivia_game repo
-    // (branch `main`, with its own root directory) from the dashboard, and the documented migration
-    // path omits `source` so this file manages build and deploy settings without re-declaring, and
-    // possibly fighting the dashboard over, the repo link.
-    // https://docs.railway.com/infrastructure-as-code#migrating-from-config-as-code
+    // `source` MUST be declared, with exactly the values the dashboard already has. The docs say a
+    // migrated file may omit it, but the CLI's plan reads an omitted `source` as "remove it": the
+    // first real plan showed source.repo, source.rootDirectory and source.type all going to null,
+    // which would have disconnected both services from GitHub and ended auto-deploys. Declared
+    // like this, the plan shows no source changes. If a plan ever lists a `source.*` line, do not
+    // apply it.
+    source: github("MFredin/trivia_game", { branch: "main", rootDirectory: "backend" }),
     start: "npm run start",
 
     // Runs after the build and before the container starts, on every real build. schema.sql is
@@ -52,6 +54,10 @@ export default defineRailway(() => {
   });
 
   const frontend = service("incredible-blessing", {
+    // Declared for the same reason as the backend's. Note the leading slash: it is how this
+    // service's root directory is stored in Railway, and the plan compares the strings exactly.
+    source: github("MFredin/trivia_game", { branch: "main", rootDirectory: "/frontend" }),
+
     // The static build is served by `serve`; the start script is defined in frontend/package.json.
     start: "npm run start",
 

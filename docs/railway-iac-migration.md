@@ -46,6 +46,9 @@ them.
    `incredible-blessing` gains `start`. Stop and do not apply if it shows **any** of:
    - a `Delete` line, or a destroy count above 0 (the `Postgres` database must never appear);
    - a variable being removed or changed (they are all `preserve()`d, so none should be);
+   - any `source.repo`, `source.rootDirectory` or `source.type` line. The file declares each
+     service's GitHub source on purpose; a plan that changes it would disconnect the service from
+     the repo and end auto-deploys (see "The source must be declared" below);
    - an error that a service is still managed by `railway.toml`. If that happens, trigger one fresh
      build of that service (a push, not a redeploy, since a redeploy replays the old snapshot),
      then plan again.
@@ -54,8 +57,12 @@ them.
 4. **`railway config apply`**, then confirm the plan once more. Afterwards `railway config plan`
    should say the configuration is already up to date (`--detailed-exit-code` returns 0).
 5. **Add the `RAILWAY_TOKEN` repository secret.** Create a project token for the production
-   environment in Railway (project Settings, Tokens) and add it under the repo's Settings, Secrets
-   and variables, Actions. **Only after step 4 succeeded:** once the secret exists, merging any
+   environment in Railway (project Settings, Tokens) and add it **on GitHub**, under the repo's
+   Settings, Secrets and variables, Actions, as a repository secret named `RAILWAY_TOKEN`. **Do not
+   add it as a Railway variable** (a service variable or a shared variable): GitHub Actions cannot
+   read Railway's variables, and a Railway variable is handed to the running service, so it would
+   put a credential that can change production configuration into the app's, and the database's,
+   environment. **Only after step 4 succeeded:** once the secret exists, merging any
    change under `.railway/` applies it automatically ("merging is the approval"), so the first
    apply should be the one a person watched.
 6. **Re-check the restart policy** on both services (Settings, Deploy). It is not in the file; see
@@ -75,6 +82,17 @@ list is planned for deletion. The project holds three things and the file declar
 `export const partial = "trivia_game"` limits the file to resources it owns, so it can never delete
 the database. **Do not remove that export.** If the plan ever lists a delete for `Postgres`, the
 export is missing or was not picked up; stop.
+
+## The source must be declared
+
+Railway's docs say a migrated file may omit each service's `source`. This CLI's plan does not behave
+that way: the first real plan, run against the file with `source` omitted, proposed setting
+`source.repo`, `source.rootDirectory` and `source.type` to `null` on both services, which would have
+disconnected them from GitHub. So `.railway/railway.ts` declares both, with the values Railway
+already holds (`github("MFredin/trivia_game", { branch: "main", rootDirectory: ... })`). The root
+directory strings matter and differ: the API's is `backend`, the web app's is `/frontend` with a
+leading slash, because that is how each is stored and the plan compares them exactly. A plan that
+shows any `source.*` line is wrong; do not apply it.
 
 ## What the file does not manage
 
