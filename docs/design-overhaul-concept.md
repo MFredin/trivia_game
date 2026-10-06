@@ -78,11 +78,15 @@ colour on the leaf:
 
 ### 5. House devices (by element, not animal)
 Original geometric marks in a bookplate roundel:
-- **The Ember** — Gryffindor, fire.
-- **The Furrow** — Hufflepuff, earth.
-- **The Tide** — Slytherin, water.
-- **The Gale** — Ravenclaw, air.
-- **The Blind Stamp** — Monochrome, no element (embossed ring, no colour).
+- **The Ember** — Gryffindor, fire: a flame with an inner tongue cut out.
+- **The Furrow** — Hufflepuff, earth: a seedling over furrowed soil.
+- **The Tide** — Slytherin, water: a crescent moon over two swells.
+- **The Gale** — Ravenclaw, air: three curling wind lines.
+- **The Blind Stamp** — Monochrome, no element (a ring around a solid centre, no colour).
+
+All five share one 64×64 grid, one line weight and a centred visual mass. At 30px and below
+the device switches to a simplified **small cut** (heavier line, thicker roundel, no fine
+detail), like an optical size in type. See `components/HouseDevice.jsx`.
 Used on: the nav wordmark (in silver), the Ex Libris card, the seal, book spines, streak pips.
 They are the only "logo-like" element in the app and they belong to us.
 
