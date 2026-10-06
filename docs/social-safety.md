@@ -218,6 +218,31 @@ Challenge. A refusal is `403 not_accepting_challenges`; a blocked player is stil
 already accepted is never interrupted by changing the setting.
 
 
+## Tournaments
+
+A knockout among up to sixteen people, joined by a code, each match played on the two players' own time (the design is in
+[`tournament-brackets-plan.md`](tournament-brackets-plan.md)). It adds a way for players to be put in a room together, so the
+same limits apply:
+
+- **Who can be in one.** Joining and making one respect the Challenges setting: Off keeps a player out and stops them running
+  one, Friends only means friends. A block between a joiner and the creator is answered "not found", so it cannot reveal who has
+  blocked whom; a block between two players who would meet is a quiet forfeit when the match is made.
+- **Found only by code, and only by its players.** Every route that names a tournament or a match answers 404, not 403, to anyone
+  who is not in it, the same as for a code that does not exist.
+- **The name is user text.** It goes through the same filter as a bio (no links, emails, phone numbers or blocked words). There is
+  no free-text chat and no new report type: report the creator, as for anything else. A moderator or an admin may cancel any
+  tournament.
+- **What a match reveals.** Scores are shown inside the tournament only, and only once a match is decided. A tournament run is
+  kept off every public leaderboard, the House Cup and the activity feed's personal-best entries. A run flagged by anomaly detection
+  is marked "under review" on the bracket rather than silently counted.
+- **Honest about trust.** Matches are played over days, so one player can see the questions before the other plays. It is a game
+  between friends, and the create screen says so; a live final would restore the guarantee where it matters most.
+- **Deleting an account** takes the player out of an open tournament and cancels one they were hosting. One already running keeps
+  its shape: their matches forfeit at the next sweep and they show as "Deleted player".
+- **How long it is kept.** Tournaments, their matches and each player's run stay as long as the players' other runs do: until the
+  account is deleted and anonymised, after which the player is "Deleted player" in them. An open tournament nobody starts is
+  cancelled after seven days.
+
 ## Titles
 
 A title is a short label worn beside a name (`lib/titles.js`, `users.title`, `user_titles`). It is picked from a

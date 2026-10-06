@@ -1,7 +1,7 @@
 import { titleView } from '../lib/titles.js';
 import express from 'express';
 import { pool } from '../db/pool.js';
-import { MODES } from '../lib/modes.js';
+import { MODES, UNRANKED_MODES } from '../lib/modes.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { getCached, setCached } from '../lib/leaderboardCache.js';
 import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
@@ -12,7 +12,8 @@ import { displayNameSql } from '../lib/displayName.js';
 const router = express.Router();
 
 router.get('/', optionalAuth, async (req, res) => {
-  const mode = MODES[req.query.mode] ? req.query.mode : 'classic';
+  // A mode in UNRANKED_MODES (a tournament match) is not a board: asking for one gets the Classic board, not its scores.
+  const mode = MODES[req.query.mode] && !UNRANKED_MODES.includes(req.query.mode) ? req.query.mode : 'classic';
   const limit = Math.min(Number(req.query.limit) || 20, 100);
   const category = typeof req.query.category === 'string' ? req.query.category : null;
   const canonSource = ['books', 'movies', 'combined'].includes(req.query.canon_source)
@@ -118,7 +119,7 @@ router.get('/house-cup', async (req, res) => {
     `WITH best_per_user AS (
        SELECT DISTINCT ON (gs.user_id) gs.user_id, gs.total_score
        FROM game_sessions gs
-       WHERE gs.status = 'completed' AND gs.flagged_for_review = false
+       WHERE gs.status = 'completed' AND gs.flagged_for_review = false AND gs.mode <> ALL($1)
        ORDER BY gs.user_id, gs.total_score DESC
      )
      SELECT u.theme, SUM(b.total_score) AS total_score, COUNT(*) AS players
@@ -126,6 +127,7 @@ router.get('/house-cup', async (req, res) => {
      JOIN users u ON u.id = b.user_id
      GROUP BY u.theme
      ORDER BY total_score DESC`,
+    [UNRANKED_MODES],
   );
 
   const houses = rows

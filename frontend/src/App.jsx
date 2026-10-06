@@ -27,6 +27,7 @@ import { useSecretPhrase } from './hooks/useSecretPhrase.js';
 import { DEFAULT_HOUSE } from './constants/houses.js';
 import { getCategories } from './api/catalog.js';
 import { startChallenge } from './api/challenges.js';
+import { playTournamentMatch } from './api/tournaments.js';
 import { createSession } from './api/sessions.js';
 
 // Fetched on demand. All of this used to sit in the first bundle, so every player on a phone
@@ -51,6 +52,7 @@ const RecoveryScreen = lazy(() => import('./components/RecoveryScreen.jsx'));
 const PreviewScreen = lazy(() => import('./components/PreviewScreen.jsx'));
 const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
+const TournamentScreen = lazy(() => import('./components/TournamentScreen.jsx'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
 
 // Each deferred screen gets its own Suspense boundary rather than one around the whole shell,
@@ -84,6 +86,8 @@ const initialAppState = {
   // visitor is authenticated, whether they arrived already logged in or just registered
   // through AuthScreen — read once, since the query string doesn't change afterward.
   challengeCode: new URLSearchParams(window.location.search).get('challenge'),
+  // The tournament open on its screen, by code.
+  tournamentCode: null,
   showFeedback: false,
   viewingProfile: null,
   profileReturnScreen: 'friends',
@@ -170,6 +174,16 @@ function appReducer(state, action) {
       return { ...state, cameFromPreview: true, screen: 'auth' };
     case 'challenge/canceled':
       return { ...state, screen: 'start' };
+    // A tournament match is played as an ordinary run and then returns to the tournament, not to a summary: its score belongs
+    // inside the tournament, never on a leaderboard.
+    case 'tournament/opened':
+      return { ...state, tournamentCode: action.code, startError: null, screen: 'tournament' };
+    case 'tournament/closed':
+      return { ...state, screen: 'friends' };
+    case 'tournament/match_started':
+      return { ...state, screen: 'question' };
+    case 'tournament/run_finished':
+      return { ...state, screen: 'tournament' };
     case 'mischief/opened':
       return { ...state, showMischief: true };
     case 'mischief/closed':
@@ -208,6 +222,7 @@ export default function App() {
     categories,
     cameFromPreview,
     challengeCode,
+    tournamentCode,
     showFeedback,
     viewingProfile,
     profileReturnScreen,
@@ -261,6 +276,10 @@ export default function App() {
     async (session) => {
       if (session.mode === 'duel') {
         dispatch({ type: 'run/finished', mode: 'duel' });
+        return;
+      }
+      if (session.mode === 'tournament') {
+        dispatch({ type: 'tournament/run_finished' });
         return;
       }
       try {
@@ -332,8 +351,8 @@ export default function App() {
     }
   };
 
-  const startChallengeRun = async (code) => {
-    const data = await startChallenge(code, auth.token);
+  // A challenge and a tournament match start the same way: the server answers with the run's first question.
+  const beginFromStartPayload = (data) =>
     run.begin({
       session: {
         id: data.session_id,
@@ -351,7 +370,15 @@ export default function App() {
       token: data.token,
       issuedAt: data.issued_at,
     });
+
+  const startChallengeRun = async (code) => {
+    beginFromStartPayload(await startChallenge(code, auth.token));
     dispatch({ type: 'challenge/started' });
+  };
+
+  const startTournamentMatch = async (matchId) => {
+    beginFromStartPayload(await playTournamentMatch(matchId, auth.token));
+    dispatch({ type: 'tournament/match_started' });
   };
 
   const leaveRun = () => {
@@ -393,7 +420,7 @@ export default function App() {
 
   const { session, question, feedback, answerError } = run;
   const navActiveScreen =
-    screen === 'duel-lobby' || screen === 'duel-summary'
+    screen === 'duel-lobby' || screen === 'duel-summary' || screen === 'tournament'
       ? 'friends'
       : screen === 'profile'
         ? // Your own profile is the avatar's screen, however you got there; someone else's keeps
@@ -583,6 +610,18 @@ export default function App() {
             canStartChallenge={auth.user.challenges !== 'off'}
             canStartOwl={auth.user.owl_post !== 'off'}
             onViewProfile={viewProfile}
+            canMakeTournament={auth.user.challenges !== 'off'}
+            onOpenTournament={(code) => dispatch({ type: 'tournament/opened', code })}
+          />
+        </Suspense>
+      )}
+      {screen === 'tournament' && tournamentCode && (
+        <Suspense fallback={screenFallback}>
+          <TournamentScreen
+            code={tournamentCode}
+            token={auth.token}
+            onBack={() => dispatch({ type: 'tournament/closed' })}
+            onPlayMatch={startTournamentMatch}
           />
         </Suspense>
       )}

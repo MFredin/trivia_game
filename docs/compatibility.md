@@ -39,6 +39,10 @@ because the sweep above never opened a menu and missed one that ran off the left
 header wraps, the avatar lands at the left of its row, and a menu anchored to the avatar's right edge opened
 leftwards off the screen. Every `PopoverMenu` now slides itself back inside the screen after it opens.
 
+The Tournaments tab is part of the Community walk in the matrix, and `tournaments.test.mjs` sweeps a live bracket from 320 to
+1920 px at 100% and 200% text. On a screen with room the bracket is a tree inside a scroll box, so a narrow window scrolls the
+bracket and never the page; below 900 px the rounds stack.
+
 The first fix for that, `margin-left: auto` on the account controls, broke the wide layout: it split the free space
 with the wordmark's own auto margin, and the page links drifted to the middle of the header on desktop. A fix for one
 width has to be looked at on the others. The header now uses `justify-content: flex-end`, and `nav.test.mjs` asserts

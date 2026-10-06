@@ -13,7 +13,13 @@ export const MODES = {
   // Every private challenge link runs at Classic's fixed time limit; questionCount here is
   // only the default — a challenge's own row can override it (see routes/challenges.js).
   challenge: { questionCount: 10, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: null },
+  // A tournament match: ten questions, seeded from the match so both players see the same set. Not ranked anywhere public.
+  tournament: { questionCount: 10, timeLimitMs: 30000, timingMode: 'per_question', maxStrikes: null },
 };
+
+// Modes whose runs never appear on a public leaderboard, however it is asked for. A tournament match is for the two
+// people in it, so its scores are shown inside the tournament and nowhere else.
+export const UNRANKED_MODES = ['tournament'];
 
 // The lengths a challenge creator can pick between. Kept short and round rather than letting
 // the length run free, the same way category/difficulty are a fixed menu, not free text.
