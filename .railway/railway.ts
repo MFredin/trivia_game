@@ -38,6 +38,14 @@ export default defineRailway(() => {
     healthcheck: "/api/health",
     healthcheckTimeout: 100,
 
+    // The retry limit the old railway.toml set (restartPolicyMaxRetries = 5), kept at the value the
+    // service has today. It must be declared: the first plan after the apply proposed 5 -> null on
+    // both services, because a field the file leaves out is read as "unset it". The restart policy
+    // TYPE is not declared; the live value is unset (Railway's default, ON_FAILURE), and declaring
+    // it would show up as a change. This nested `deploy` block merges with the shorthand fields
+    // above (the SDK spreads it first and lets the shorthand win), so the two do not conflict.
+    deploy: { restartPolicyMaxRetries: 5 },
+
     // Every variable that exists today, kept as it is. `preserve()` means "keep whatever value is
     // already set in Railway", so no value is written into the repo and a plan cannot propose
     // deleting one. These are NAMES only; the file never held, and must never hold, a value.
@@ -61,19 +69,19 @@ export default defineRailway(() => {
     // The static build is served by `serve`; the start script is defined in frontend/package.json.
     start: "npm run start",
 
+    // Same retry limit as the backend, for the same reason.
+    deploy: { restartPolicyMaxRetries: 5 },
+
     // The API's public URL, baked into the bundle at build time.
     env: {
       VITE_API_URL: preserve(),
     },
   });
 
-  // Not expressible yet. The old files also set `restartPolicyType = "ON_FAILURE"` and
-  // `restartPolicyMaxRetries = 5`, and `builder = "NIXPACKS"`. The current IaC reference has no
-  // field for any of them (confirmed against the SDK's own types with `tsc`), the same kind of gap
-  // the docs call out for `tracing`. They stay as set in each service's Settings page.
-  // ON_FAILURE is Railway's default; only the max-retries value of 5 (default 10) is non-default,
-  // and the live builder already reports RAILPACK, not NIXPACKS, so the old setting was not in
-  // effect. Re-check after `railway config pull` in case a later SDK starts managing them.
+  // Not expressible yet: the builder. The old files set `builder = "NIXPACKS"` and the IaC reference
+  // has no field for it. The live builder already reports RAILPACK, so the old setting was not in
+  // effect. (The restart policy WAS expressible, in the nested `deploy` block, which an earlier
+  // version of this comment wrongly said it was not: only the top-level shorthand was tried.)
 
   return project("devoted-nurturing", {
     resources: [backend, frontend],

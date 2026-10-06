@@ -65,8 +65,9 @@ them.
    environment. **Only after step 4 succeeded:** once the secret exists, merging any
    change under `.railway/` applies it automatically ("merging is the approval"), so the first
    apply should be the one a person watched.
-6. **Re-check the restart policy** on both services (Settings, Deploy). It is not in the file; see
-   below.
+6. **Run `railway config plan` once more.** It should say the configuration is up to date. Anything
+   a file leaves out is read as "unset it", so a field that was set outside the file shows up here
+   (see "A field the file leaves out is unset" below).
 
 ## Why this file declares a partial
 
@@ -94,18 +95,29 @@ directory strings matter and differ: the API's is `backend`, the web app's is `/
 leading slash, because that is how each is stored and the plan compares them exactly. A plan that
 shows any `source.*` line is wrong; do not apply it.
 
+## A field the file leaves out is unset
+
+The plan compares the file with Railway field by field, and a field the file does not mention is
+read as "set it to nothing". This caught two mistakes in the first version of the file, both found
+by running `plan` for real:
+
+- **`source`** (the GitHub repo link) would have been cleared. Fixed by declaring it; see above.
+- **`deploy.restartPolicyMaxRetries`** would have gone from 5 to unset on both services. Fixed by
+  declaring `deploy: { restartPolicyMaxRetries: 5 }` on each. The nested `deploy` block holds the
+  fields that have no shorthand and merges with the shorthand ones (`start`, `healthcheck`, ...).
+  An earlier version of this page said the restart policy could not be expressed; that was wrong,
+  because only the top-level shorthand had been tried.
+
+So when `plan` shows a change you did not make, the usual cause is a setting that lives in Railway but
+not in the file. Either add it to the file at its current value, or decide to clear it.
+
 ## What the file does not manage
 
-The old toml files also set `restartPolicyType = "ON_FAILURE"`, `restartPolicyMaxRetries = 5` and
-`builder = "NIXPACKS"`. The IaC reference has no field for any of them (checked against the SDK's
-own types), so they stay as set in each service's Settings page.
-
-- **Restart policy:** `ON_FAILURE` is Railway's default. Only the retry limit of 5 (default 10) is
-  non-default. Set it by hand if it matters, and re-check after `railway config pull` in case a later
-  SDK manages it.
-- **Builder:** the live services already report `RAILPACK`, so the old `NIXPACKS` line was not in
-  effect.
-- **Variables' values:** the file lists names only and never holds a value.
+- **Builder.** The old toml set `builder = "NIXPACKS"` and the IaC reference has no field for it. The
+  live services already report `RAILPACK`, so the old setting was not in effect.
+- **Restart policy type.** Not declared: the live value is unset (Railway's default, `ON_FAILURE`),
+  and declaring it would show as a change.
+- **Variables' values.** The file lists names only and never holds a value.
 
 ## What the dashboard has to hold
 
