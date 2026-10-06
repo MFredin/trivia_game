@@ -509,3 +509,61 @@ CREATE INDEX IF NOT EXISTS idx_email_token_log_user ON email_token_log (user_id,
 -- under; changing or resetting the password raises it, and every older token stops working at once.
 -- Tokens issued before this column existed carry no number and count as 0, so nobody is signed out by it.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0;
+
+-- Tournament brackets (docs/tournament-brackets-plan.md): single elimination among friends, each match played on the
+-- players' own time inside a deadline. A bracket is only the matches that exist; later rounds are created as earlier ones
+-- are decided, so nothing here is a tree.
+CREATE TABLE IF NOT EXISTS tournaments (
+  id SERIAL PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  name TEXT NOT NULL,
+  size INTEGER NOT NULL CHECK (size IN (4, 8, 16)),            -- capacity: how many may join
+  bracket_size INTEGER CHECK (bracket_size IN (4, 8, 16)),     -- the bracket actually drawn, set when it starts
+  category TEXT,
+  canon_source TEXT NOT NULL DEFAULT 'combined',
+  obscurity_filter TEXT,
+  round_hours INTEGER NOT NULL DEFAULT 48 CHECK (round_hours IN (24, 48, 72)),
+  status TEXT NOT NULL DEFAULT 'open',                          -- open | running | completed | cancelled
+  current_round INTEGER NOT NULL DEFAULT 0,
+  winner_id INTEGER REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  started_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS tournament_players (
+  tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  seed INTEGER,                                                 -- assigned when it starts
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  eliminated_in_round INTEGER,                                  -- null while still in
+  PRIMARY KEY (tournament_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS tournament_matches (
+  id SERIAL PRIMARY KEY,
+  tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+  round INTEGER NOT NULL,
+  slot INTEGER NOT NULL,
+  player_a INTEGER REFERENCES users(id),
+  player_b INTEGER REFERENCES users(id),
+  is_bye BOOLEAN NOT NULL DEFAULT false,
+  deadline TIMESTAMPTZ,
+  status TEXT NOT NULL DEFAULT 'open',                          -- open | decided
+  winner_id INTEGER REFERENCES users(id),
+  decided_by TEXT,                                              -- score | time | seed | no_show | bye | forfeit
+  decided_at TIMESTAMPTZ,
+  UNIQUE (tournament_id, round, slot)
+);
+
+-- A match run is an ordinary game_sessions row under mode 'tournament', seeded from the match so both players are dealt
+-- the same questions (the same mechanism as duel_id and challenge_id). One run per player per match: the unique index
+-- is what makes a double-click or a second tab unable to start a second one.
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS tournament_match_id INTEGER REFERENCES tournament_matches(id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_game_sessions_one_run_per_match
+  ON game_sessions (user_id, tournament_match_id) WHERE tournament_match_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_game_sessions_tournament_match ON game_sessions (tournament_match_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_players_user ON tournament_players (user_id);
+CREATE INDEX IF NOT EXISTS idx_tournament_matches_open ON tournament_matches (status, deadline);
+CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments (status, created_at);

@@ -235,7 +235,7 @@ test('every screen fits every width, with the worst content in it', { skip: SKIP
       }
 
       await navigateTo(page, 'Community');
-      for (const tab of ['Online now', 'All members', 'Activity']) {
+      for (const tab of ['Online now', 'All members', 'Activity', 'Tournaments']) {
         const button = page.getByRole('button', { name: new RegExp(tab, 'i') }).first();
         if (await button.count()) await button.click();
         await check(page, phone, at(`Community › ${tab}`));

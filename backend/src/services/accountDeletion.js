@@ -63,6 +63,14 @@ export async function deleteAccount(userId) {
       [userId],
     );
 
+    // A tournament still open loses them; one they were hosting is cancelled. One already running keeps its shape (their
+    // matches forfeit at the next sweep, since the account can no longer play) and shows them as "Deleted player".
+    await client.query(
+      `DELETE FROM tournament_players WHERE user_id = $1 AND tournament_id IN (SELECT id FROM tournaments WHERE status = 'open')`,
+      [userId],
+    );
+    await client.query(`UPDATE tournaments SET status = 'cancelled' WHERE created_by = $1 AND status = 'open'`, [userId]);
+
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK');

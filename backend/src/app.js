@@ -17,6 +17,7 @@ import suggestionsRouter from './routes/suggestions.js';
 import previewRouter from './routes/preview.js';
 import profileRouter from './routes/profile.js';
 import challengesRouter from './routes/challenges.js';
+import tournamentsRouter from './routes/tournaments.js';
 import activityRouter from './routes/activity.js';
 import feedbackRouter from './routes/feedback.js';
 import accountRouter from './routes/account.js';
@@ -75,6 +76,7 @@ export function createApp() {
   app.use('/api/preview', previewRouter);
   app.use('/api/profile', profileRouter);
   app.use('/api/challenges', challengesRouter);
+  app.use('/api/tournaments', tournamentsRouter);
   app.use('/api/activity', activityRouter);
   app.use('/api/feedback', feedbackRouter);
   app.use('/api/account', accountRouter);

@@ -164,6 +164,11 @@ function build(house) {
   add('lifeline border on parchment', rubric, parch, 3.0, '.lifeline-btn border');
   add('lifeline cost note on parchment', mutedOnSurface, parch, 4.5, '.lifeline-cost');
   add('struck choice on parchment', mutedOnSurface, parch, 4.5, '.choice-button.is-struck');
+  // Tournaments: every colour is a role token already used on parchment, so these name the pairings rather than add new ones.
+  add('tournament notes on parchment', mutedOnSurface, parch, 4.5, '.tournament-note, .tournament-row-note, .bracket-note, .bracket-side.is-loser, .bracket-side.is-empty');
+  add('bracket round title on parchment', rubric, parch, 4.5, '.bracket-round-title');
+  add('bracket advanced tag on parchment', rubric, parch, 4.5, '.bracket-tag');
+  add('bracket match border on parchment', mutedOnSurface, parch, 3.0, '.bracket-match border, .bracket-seed border');
   add('catalog tab label', over(hexrgb('#12151c'), t('--parchment-200'), 0.68), t('--parchment-200'), 4.5, '.catalog-tab');
 
   // fixed per-house colours, shown whatever the viewer's own binding is, so both

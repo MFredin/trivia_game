@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import Avatar from './Avatar.jsx';
+import TournamentsTab from './TournamentsTab.jsx';
 import MemberRow from './MemberRow.jsx';
 import InviteLink from './InviteLink.jsx';
 import { useInviteLink } from '../features/social/useInviteLink.js';
@@ -28,6 +29,7 @@ function activityText(event) {
     return `beat their personal best: ${event.payload.total_score} in ${modeLabel}`;
   }
   if (event.type === 'achievement_unlocked') return `unlocked \u201c${event.payload.name}\u201d`;
+  if (event.type === 'tournament_win') return `won the tournament \u201c${event.payload.tournament_name}\u201d`;
   if (event.type === 'duel_win') {
     return `won a duel against ${event.payload.opponent_username}, ${event.payload.my_score}\u2013${event.payload.opponent_score}`;
   }
@@ -47,7 +49,7 @@ function ActivityRow({ event }) {
   );
 }
 
-export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge: startChallenge, onMessage: startOwl, canStartChallenge, canStartOwl, onViewProfile }) {
+export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDeclineDuel, onChallenge: startChallenge, onMessage: startOwl, canStartChallenge, canStartOwl, onViewProfile, canMakeTournament, onOpenTournament }) {
   // A player who has switched one off may not start one either, so the rows do not offer it.
   const onChallenge = canStartChallenge ? startChallenge : undefined;
   const onMessage = canStartOwl ? startOwl : undefined;
@@ -247,7 +249,19 @@ export default function FriendsPanel({ token, pendingDuels, onAcceptDuel, onDecl
           >
             Activity
           </button>
+          <button
+            type="button"
+            className={`nav-btn ${discoverTab === 'tournaments' ? 'is-active' : ''}`}
+            aria-pressed={discoverTab === 'tournaments'}
+            onClick={() => setDiscoverTab('tournaments')}
+          >
+            Tournaments
+          </button>
         </div>
+
+        {discoverTab === 'tournaments' && (
+          <TournamentsTab token={token} active canMake={canMakeTournament} onOpen={onOpenTournament} />
+        )}
 
         {discoverTab === 'search' && (
           <>

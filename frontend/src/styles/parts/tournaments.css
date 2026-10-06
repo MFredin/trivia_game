@@ -1,0 +1,244 @@
+/* --- tournaments ---------------------------------------------------------------------- */
+/* Only the role tokens already used on parchment (--text-on-surface, --text-muted-on-surface, --rubric), so every
+   pairing here is one the contrast audit already covers. Names can be forty characters with no break in them, so every
+   flex child that holds one has min-width: 0 and overflow-wrap: anywhere, or it widens the page instead of wrapping. */
+
+.tournament-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tournament-join {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1 1 14rem;
+  min-width: 0;
+  max-width: 24rem;
+}
+
+.tournament-form {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.tournament-field {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.tournament-trust {
+  margin: 0;
+}
+
+.tournament-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.tournament-list .tournament-row,
+.tournament-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tournament-row-main {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.tournament-row-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text-on-surface);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tournament-row-note,
+.tournament-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.tournament-status {
+  margin-top: 0;
+}
+
+.tournament-note + .explanation,
+.tournament-note + .tournament-next {
+  margin-top: 0.85rem;
+}
+
+.tournament-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tournament-code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+  color: var(--text-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.tournament-next {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+
+/* --- the bracket --- */
+/* Stacked rounds by default: the phone layout is the plain one, and the tree is the enhancement for room to spare. */
+.bracket,
+.bracket-matches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bracket {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.bracket-round {
+  min-width: 0;
+}
+
+.bracket-round-title {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--rubric);
+}
+
+.bracket-matches {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bracket-match {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--text-muted-on-surface);
+  border-radius: 3px;
+  min-width: 0;
+}
+
+.bracket-side {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+  color: var(--text-on-surface);
+}
+
+.bracket-side.is-winner {
+  font-weight: 700;
+}
+
+/* A knocked-out player is struck through as well as paler, so it reads without colour. */
+.bracket-side.is-loser {
+  color: var(--text-muted-on-surface);
+  text-decoration: line-through;
+}
+
+.bracket-side.is-empty {
+  color: var(--text-muted-on-surface);
+  font-style: italic;
+}
+
+.bracket-seed {
+  flex: none;
+  min-width: 1.35rem;
+  text-align: center;
+  font-size: 0.75rem;
+  border: 1px solid var(--text-muted-on-surface);
+  border-radius: 50%;
+  line-height: 1.3rem;
+}
+
+.bracket-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bracket-you {
+  font-weight: 400;
+  color: var(--text-muted-on-surface);
+}
+
+.bracket-score {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.bracket-tag {
+  flex: none;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--rubric);
+}
+
+.bracket-note {
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.bracket-match.is-pending {
+  border-style: dashed;
+}
+
+/* Room to spare: the rounds sit side by side as columns, each spreading its matches between the ones that feed it. Inside
+   a scroll box (TableScroll), so a narrow window scrolls the bracket and never the page. */
+@media (min-width: 900px) {
+  .bracket {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(15rem, 1fr);
+    gap: 1.5rem;
+  }
+
+  .bracket-round {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bracket-matches {
+    flex: 1;
+    grid-auto-rows: 1fr;
+    align-content: space-around;
+  }
+}
+
+@media (max-width: 720px) {
+  .tournament-toolbar {
+    align-items: stretch;
+  }
+
+  .tournament-join {
+    max-width: none;
+  }
+}

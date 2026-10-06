@@ -7,6 +7,8 @@ import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
 import { evaluateAchievements } from './achievements.js';
 import { recordActivity } from './activity.js';
 import { getOpponentSession, maybeFinishDuel } from './duels.js';
+import { decideMatchIfReady } from './tournamentMatches.js';
+import { UNRANKED_MODES } from '../lib/modes.js';
 import { sendToUser } from '../lib/wsServer.js';
 import { SKIP, applyLifelineToScore } from '../lib/lifelines.js';
 import { detectRunAnomaly } from '../lib/anomalyDetection.js';
@@ -196,7 +198,7 @@ export async function runPostAnswerBookkeeping({ session, outcome }) {
         [session.user_id, session.id],
       );
       const prevBest = Number(bestRows[0].prev_best ?? 0);
-      if (newTotalScore > prevBest) {
+      if (newTotalScore > prevBest && !UNRANKED_MODES.includes(session.mode)) {
         await recordActivity(session.user_id, 'personal_best', { mode: session.mode, total_score: newTotalScore });
       }
 
@@ -212,6 +214,10 @@ export async function runPostAnswerBookkeeping({ session, outcome }) {
         }
       }
     }
+
+    // The last run of a tournament match finishing is one of the ways a match gets decided; the decision itself, and the
+    // checks on whether it is due, are in services/tournamentMatches.js.
+    if (session.tournament_match_id && sessionComplete) await decideMatchIfReady(session.tournament_match_id);
 
     if (session.duel_id) {
       const opponentSession = await getOpponentSession(session.duel_id, session.user_id);

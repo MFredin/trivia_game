@@ -32,6 +32,7 @@ artwork.
 | Gauntlet | Three strikes end the run. |
 | Live Duel | Real-time head-to-head over WebSockets against a friend or any member. Both players get the identical seeded set, see each other's score and streak live, and land on a synchronised result screen. Canned reactions only, no free-text chat. |
 | Private challenge | A shareable code for a custom quiz (category, difficulty, 10/15/25/30 questions) that a group plays with the identical question set. |
+| Tournament | A knockout bracket for 3 to 16 friends, joined by a code. Each match is two players answering the same ten questions on their own time inside a 24, 48 or 72 hour deadline. It never touches a leaderboard. |
 | Weekly challenge | A system-generated challenge that rotates weekly. |
 | Seasonal bundle | A themed set (the Halloween Feast, the Yule Feast) for the few weeks around its occasion, shown as an "In season" card on the Start screen. Optional, and it comes back every year. |
 
@@ -249,6 +250,7 @@ An admin can then appoint moderators and grant titles from the app.
 | [`CLAUDE.md`](CLAUDE.md) | The short version of both, plus the design constraints, for agents |
 | [`docs/anti-cheat-architecture.md`](docs/anti-cheat-architecture.md), [`docs/answer-flow.md`](docs/answer-flow.md) | Score integrity and the answer path |
 | [`docs/social-safety.md`](docs/social-safety.md) | Profiles, blocking, reports, Owl Post, titles, age gate, retention, roles |
+| [`docs/tournament-brackets-plan.md`](docs/tournament-brackets-plan.md) | Knockout tournaments among friends: the design, and how it was built |
 | [`docs/design-overhaul-concept.md`](docs/design-overhaul-concept.md), [`docs/design-brief-v2.md`](docs/design-brief-v2.md) | The book-and-binding design and the house devices |
 | [`docs/contrast-audit-2026-09.md`](docs/contrast-audit-2026-09.md), [`docs/compatibility.md`](docs/compatibility.md) | Colour contrast and screen-size testing |
 | [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) | What is in and out of bounds for content and artwork |
@@ -265,8 +267,6 @@ Phases 4 and 5 (growth, then social and retention depth) and most of Phase 6 hav
 with the Second Edition design overhaul, the social-safety work and the audits listed above. What
 is still open is a working plan, not a commitment:
 
-- **Tournament brackets**: multi-round elimination duels among a friend group, run over a few
-  days. Private challenge links already solve "give N players the identical seeded set".
 - **Discord bot tie-in**: parked until there are bot credentials.
 - **Railway Config as Code**: `railway.toml` is deprecated in favour of `.railway/railway.ts`.
   Existing files keep working until **2026-12-01**.
