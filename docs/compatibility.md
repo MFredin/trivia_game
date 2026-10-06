@@ -39,6 +39,11 @@ because the sweep above never opened a menu and missed one that ran off the left
 header wraps, the avatar lands at the left of its row, and a menu anchored to the avatar's right edge opened
 leftwards off the screen. Every `PopoverMenu` now slides itself back inside the screen after it opens.
 
+The first fix for that, `margin-left: auto` on the account controls, broke the wide layout: it split the free space
+with the wordmark's own auto margin, and the page links drifted to the middle of the header on desktop. A fix for one
+width has to be looked at on the others. The header now uses `justify-content: flex-end`, and `nav.test.mjs` asserts
+the desktop layout at 1024–1920 px alongside the phone one.
+
 `layout.test.mjs` (the Gauntlet header regression) and `a11y.test.mjs` (44px touch targets, accessible names) stay as
 they are.
 
