@@ -255,6 +255,7 @@ An admin can then appoint moderators and grant titles from the app.
 | [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
 | `docs/*-audit-*.md` | Dated audits: platform, stack, design, code, question bank |
 | [`docs/phase4-scaffold.md`](docs/phase4-scaffold.md), [`docs/phase5-scaffold.md`](docs/phase5-scaffold.md) | The specs behind the growth and retention phases (both shipped) |
+| [`docs/discord-bot-plan.md`](docs/discord-bot-plan.md) | The Discord bot (tabled): how to build it, get it live, and which Discord review processes apply |
 
 ## Roadmap
 
