@@ -58,6 +58,16 @@ export default defineRailway(() => {
       GITHUB_FEEDBACK_TOKEN: preserve(),
       NODE_ENV: preserve(),
       QUESTION_TOKEN_SECRET: preserve(),
+
+      // The only website allowed to call this API from a browser. A literal, not preserve(): it is
+      // not a secret, and keeping it here means a change to it is reviewed in a PR. The backend
+      // compares it as an exact string against the browser's Origin header (see app.js), so it must
+      // be the frontend's scheme and host with no trailing slash and no path. A wrong value blocks
+      // the site's own requests. Behind it is a second use: with no APP_URL set, the links in
+      // password-reset and account-deletion emails are built from this value (lib/mailer.js), which
+      // is why it must stay a single origin; if a second one is ever added (comma-separated), set
+      // APP_URL to the one email links should use.
+      ALLOWED_ORIGIN: "https://incredible-blessing-production-bfad.up.railway.app",
     },
   });
 
