@@ -57,8 +57,12 @@ them.
 4. **`railway config apply`**, then confirm the plan once more. Afterwards `railway config plan`
    should say the configuration is already up to date (`--detailed-exit-code` returns 0).
 5. **Add the `RAILWAY_TOKEN` repository secret.** Create a project token for the production
-   environment in Railway (project Settings, Tokens) and add it under the repo's Settings, Secrets
-   and variables, Actions. **Only after step 4 succeeded:** once the secret exists, merging any
+   environment in Railway (project Settings, Tokens) and add it **on GitHub**, under the repo's
+   Settings, Secrets and variables, Actions, as a repository secret named `RAILWAY_TOKEN`. **Do not
+   add it as a Railway variable** (a service variable or a shared variable): GitHub Actions cannot
+   read Railway's variables, and a Railway variable is handed to the running service, so it would
+   put a credential that can change production configuration into the app's, and the database's,
+   environment. **Only after step 4 succeeded:** once the secret exists, merging any
    change under `.railway/` applies it automatically ("merging is the approval"), so the first
    apply should be the one a person watched.
 6. **Re-check the restart policy** on both services (Settings, Deploy). It is not in the file; see
