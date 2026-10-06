@@ -43,12 +43,15 @@ export async function request(path, options = {}, token) {
   try {
     data = body ? JSON.parse(body) : null;
   } catch {
-    data = null;
+    // Not JSON (a proxy's HTML error page, say): leave `data` null and let the status speak.
   }
 
   if (!res.ok || data === null) {
     const error = new Error(data?.error || `http_${res.status}`);
     error.code = data?.error ?? `http_${res.status}`;
+    // The rest of what the server said (a suspension's end date and the moderator's note, a locked
+    // option's name) for callers that can use it.
+    error.data = data;
     error.status = res.status;
     // 5xx and 429 are worth trying again; a 4xx means this request will never work as-is.
     error.transient = res.status >= 500 || res.status === 429;

@@ -1,8 +1,24 @@
+// Friends and finding people (/api/friends). Every route needs a signed-in player.
+//
+//   GET  /                     this player's friends, with whether each is online and what they accept
+//   GET  /requests, /sent      requests waiting for this player, and ones they have sent
+//   GET  /search, /online, /members     finding people: by name, who is online now, everyone (paged)
+//   POST /                     send a friend request by username
+//   POST /requests/:username/accept | decline
+//   DELETE /:username          remove a friend
+//
+// Blocked players never appear in a list or a search, in either direction (services/blocks.js), and sending a request
+// to someone who has blocked you looks exactly like sending one to someone who does not exist.
+
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
 import { getOnlineUserIds, isOnline } from '../lib/presenceRegistry.js';
 import { evaluateAchievements } from '../services/achievements.js';
+import { deriveStatus } from '../lib/friendStatus.js';
+import { isBlockedEitherWay, notBlockedSql } from '../services/blocks.js';
+import { contactAllowed } from '../lib/contactModes.js';
+import { titleView } from '../lib/titles.js';
 
 const router = express.Router();
 
@@ -10,21 +26,27 @@ router.use(requireAuth);
 
 router.get('/', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges
      FROM friendships f
      JOIN users u ON u.id = f.friend_user_id
      WHERE f.user_id = $1 AND f.status = 'accepted'
      ORDER BY u.username`,
     [req.userId],
   );
-  const friends = rows.map((f) => ({ ...f, online: isOnline(f.id) }));
+  const friends = rows.map(({ owl_post: owlPost, challenges, title, ...f }) => ({
+    ...f,
+    title: titleView(title),
+    online: isOnline(f.id),
+    can_owl: contactAllowed(owlPost, true),
+    can_challenge: contactAllowed(challenges, true),
+  }));
   return res.json({ friends });
 });
 
 // Requests I've RECEIVED, awaiting my accept/decline.
 router.get('/requests', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.user_id
      WHERE f.friend_user_id = $1 AND f.status = 'pending'
@@ -37,7 +59,7 @@ router.get('/requests', async (req, res) => {
 // Requests I've SENT, still awaiting the other person.
 router.get('/requests/sent', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT u.id, u.username
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme
      FROM friendships f
      JOIN users u ON u.id = f.friend_user_id
      WHERE f.user_id = $1 AND f.status = 'pending'
@@ -48,18 +70,30 @@ router.get('/requests/sent', async (req, res) => {
 });
 
 async function findUserByUsername(username) {
-  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1', [username]);
+  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1 AND deleted_at IS NULL', [username]);
   return rows[0] ?? null;
 }
 
 // Shared shape for every "list of other members, with my relationship to each" endpoint
-// (search, online, the full directory) — only how outgoing/incoming friendship rows resolve
-// to a single status the UI can switch on.
-function deriveStatus(row) {
-  if (row.outgoing_status === 'accepted' || row.incoming_status === 'accepted') return 'friends';
-  if (row.outgoing_status === 'pending') return 'pending_sent';
-  if (row.incoming_status === 'pending') return 'pending_received';
-  return 'none';
+// (search, online, the full directory); how outgoing/incoming friendship rows resolve to one
+// status the UI can switch on is in lib/friendStatus.js.
+function memberView(row) {
+  const status = deriveStatus(row);
+  const isFriend = status === 'friends';
+  return {
+    id: row.id,
+    username: row.username,
+    avatar: row.avatar ?? null,
+    avatar_style: row.avatar_style ?? {},
+    theme: row.theme,
+    title: titleView(row.title),
+    online: isOnline(row.id),
+    status,
+    // What this viewer may start with them, so a row offers only what would be accepted. Their
+    // setting is public: it is on their profile too.
+    can_owl: contactAllowed(row.owl_post, isFriend),
+    can_challenge: contactAllowed(row.challenges, isFriend),
+  };
 }
 
 // Lets a player find members to befriend (or challenge) by partial username, without already
@@ -69,16 +103,16 @@ router.get('/search', async (req, res) => {
   if (q.length < 2) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id != $1 AND u.username ILIKE $2
+     WHERE u.id != $1 AND u.deleted_at IS NULL AND u.username ILIKE $2 AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username
      LIMIT 20`,
     [req.userId, `%${q}%`],
   );
-  const results = rows.map((r) => ({ id: r.id, username: r.username, online: isOnline(r.id), status: deriveStatus(r) }));
+  const results = rows.map(memberView);
   return res.json({ results });
 });
 
@@ -90,15 +124,15 @@ router.get('/online', async (req, res) => {
   if (onlineIds.length === 0) return res.json({ results: [] });
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id = ANY($2::int[])
+     WHERE u.id = ANY($2::int[]) AND u.deleted_at IS NULL AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username`,
     [req.userId, onlineIds],
   );
-  const results = rows.map((r) => ({ id: r.id, username: r.username, status: deriveStatus(r) }));
+  const results = rows.map((r) => ({ ...memberView(r), online: true }));
   return res.json({ results });
 });
 
@@ -108,20 +142,23 @@ router.get('/members', async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
   const offset = Math.max(Number(req.query.offset) || 0, 0);
 
-  const { rows: countRows } = await pool.query('SELECT count(*) AS total FROM users WHERE id != $1', [req.userId]);
+  const { rows: countRows } = await pool.query(
+    `SELECT count(*) AS total FROM users u WHERE u.id != $1 AND u.deleted_at IS NULL AND ${notBlockedSql('$1', 'u.id')}`,
+    [req.userId],
+  );
   const total = Number(countRows[0].total);
 
   const { rows } = await pool.query(
-    `SELECT u.id, u.username, f_out.status AS outgoing_status, f_in.status AS incoming_status
+    `SELECT u.id, u.username, u.avatar, u.avatar_style, u.theme, u.title, u.owl_post, u.challenges, f_out.status AS outgoing_status, f_in.status AS incoming_status
      FROM users u
      LEFT JOIN friendships f_out ON f_out.user_id = $1 AND f_out.friend_user_id = u.id
      LEFT JOIN friendships f_in ON f_in.user_id = u.id AND f_in.friend_user_id = $1
-     WHERE u.id != $1
+     WHERE u.id != $1 AND u.deleted_at IS NULL AND ${notBlockedSql('$1', 'u.id')}
      ORDER BY u.username
      LIMIT $2 OFFSET $3`,
     [req.userId, limit, offset],
   );
-  const results = rows.map((r) => ({ id: r.id, username: r.username, online: isOnline(r.id), status: deriveStatus(r) }));
+  const results = rows.map(memberView);
   return res.json({ results, total, offset, limit, has_more: offset + results.length < total });
 });
 
@@ -134,6 +171,9 @@ router.post('/', async (req, res) => {
   const target = await findUserByUsername(username.trim());
   if (!target) return res.status(404).json({ error: 'user_not_found' });
   if (target.id === req.userId) return res.status(400).json({ error: 'cannot_friend_yourself' });
+  // Answered exactly as an unknown name is, so a request cannot be used to find out who has
+  // blocked you.
+  if (await isBlockedEitherWay(req.userId, target.id)) return res.status(404).json({ error: 'user_not_found' });
 
   const { rows: reverseRows } = await pool.query(
     `SELECT status FROM friendships WHERE user_id = $1 AND friend_user_id = $2`,

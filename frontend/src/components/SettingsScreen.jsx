@@ -1,102 +1,56 @@
-import { useEffect, useState } from 'react';
-import Plate from './Plate.jsx';
-import HouseDevice from './HouseDevice.jsx';
-import { HOUSES } from '../constants/houses.js';
-import { getInviteCode } from '../api/auth.js';
+import { useState } from 'react';
+import SectionTabs, { panelProps } from './SectionTabs.jsx';
+import AppearanceSettings from './AppearanceSettings.jsx';
+import PrivacySettings from './PrivacySettings.jsx';
+import OwlPostSettings from './OwlPostSettings.jsx';
+import ChallengeSettings from './ChallengeSettings.jsx';
+import BlockedPlayers from './BlockedPlayers.jsx';
+import PasswordSettings from './PasswordSettings.jsx';
+import DeleteAccountSection from './DeleteAccountSection.jsx';
 
-export default function SettingsScreen({ theme, onSelectTheme, token, onViewOwnProfile }) {
-  const [inviteCode, setInviteCode] = useState(null);
-  const [copyLabel, setCopyLabel] = useState('Copy link');
+// One section shows at a time: Settings grew from "pick a colour" into privacy, contact rules and the
+// account itself, and one long page of all of it was easy to get lost in. Invites live on the Friends
+// screen, and View / Edit profile are in the avatar menu, so neither is repeated here.
+const SECTIONS = [
+  { id: 'appearance', label: 'Appearance', hint: 'The Bindery', icon: 'book' },
+  { id: 'privacy', label: 'Privacy', hint: 'Who can reach you', icon: 'shield' },
+  { id: 'account', label: 'Account', hint: 'Password and deletion', icon: 'user' },
+];
 
-  useEffect(() => {
-    if (!token) return;
-    getInviteCode(token)
-      .then((data) => setInviteCode(data.invite_code))
-      .catch(() => {});
-  }, [token]);
-
-  const inviteLink = inviteCode ? `${window.location.origin}/?invite=${inviteCode}` : null;
-
-  const handleCopy = async () => {
-    if (!inviteLink) return;
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-    } catch {
-      // Clipboard API unavailable (older browser, insecure context) — fall back to a
-      // manual select-and-copy the user can trigger themselves via Ctrl/Cmd+C.
-      const textarea = document.createElement('textarea');
-      textarea.value = inviteLink;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-    }
-    setCopyLabel('Copied!');
-    setTimeout(() => setCopyLabel('Copy link'), 2000);
-  };
+export default function SettingsScreen({ user, onSelectTheme, account, safety }) {
+  const [section, setSection] = useState('appearance');
 
   return (
     <div>
       <div className="screen-head">
         <div>
-          <p className="screen-eyebrow">The Bindery</p>
-          <h2 className="screen-title">Choose Your Binding</h2>
+          <p className="screen-eyebrow">Your Account</p>
+          <h2 className="screen-title">Settings</h2>
         </div>
       </div>
-      <Plate>
-        <p className="explanation" style={{ margin: '0 0 1.4rem' }}>
-          Pick a house and its colors — cover, trim, and ink — apply everywhere at once.
-        </p>
-        <div className="house-swatches">
-          {HOUSES.map((house) => (
-            <button
-              key={house.id}
-              type="button"
-              className={`house-swatch ${theme === house.id ? 'is-active' : ''}`}
-              aria-pressed={theme === house.id}
-              onClick={() => onSelectTheme(house.id)}
-            >
-              <span
-                className="house-swatch-chip"
-                style={{ background: `linear-gradient(160deg, ${house.cover}, ${house.coverDeep})` }}
-              >
-                <span className="house-swatch-spine" style={{ background: house.accent }} />
-                <HouseDevice house={house.id} size={20} className="house-swatch-device" style={{ color: house.accent }} />
-              </span>
-              {house.label}
-            </button>
-          ))}
+      <div className="settings-layout">
+        <div className="settings-rail">
+          <SectionTabs prefix="settings" label="Settings sections" tabs={SECTIONS} active={section} onChange={setSection} variant="rail" />
+          <p className="settings-rail-note">Changes on this page save as you make them.</p>
         </div>
-      </Plate>
-      <Plate>
-        <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
-          Your Invite Link
-        </p>
-        <p className="explanation" style={{ margin: '0 0 1rem' }}>
-          Share this with a friend — when they register through it, you're instantly connected.
-        </p>
-        <div className="invite-link-row">
-          <input type="text" readOnly value={inviteLink ?? 'Generating…'} onFocus={(e) => e.target.select()} />
-          <button type="button" className="secondary-button" onClick={handleCopy} disabled={!inviteLink}>
-            {copyLabel}
-          </button>
+        <div {...panelProps('settings', section)} className="settings-panel">
+          {section === 'appearance' && <AppearanceSettings theme={user.theme} onSelectTheme={onSelectTheme} />}
+          {section === 'privacy' && (
+            <>
+              <PrivacySettings value={user.friends_visibility} onChange={account.setFriendsVisibility} error={account.privacyError} />
+              <OwlPostSettings value={user.owl_post} onChange={account.setOwlPost} error={account.owlPostError} />
+              <ChallengeSettings value={user.challenges} onChange={account.setChallenges} error={account.challengesError} />
+              <BlockedPlayers blocked={safety.blocked} loaded={safety.loaded} loadError={safety.loadError} onUnblock={safety.unblock} />
+            </>
+          )}
+          {section === 'account' && (
+            <>
+              <PasswordSettings onChangePassword={account.updatePassword} />
+              <DeleteAccountSection username={user.username} onDelete={account.removeAccount} />
+            </>
+          )}
         </div>
-      </Plate>
-      {onViewOwnProfile && (
-        <Plate>
-          <p className="screen-eyebrow" style={{ margin: '0 0 0.5rem' }}>
-            Your Player File
-          </p>
-          <p className="explanation" style={{ margin: '0 0 1rem' }}>
-            Lifetime stats — accuracy, favorite category, duel record, and your day streak.
-          </p>
-          <button type="button" className="secondary-button" onClick={onViewOwnProfile}>
-            View my profile
-          </button>
-        </Plate>
-      )}
+      </div>
     </div>
   );
 }

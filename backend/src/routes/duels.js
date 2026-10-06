@@ -1,3 +1,17 @@
+// Live head-to-head duels (/api/duels), played over the WebSocket in lib/wsServer.js.
+//
+//   POST /               invite a player to a duel (respects their Challenges setting and blocks)
+//   GET  /pending        invitations waiting on this player, and ones they have sent
+//   GET  /leaderboard    wins and losses
+//   GET  /:id            one duel, for either of its two players only
+//   POST /:id/accept     accept: both players are given the same questions and the duel starts
+//   POST /:id/decline    decline
+//   PATCH /settings      who may challenge this player: open, friends only, or off
+//
+// Accepting starts a run for each player (game_sessions rows with the duel's id) drawn with the same settings; the
+// WebSocket carries progress between them. Each route that names a duel checks that the caller is one of its two
+// players before doing anything, and answers 404 (not 403) for anyone else (`loadMyDuel`).
+
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -8,6 +22,12 @@ import { sendToUser } from '../lib/wsServer.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
 import { getCached, setCached } from '../lib/leaderboardCache.js';
+import { isBlockedEitherWay } from '../services/blocks.js';
+import { CONTACT_MODES, contactAllowed } from '../lib/contactModes.js';
+import { USER_COLUMNS, userView } from '../lib/userView.js';
+import { titleView } from '../lib/titles.js';
+import { displayNameSql } from '../lib/displayName.js';
+import { isUuid } from '../lib/uuid.js';
 
 const router = express.Router();
 
@@ -31,9 +51,17 @@ function duelSummary(duel) {
 }
 
 async function findUserByUsername(username) {
-  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1', [username]);
+  const { rows } = await pool.query('SELECT id, username FROM users WHERE username = $1 AND deleted_at IS NULL', [username]);
   return rows[0] ?? null;
 }
+
+// Who may challenge me: everyone, only friends, or no one (and then I may not challenge either).
+router.patch('/settings', async (req, res) => {
+  const { mode } = req.body ?? {};
+  if (!CONTACT_MODES.includes(mode)) return res.status(400).json({ error: 'invalid_mode' });
+  const { rows } = await pool.query(`UPDATE users SET challenges = $1 WHERE id = $2 RETURNING ${USER_COLUMNS}`, [mode, req.userId]);
+  return res.json({ user: userView(rows[0]) });
+});
 
 router.post('/', async (req, res) => {
   const { opponent_username, category, canon_source, difficulty } = req.body ?? {};
@@ -51,6 +79,21 @@ router.post('/', async (req, res) => {
   const opponent = await findUserByUsername(opponent_username.trim());
   if (!opponent) return res.status(404).json({ error: 'user_not_found' });
   if (opponent.id === req.userId) return res.status(400).json({ error: 'cannot_duel_yourself' });
+  // Same answer as an unknown name, so an invite cannot be used to find out who blocked you.
+  if (await isBlockedEitherWay(req.userId, opponent.id)) return res.status(404).json({ error: 'user_not_found' });
+
+  // Who may be challenged is each player's choice. The sender's own switch is theirs to be told about;
+  // the other player's is public (it is on their profile), so it is said plainly.
+  const { rows: settings } = await pool.query(
+    `SELECT (SELECT challenges FROM users WHERE id = $1) AS mine,
+            (SELECT challenges FROM users WHERE id = $2) AS theirs,
+            EXISTS (SELECT 1 FROM friendships WHERE user_id = $1 AND friend_user_id = $2 AND status = 'accepted') AS is_friend`,
+    [req.userId, opponent.id],
+  );
+  if (settings[0].mine === 'off') return res.status(403).json({ error: 'challenges_off' });
+  if (!contactAllowed(settings[0].theirs, settings[0].is_friend)) {
+    return res.status(403).json({ error: 'not_accepting_challenges' });
+  }
 
   // A double-click (or re-visiting the Challenge flow before the invite's been answered)
   // shouldn't stack up repeat pending invites cluttering the recipient's screen — return the
@@ -71,18 +114,27 @@ router.post('/', async (req, res) => {
     [req.userId, opponent.id, category ?? null, canonSource, difficulty ?? null, modeConfig.questionCount, modeConfig.timeLimitMs],
   );
   const duel = rows[0];
-  const { rows: meRows } = await pool.query('SELECT username FROM users WHERE id = $1', [req.userId]);
+  const { rows: meRows } = await pool.query('SELECT username, avatar, avatar_style, theme FROM users WHERE id = $1', [req.userId]);
 
   sendToUser(opponent.id, {
     type: 'duel:invited',
-    duel: { ...duelSummary(duel), created_by_username: meRows[0].username },
+    duel: {
+        ...duelSummary(duel),
+        created_by_username: meRows[0].username,
+        // The same fields /duels/pending carries, so an invite that arrives live is drawn like one that was waiting.
+        created_by_avatar: meRows[0].avatar ?? null,
+        created_by_avatar_style: meRows[0].avatar_style ?? {},
+        created_by_theme: meRows[0].theme ?? null,
+      },
   });
   return res.status(201).json({ ...duelSummary(duel), opponent_username: opponent.username });
 });
 
 router.get('/pending', async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT d.*, u_creator.username AS created_by_username, u_opponent.username AS opponent_username
+    `SELECT d.*, ${displayNameSql('u_creator')} AS created_by_username, ${displayNameSql('u_opponent')} AS opponent_username,
+            u_creator.avatar AS creator_avatar, u_creator.avatar_style AS creator_avatar_style, u_creator.theme AS creator_theme,
+            u_opponent.avatar AS opponent_avatar, u_opponent.avatar_style AS opponent_avatar_style, u_opponent.theme AS opponent_theme
      FROM duels d
      JOIN users u_creator ON u_creator.id = d.created_by
      JOIN users u_opponent ON u_opponent.id = d.opponent_id
@@ -94,6 +146,13 @@ router.get('/pending', async (req, res) => {
     ...duelSummary(d),
     created_by_username: d.created_by_username,
     opponent_username: d.opponent_username,
+    // What the list needs to draw each side the way every other list of players does.
+    created_by_avatar: d.creator_avatar ?? null,
+    created_by_avatar_style: d.creator_avatar_style ?? {},
+    created_by_theme: d.creator_theme ?? null,
+    opponent_avatar: d.opponent_avatar ?? null,
+    opponent_avatar_style: d.opponent_avatar_style ?? {},
+    opponent_theme: d.opponent_theme ?? null,
     direction: d.created_by === req.userId ? 'outgoing' : 'incoming',
   }));
   return res.json({ pending });
@@ -134,7 +193,7 @@ router.get('/leaderboard', async (req, res) => {
        FROM duel_results
        GROUP BY user_id
      )
-     SELECT u.username, p.wins, p.losses, p.ties, p.total,
+     SELECT ${displayNameSql('u')} AS username, u.title AS title_id, p.wins, p.losses, p.ties, p.total,
        CASE WHEN p.total > 0 THEN round((p.wins::numeric / p.total) * 100, 1) ELSE 0 END AS win_pct
      FROM per_user p
      JOIN users u ON u.id = p.user_id
@@ -146,6 +205,7 @@ router.get('/leaderboard', async (req, res) => {
 
   const entries = rows.map((r) => ({
     username: r.username,
+    title: titleView(r.title_id),
     wins: Number(r.wins),
     losses: Number(r.losses),
     ties: Number(r.ties),
@@ -157,13 +217,24 @@ router.get('/leaderboard', async (req, res) => {
   return res.json(result);
 });
 
-router.get('/:id', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]);
+/**
+ * The duel named in the URL, if the caller is one of its two players; otherwise answers 404 and returns null. Anyone
+ * else gets exactly the answer they would for an id that does not exist (and so does a malformed one), so the
+ * endpoint cannot be used to find out which duels there are.
+ */
+async function loadMyDuel(req, res) {
+  const { rows } = isUuid(req.params.id) ? await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]) : { rows: [] };
   const duel = rows[0];
-  if (!duel) return res.status(404).json({ error: 'duel_not_found' });
-  if (duel.created_by !== req.userId && duel.opponent_id !== req.userId) {
-    return res.status(403).json({ error: 'forbidden' });
+  if (!duel || (duel.created_by !== req.userId && duel.opponent_id !== req.userId)) {
+    res.status(404).json({ error: 'duel_not_found' });
+    return null;
   }
+  return duel;
+}
+
+router.get('/:id', async (req, res) => {
+  const duel = await loadMyDuel(req, res);
+  if (!duel) return undefined;
 
   const { rows: sessionRows } = await pool.query('SELECT user_id, total_score, status FROM game_sessions WHERE duel_id = $1', [
     duel.id,
@@ -171,10 +242,11 @@ router.get('/:id', async (req, res) => {
   return res.json({ ...duelSummary(duel), sessions: sessionRows });
 });
 
+// Only the player who was invited can answer an invitation. The inviter is in the duel, so they may know it exists:
+// they are told no (403), not that it is missing.
 router.post('/:id/decline', async (req, res) => {
-  const { rows } = await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]);
-  const duel = rows[0];
-  if (!duel) return res.status(404).json({ error: 'duel_not_found' });
+  const duel = await loadMyDuel(req, res);
+  if (!duel) return undefined;
   if (duel.opponent_id !== req.userId) return res.status(403).json({ error: 'forbidden' });
   if (duel.status !== 'pending') return res.status(409).json({ error: 'duel_not_pending' });
 
@@ -185,11 +257,15 @@ router.post('/:id/decline', async (req, res) => {
 
 router.post('/:id/accept', async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM duels WHERE id = $1', [req.params.id]);
-    const duel = rows[0];
-    if (!duel) return res.status(404).json({ error: 'duel_not_found' });
+    const duel = await loadMyDuel(req, res);
+    if (!duel) return undefined;
     if (duel.opponent_id !== req.userId) return res.status(403).json({ error: 'forbidden' });
     if (duel.status !== 'pending') return res.status(409).json({ error: 'duel_not_pending' });
+    // Blocking withdraws pending invites, so this is only reachable by a block landing between
+    // the invite and the click; treat it as the invite never having existed.
+    if (await isBlockedEitherWay(duel.created_by, duel.opponent_id)) {
+      return res.status(404).json({ error: 'duel_not_found' });
+    }
 
     await pool.query(`UPDATE duels SET status = 'active', started_at = now() WHERE id = $1`, [duel.id]);
 

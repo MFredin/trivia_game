@@ -1,8 +1,11 @@
+// The home screen and the way to the first question: choose a mode, then category, difficulty and canon source, and
+// start. Also the Daily Challenge, the featured weekly challenge and opening a challenge by code. It is the first thing a
+// player sees after signing in, so it must stay quick: it loads only what it needs (the rest of the app is lazy).
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
 import HouseDevice from './HouseDevice.jsx';
-import { createChallenge, getFeaturedChallenge } from '../api/challenges.js';
+import { createChallenge, getFeaturedChallenge, getSeasonChallenge } from '../api/challenges.js';
 import { getProfile } from '../api/profile.js';
 import { copyToClipboard } from '../lib/shareResult.js';
 import { HOUSES, DEFAULT_HOUSE } from '../constants/houses.js';
@@ -55,16 +58,22 @@ const CANON_OPTIONS = [
   { value: 'combined', label: 'Combined' },
 ];
 
+// Mirrors backend CHALLENGE_QUESTION_COUNT_OPTIONS (lib/modes.js) — a challenge link's length
+// is a fixed menu, not free text, same as category/difficulty.
+const CHALLENGE_QUESTION_COUNT_OPTIONS = [10, 15, 25, 30];
+
 export default function StartScreen({ categories, currentUser, onStart, error, token, onOpenChallenge }) {
   const [mode, setMode] = useState('classic');
   const [category, setCategory] = useState('');
   const [canonSource, setCanonSource] = useState('combined');
   const [difficulty, setDifficulty] = useState('');
   const [dayStreak, setDayStreak] = useState(0);
+  const [challengeQuestionCount, setChallengeQuestionCount] = useState(10);
   const [challengeLink, setChallengeLink] = useState(null);
   const [creatingChallenge, setCreatingChallenge] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy link');
   const [featured, setFeatured] = useState(null);
+  const [season, setSeason] = useState(null);
 
   const house = HOUSE_BY_ID[currentUser?.theme ?? DEFAULT_HOUSE] ?? HOUSE_BY_ID[DEFAULT_HOUSE];
 
@@ -75,6 +84,13 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
     getFeaturedChallenge()
       .then(setFeatured)
       .catch(() => setFeatured(null));
+  }, []);
+
+  // The same quiet rule for the season: null between seasons, and a failed fetch leaves the screen as it was.
+  useEffect(() => {
+    getSeasonChallenge()
+      .then((data) => setSeason(data.season))
+      .catch(() => setSeason(null));
   }, []);
 
   useEffect(() => {
@@ -96,7 +112,10 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
   const handleCreateChallenge = async () => {
     setCreatingChallenge(true);
     try {
-      const data = await createChallenge({ category: category || null, canonSource, difficulty: difficulty || null }, token);
+      const data = await createChallenge(
+        { category: category || null, canonSource, difficulty: difficulty || null, questionCount: challengeQuestionCount },
+        token,
+      );
       setChallengeLink(`${window.location.origin}/?challenge=${data.code}`);
     } catch {
       // Silent — this is an optional secondary action; the "Create a Challenge Link" button
@@ -218,7 +237,7 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
             Begin
           </button>
         </form>
-        {mode === 'classic' && (
+        {mode === 'classic' && currentUser.challenges !== 'off' && (
           <div style={{ marginTop: '1.2rem' }}>
             {challengeLink ? (
               <div className="invite-link-row">
@@ -228,13 +247,61 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
                 </button>
               </div>
             ) : (
-              <button type="button" className="secondary-button" onClick={handleCreateChallenge} disabled={creatingChallenge}>
-                {creatingChallenge ? 'Creating…' : 'Create a Challenge Link'}
-              </button>
+              <>
+                <div className="start-form-field" role="group" aria-labelledby="challenge-length-label">
+                  <span className="field-label" id="challenge-length-label">
+                    Challenge a friend
+                  </span>
+                  <p className="field-hint">
+                    Make a link anyone can open. They answer the same questions as you, with the category, canon and
+                    difficulty chosen above, and you compare scores.
+                  </p>
+                  <span className="field-sublabel">How many questions?</span>
+                  <div className="seg-control">
+                    {CHALLENGE_QUESTION_COUNT_OPTIONS.map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        className={`seg seg--count ${challengeQuestionCount === count ? 'is-active' : ''}`}
+                        onClick={() => setChallengeQuestionCount(count)}
+                        aria-pressed={challengeQuestionCount === count}
+                        aria-label={`${count} questions`}
+                      >
+                        <span className="seg-number">{count}</span>
+                        <span className="seg-unit">questions</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button type="button" className="secondary-button" onClick={handleCreateChallenge} disabled={creatingChallenge}>
+                  {creatingChallenge ? 'Creating…' : `Create a ${challengeQuestionCount}-question challenge link`}
+                </button>
+              </>
             )}
           </div>
         )}
       </Plate>
+
+      {/* A seasonal bundle, for the few weeks around its occasion. The same card and the same screen as the weekly
+          challenge below: nothing is lost by skipping it, and it comes back next year. */}
+      {season && (
+        <Plate className="featured-week season-card">
+          <div className="featured-week-body">
+            <div>
+              <p className="screen-eyebrow">In season</p>
+              <h3 className="featured-week-title">{season.label}</h3>
+              <p className="featured-week-note">
+                {season.blurb}
+                {season.players > 0 &&
+                  ` · ${season.players} ${season.players === 1 ? 'player has' : 'players have'} finished it`}
+              </p>
+            </div>
+            <button type="button" className="primary-button" onClick={() => onOpenChallenge(season.code)}>
+              Play it
+            </button>
+          </div>
+        </Plate>
+      )}
 
       {/* This week's rotating themed quiz — the Daily Challenge's lighter sibling. Rendered
           only once it has loaded, so a failed fetch leaves the start screen exactly as it was

@@ -4,13 +4,21 @@
    regardless of which house binding is active — house color is reserved for plates,
    buttons and corner brackets. */
 .running-header {
+  /* One number for the gap under the row, so the "you are here" underline can reach down to the
+     rule instead of floating above it. */
+  --header-pad: 0.9rem;
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  /* flex-end, not space-between: the wordmark's own auto margin pushes the links and the account controls to the
+     right together, and flex-end keeps whatever wraps onto a line of its own at the right too. That is what keeps
+     the account menu, which opens from the avatar's right edge, on screen on a narrow phone. Giving the account
+     controls `margin-left: auto` for that instead splits the free space with the wordmark's margin, and on a wide
+     screen the links drift to the middle of the header. */
+  justify-content: flex-end;
+  align-items: center;
   flex-wrap: wrap;
   gap: 0.6rem 1.4rem;
   margin: -0.5rem -0.25rem 2.2rem;
-  padding: 0 0.25rem 0.9rem;
+  padding: 0 0.25rem var(--header-pad);
   border-bottom: 1px solid rgba(var(--silver-400-rgb), 0.4);
 }
 
@@ -41,6 +49,38 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.3rem;
+  /* Before the account menu on a wide screen. The menu is first in the markup so that on a
+     phone it can sit beside the wordmark; `order` is what puts it last here. */
+  order: 1;
+}
+
+.running-title {
+  margin-right: auto;
+}
+
+.running-account {
+  order: 2;
+}
+
+@media (max-width: 420px) {
+  /* The envelope and the avatar share the wordmark's row on a phone; at full size the three do not
+     fit in 390px and the account controls drop to a line of their own. */
+  .running-title {
+    font-size: 1.2rem;
+    gap: 0.45rem;
+  }
+}
+
+@media (max-width: 720px) {
+  /* The links get a row of their own, under the wordmark and the avatar. */
+  .running-account {
+    order: 1;
+  }
+
+  .running-nav {
+    order: 2;
+    flex-basis: 100%;
+  }
 }
 
 .running-nav button {
@@ -51,7 +91,12 @@
   color: var(--silver-400);
   background: none;
   border: none;
-  padding: 0 0 0.65rem;
+  /* The 44px height comes from a11y.css; centring the text in it, with no padding under it, puts
+     the links on the same midline as the wordmark, the envelope and the avatar. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   position: relative;
 }
 
@@ -68,9 +113,37 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* On the header's rule, not above it. */
+  bottom: calc(var(--header-pad) * -1 - 1px);
   height: 2px;
   background: var(--silver-200);
+}
+
+/* The two account controls, the envelope and the avatar, stand in the row without a frame of their
+   own: each is already a shape (a glyph, a sigil), and a ring around it fought the avatar's own
+   frame and the house colours. Where you are is said the way it is for the page links: the same
+   underline, on the rule. Their files carry only what is particular to each. */
+.running-account .owl-link,
+.running-account .account-trigger {
+  position: relative;
+  border: 0;
+  border-radius: 50%;
+}
+
+.running-account .owl-link.on::after,
+.running-account .account-trigger.on::after {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  right: 0.3rem;
+  bottom: calc(var(--header-pad) * -1 - 1px);
+  height: 2px;
+  background: var(--silver-200);
+}
+
+.running-account .account-trigger:hover .avatar,
+.running-account .account-trigger:focus-visible .avatar {
+  filter: brightness(1.18);
 }
 
 /* --- generic filter-toggle pills (leaderboard scope/window switches). Default styling sits on
@@ -104,6 +177,21 @@
   background: rgba(var(--silver-400-rgb), 0.12);
 }
 
+/* On a phone a row of tabs that would wrap leaves one orphaned on a line of its own. Four or more
+   sit two to a row; fewer share one row equally. Full-width pills are also easier to hit. */
+@media (max-width: 520px) {
+  .nav-links.on-surface {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .nav-links.on-surface:has(> :nth-child(4)) {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* On-surface variant — for a .nav-links row nested inside a <Plate> (light parchment), where
    the silver chrome above is calibrated for the dark page and goes low-contrast. Colors match
    the rest of the on-surface system (ink-based text, brass accent for the active state), the
@@ -131,6 +219,14 @@
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 1.5rem;
+}
+
+/* A screen's heading can carry someone's name (a profile, a thread, "Playing as ..."), up to 40 characters with
+   no break in them. min-width: 0 lets a flex child shrink below that, and `anywhere` is what lets the text break
+   so it can: without both, the name widens the page instead of wrapping. */
+.screen-head > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Rubric labels. On the dark page they take the house's on-page accent (rubric proper is

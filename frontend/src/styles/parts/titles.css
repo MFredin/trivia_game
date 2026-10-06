@@ -1,0 +1,78 @@
+/* --- titles: a short label worn beside a name ---
+   Always on parchment (rows, profile plate, the account menu), so both colours are the on-surface ones. */
+.player-title {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+.player-title--earned {
+  color: var(--text-muted-on-surface);
+}
+
+.player-title--system {
+  color: var(--rubric);
+  font-weight: 600;
+}
+
+/* On the dark page, in a screen heading. */
+.player-title--on-page {
+  color: var(--silver-200);
+}
+
+/* Beside a name in a table cell, not under it. */
+.player-title--inline {
+  margin-left: 0.5rem;
+}
+
+/* The line under a name in a list: the title, then how you stand with them. */
+.member-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  align-items: baseline;
+}
+
+/* On a profile, big enough to be read as part of who they are. */
+.player-title--profile {
+  display: block;
+  font-size: 1rem;
+  margin-top: 0.1rem;
+}
+
+/* --- choosing one --- */
+.title-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.35rem 1rem;
+}
+
+.title-picker-locked {
+  margin-top: 1rem;
+}
+
+.title-picker-locked summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.title-locked-row {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0;
+}
+
+.title-locked-name {
+  font-family: var(--font-display);
+}
+
+.title-locked-how {
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
+}

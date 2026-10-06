@@ -1,3 +1,5 @@
+// Every achievement, earned or not, with what it takes. Earned ones are what can be pinned to a profile and what unlock
+// titles and avatar parts (Edit Profile shows which).
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import { getAchievements } from '../api/catalog.js';
@@ -62,6 +64,7 @@ export default function AchievementsScreen({ token }) {
                   <span className="achievement-name">{a.name}</span>
                 </div>
                 <p className="achievement-desc">{a.description}</p>
+                {a.title && <p className="achievement-title-note">Earns the title {a.title}</p>}
                 {a.unlocked && (
                   <p className="achievement-date">Unlocked {new Date(a.unlocked_at).toLocaleDateString()}</p>
                 )}

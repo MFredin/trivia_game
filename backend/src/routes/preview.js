@@ -11,7 +11,7 @@ const router = express.Router();
 // A stranger's first taste shouldn't be a N.E.W.T.-tier stumper — every preview question
 // comes from the easiest tier only.
 const PREVIEW_TIER = 'First Year';
-const PREVIEW_TIME_LIMIT_MS = 20000;
+const PREVIEW_TIME_LIMIT_MS = 30000;
 const PREVIEW_QUESTION_COUNT = 5;
 
 // Unauthenticated and hit from a "Try it now" link with no account behind it, so this is

@@ -5,10 +5,13 @@
   inset: 0;
   background: rgba(4, 4, 6, 0.72);
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 1.25rem;
   z-index: 50;
+  /* A dialog taller than the screen (a phone on its side, a long form) scrolls inside the overlay. The plate
+     is centred with `margin: auto` rather than align-items: center because the latter centres a too-tall box
+     beyond the top edge, where nothing can scroll to it. `contain` keeps the page behind from scrolling too. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   animation: modal-fade-in 220ms ease-out;
 }
 
@@ -23,7 +26,9 @@
 
 .modal-plate {
   position: relative;
-  max-width: 440px;
+  /* Never wider than the screen less the overlay's padding: it was 440px on a 390px phone, cut off at both edges. */
+  width: min(100%, 440px);
+  margin: auto;
   background: var(--parchment-100);
   background-image: var(--paper-grain);
   border-radius: 3px;

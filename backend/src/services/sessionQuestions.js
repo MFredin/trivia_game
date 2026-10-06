@@ -19,7 +19,9 @@ export function pickNextQuestion({ session, questions, position, excludeIds }) {
         ? session.duel_id
         : session.mode === 'challenge'
           ? session.challenge_id
-          : null;
+          : session.mode === 'tournament'
+            ? session.tournament_match_id
+            : null;
   const rng = deterministicKey ? mulberry32(seedFromString(`${deterministicKey}:${position}`)) : cryptoRng();
 
   // Classic mode with no explicit difficulty filter guarantees a tier for the first few
@@ -34,6 +36,7 @@ export function pickNextQuestion({ session, questions, position, excludeIds }) {
     category: session.category,
     canonSource: session.canon_source,
     obscurityTier: floorTier ?? session.obscurity_filter,
+    theme: session.theme,
     count: 1,
     excludeIds,
     rng,
@@ -48,6 +51,7 @@ export function pickNextQuestion({ session, questions, position, excludeIds }) {
       category: session.category,
       canonSource: session.canon_source,
       obscurityTier: session.obscurity_filter,
+      theme: session.theme,
       count: 1,
       excludeIds,
       rng,

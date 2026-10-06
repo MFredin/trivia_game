@@ -65,6 +65,13 @@ for (const m of hj.matchAll(/\{\s*id:\s*'([a-z]+)'[^}]*\}/g)) {
   );
 }
 
+// ---------- parse avatarStyle.js ----------
+const avatarSrc = readFileSync(join(SRC, 'constants', 'avatarStyle.js'), 'utf8');
+const AVATAR_COLORS = [...avatarSrc.matchAll(/\{ id: '([a-z]+)', label: '[^']+', disc: '(#[0-9a-f]{6})', deep: '(#[0-9a-f]{6})', mark: '(#[0-9a-f]{6})' \}/g)].map(
+  (m) => ({ id: m[1], disc: m[2], deep: m[3], mark: m[4] }),
+);
+if (AVATAR_COLORS.length < 9) throw new Error(`expected the avatar colours in constants/avatarStyle.js, found ${AVATAR_COLORS.length}`);
+
 // ---------- the pairings the app renders ----------
 function build(house) {
   const t = (n) => tok(house, n);
@@ -90,6 +97,7 @@ function build(house) {
   add('body text on parchment', ink, parch, 4.5, '.plate / .choice-text');
   add('muted text on parchment', mutedOnSurface, parch, 4.5, '.explanation / field labels');
   add('rubric eyebrow on parchment', rubric, parch, 4.5, '.plate .screen-eyebrow');
+  add('selected avatar part on its fill', parch, ink, 4.5, '.designer-group-button[aria-pressed=true]');
   add('choice letter on parchment', rubric, parch, 4.5, '.choice-chip');
   add('question numeral on parchment', rubric, parch, 3.0, '.qcard-margin-numeral, 41.6px');
   add('summary numeral on parchment', rubric, parch, 3.0, '.summary-numeral, 67px');
@@ -105,6 +113,10 @@ function build(house) {
   add('nav link on page', t('--silver-400'), page, 4.5, '.running-nav button');
   add('nav active link on page', t('--silver-200'), page, 4.5, '.running-nav button.on');
   add('wordmark on page', t('--silver-200'), page, 3.0, '.running-title');
+  add('section tab label on page', t('--silver-200'), page, 4.5, '.section-tab');
+  add('section tab label on selected rail wash', t('--silver-200'), over(hexrgb('#ffffff'), page, 0.08), 4.5, '.section-tabs--rail .section-tab[aria-selected]');
+  add('section tab hint on page', t('--silver-400'), page, 4.5, '.section-tab-hint, .settings-rail-note');
+  add('section tab marker on page', onbg, page, 3.0, '.section-tab-pip and the selected rule (non-text)');
 
   // on cloth (spines, the Ex Libris board, the question spread's spine strip)
   add('spine label on cloth', tooling, cloth, 4.5, '.mode-spine label');
@@ -131,6 +143,13 @@ function build(house) {
   add('wrong choice letter on tint', oxblood, wrongBg, 4.5, '.is-wrong .choice-chip');
   add('muted choice text on tint', mutedOnSurface, over(hexrgb('#ffffff'), parch, 0.12), 4.5, '.is-muted');
   add('strike dot on parchment', oxblood, parch, 3.0, '.strike-dot (meaningful)');
+  add('danger label on parchment', oxblood, parch, 4.5, '.icon-button--danger / .popover-menu-item.is-danger');
+  add('danger label on menu wash', oxblood, over(hexrgb('#ffffff'), parch, 0.55), 4.5, '.icon-button--danger on its own fill');
+  add('online status on parchment', successInk, parch, 4.5, '.profile-online');
+  add('member caption on parchment', mutedOnSurface, parch, 4.5, '.member-caption / .account-menu-house');
+  add('earned title on parchment', mutedOnSurface, parch, 4.5, '.player-title--earned, .title-locked-how');
+  add('system title on parchment', rubric, parch, 4.5, '.player-title--system');
+  add('title on the page', t('--silver-200'), page, 4.5, '.player-title--on-page');
   add('reveal correct heading', t('--verdigris-400'), t('--ink-800'), 4.5, '.result-reveal h2');
   add('reveal incorrect heading', onbg, t('--ink-800'), 4.5, '.result-reveal.is-wrong h2');
   add('reveal points on panel', onbg, t('--ink-800'), 3.0, '.result-reveal .points');
@@ -145,6 +164,11 @@ function build(house) {
   add('lifeline border on parchment', rubric, parch, 3.0, '.lifeline-btn border');
   add('lifeline cost note on parchment', mutedOnSurface, parch, 4.5, '.lifeline-cost');
   add('struck choice on parchment', mutedOnSurface, parch, 4.5, '.choice-button.is-struck');
+  // Tournaments: every colour is a role token already used on parchment, so these name the pairings rather than add new ones.
+  add('tournament notes on parchment', mutedOnSurface, parch, 4.5, '.tournament-note, .tournament-row-note, .bracket-note, .bracket-side.is-loser, .bracket-side.is-empty');
+  add('bracket round title on parchment', rubric, parch, 4.5, '.bracket-round-title');
+  add('bracket advanced tag on parchment', rubric, parch, 4.5, '.bracket-tag');
+  add('bracket match border on parchment', mutedOnSurface, parch, 3.0, '.bracket-match border, .bracket-seed border');
   add('catalog tab label', over(hexrgb('#12151c'), t('--parchment-200'), 0.68), t('--parchment-200'), 4.5, '.catalog-tab');
 
   // fixed per-house colours, shown whatever the viewer's own binding is, so both
@@ -154,6 +178,20 @@ function build(house) {
     add(`house.ink on ${pname}`, hexrgb(hd.ink), p, 4.5, 'HouseCupBoard / ProfileScreen');
   }
   add('chip device on cover', hexrgb(hd.accent), hexrgb(hd.cover), 3.0, '.house-swatch-device');
+  // The avatar's glyph and initial sit on the disc's gradient, which runs cover to coverDeep.
+  for (const disc of [hd.cover, hd.coverDeep]) {
+    add('avatar mark on disc', hexrgb(hd.sigil), hexrgb(disc), 3.0, 'Avatar sigil / initial (meaningful)');
+  }
+  // The fixed avatar colours a player can pick instead of their house (constants/avatarStyle.js):
+  // the mark has to read on both ends of the disc's gradient. Listed once, under the house loop's
+  // first pass, since they do not depend on the binding.
+  if (house === 'gryffindor') {
+    for (const c of AVATAR_COLORS) {
+      for (const disc of [c.disc, c.deep]) {
+        add(`avatar colour ${c.id}`, hexrgb(c.mark), hexrgb(disc), 3.0, 'Avatar sigil on a chosen colour (meaningful)');
+      }
+    }
+  }
 
   // ornament — listed, never gated
   add('[orn] dial bezel on parchment', gilt, parch, null, 'decorative');

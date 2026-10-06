@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getMe, updateTheme } from '../../api/auth.js';
+import { isRestriction } from '../moderation/restrictionMessage.js';
 import { DEFAULT_HOUSE } from '../../constants/houses.js';
+import { readStored, removeStored, writeStored } from '../../lib/storage.js';
 
 const TOKEN_STORAGE_KEY = 'trivia_auth_token';
 
@@ -11,13 +13,13 @@ const TOKEN_STORAGE_KEY = 'trivia_auth_token';
  * know whether to show the auth screen or the start screen, and flashing one before the other
  * is worse than a blank frame.
  */
-export function useAuth({ onAuthenticated, onLoggedOut }) {
+export function useAuth({ onAuthenticated, onLoggedOut, onRestricted }) {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const stored = readStored(TOKEN_STORAGE_KEY);
     if (!stored) {
       setChecked(true);
       return;
@@ -28,7 +30,12 @@ export function useAuth({ onAuthenticated, onLoggedOut }) {
         setUser(data.user);
         onAuthenticated(data.user);
       })
-      .catch(() => localStorage.removeItem(TOKEN_STORAGE_KEY))
+      .catch((err) => {
+        removeStored(TOKEN_STORAGE_KEY);
+        // A stored token for an account that has since been suspended or banned: say so, rather
+        // than dropping the player at a login screen with no idea why.
+        if (isRestriction(err)) onRestricted?.(err.data);
+      })
       .finally(() => setChecked(true));
     // Once, on mount: a stored token is checked when the app opens and never again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -41,14 +48,21 @@ export function useAuth({ onAuthenticated, onLoggedOut }) {
   }, [user?.theme]);
 
   const authenticate = useCallback((newToken, newUser) => {
-    localStorage.setItem(TOKEN_STORAGE_KEY, newToken);
+    writeStored(TOKEN_STORAGE_KEY, newToken);
     setToken(newToken);
     setUser(newUser);
     onAuthenticated(newUser);
   }, [onAuthenticated]);
 
+  // The server hands back a new token when it ends the account's other sessions (a password change): keep
+  // using it, or this device would be the one that gets signed out.
+  const replaceToken = useCallback((newToken) => {
+    writeStored(TOKEN_STORAGE_KEY, newToken);
+    setToken(newToken);
+  }, []);
+
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    removeStored(TOKEN_STORAGE_KEY);
     setToken(null);
     setUser(null);
     onLoggedOut();
@@ -63,5 +77,9 @@ export function useAuth({ onAuthenticated, onLoggedOut }) {
     }
   }, [token]);
 
-  return { token, user, checked, authenticate, logout, selectTheme };
+  // For changes the server has already accepted (avatar, privacy): take its copy of the account
+  // as the truth rather than patching fields here and hoping the two agree.
+  const updateUser = useCallback((nextUser) => setUser(nextUser), []);
+
+  return { token, user, checked, authenticate, replaceToken, logout, selectTheme, updateUser };
 }

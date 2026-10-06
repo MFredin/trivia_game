@@ -1,0 +1,78 @@
+/* --- a player in a list ---
+   Builds on .friend-row (flex, hairline between rows). The identity half asks for room enough to
+   read a name (the 9rem below), and the actions never shrink. When a row has more buttons than the
+   screen can fit beside that, the buttons drop to a line of their own under the name, at the right,
+   instead of squeezing the name into fragments three letters wide; one or two buttons still sit
+   beside it even at 390px. */
+.member-row {
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.member-id {
+  display: flex;
+  align-items: center;
+  flex: 1 1 9rem;
+  gap: 0.75rem;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.member-id:hover .member-name {
+  text-decoration: underline;
+}
+
+.member-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.member-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  /* Only a name with no break in it (a long handle) is split, and only if it must be. `anywhere`, not
+     `break-word`: only `anywhere` lets the name shrink inside a flex row, which is what stops a 40-character
+     name from widening the page. */
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.member-caption {
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
+}
+
+.member-actions {
+  display: flex;
+  flex: none;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+/* A line of the activity feed: the same avatar as everywhere, then a sentence with the name in it. */
+.activity-row {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+.activity-text {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.activity-name {
+  font-weight: 600;
+}

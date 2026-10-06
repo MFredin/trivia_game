@@ -46,6 +46,13 @@
   color: var(--text-muted-on-surface);
 }
 
+.achievement-title-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-muted-on-surface);
+}
+
 .achievement-date {
   margin: 0.4rem 0 0;
   font-size: 0.7rem;

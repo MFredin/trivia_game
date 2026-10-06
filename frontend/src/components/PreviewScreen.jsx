@@ -1,3 +1,5 @@
+// The signed-out preview: a few real questions, answered one by one with the same reveal as a run, then a button that takes them on
+// to registering. Scored on the server; nothing is saved to a leaderboard.
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import QuestionCard from './QuestionCard.jsx';
@@ -126,7 +128,7 @@ export default function PreviewScreen({ onDone }) {
       </p>
       <QuestionCard
         question={question}
-        timeLimitMs={20000}
+        timeLimitMs={30000}
         issuedAt={issuedAt}
         timingMode="per_question"
         sessionCreatedAt={issuedAt}

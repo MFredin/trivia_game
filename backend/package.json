@@ -8,13 +8,21 @@
     "dev": "node --watch src/index.js",
     "db:migrate": "node src/db/migrate.js",
     "db:seed": "node src/db/seed.js",
-    "test": "QUESTION_TOKEN_SECRET=test-secret AUTH_TOKEN_SECRET=test-auth-secret node --test"
+    "audit:questions": "node scripts/question-bank-audit.mjs",
+    "test": "QUESTION_TOKEN_SECRET=test-secret AUTH_TOKEN_SECRET=test-auth-secret node --test",
+    "lint": "eslint ."
   },
   "dependencies": {
+    "@sentry/node": "^11.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "pg": "^8.12.0",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0"
   }
 }

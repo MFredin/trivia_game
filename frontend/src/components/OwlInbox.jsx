@@ -1,0 +1,61 @@
+import Plate from './Plate.jsx';
+import Avatar from './Avatar.jsx';
+import PlayerTitle from './PlayerTitle.jsx';
+
+const when = (iso) => {
+  const d = new Date(iso);
+  const sameDay = d.toDateString() === new Date().toDateString();
+  return sameDay ? d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+};
+
+/** Every conversation, newest first, with what was said last and how many are unread. */
+export default function OwlInbox({ conversations, onOpen, onCompose }) {
+  return (
+    <Plate>
+      {conversations === null && <p className="explanation">Fetching&hellip;</p>}
+      {conversations && conversations.length === 0 && (
+        <div className="owl-empty">
+          <p className="owl-empty-title">Nothing in your owlery yet</p>
+          <p className="explanation">
+            Owl Post is for short messages to other players, for planning a duel or saying well played. Send your first owl, or start one from anyone&rsquo;s row or profile.
+          </p>
+          <button type="button" className="primary-button" onClick={onCompose}>
+            Send an owl
+          </button>
+        </div>
+      )}
+      {conversations && conversations.length > 0 && (
+        <ul className="friend-list">
+          {conversations.map((c) => (
+            <li key={c.username} className="friend-row owl-row">
+              <button type="button" className="member-id" onClick={() => onOpen(c.username)}>
+                <Avatar username={c.username} avatar={c.avatar} style={c.avatar_style} house={c.theme} size={40} />
+                <span className="member-text owl-row-text">
+                  <span className="member-name">
+                    <span className={`online-dot ${c.online ? 'is-online' : ''}`} aria-hidden="true" />
+                    {c.username}
+                    <PlayerTitle title={c.title} />
+                    {c.is_friend === false && <span className="owl-row-tag">Not a friend</span>}
+                    <span className="owl-row-when">{when(c.last.created_at)}</span>
+                  </span>
+                  <span className={`owl-row-preview ${c.unread > 0 ? 'is-unread' : ''}`}>
+                    {c.last.from_me ? 'You: ' : ''}
+                    {c.last.subject && <strong className="owl-row-subject">{c.last.subject}</strong>}
+                    {c.last.subject ? ' \u2014 ' : ''}
+                    {c.last.body}
+                  </span>
+                </span>
+                {c.unread > 0 && (
+                  <span className="owl-badge" aria-label={`${c.unread} unread`}>
+                    {c.unread}
+                  </span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="explanation owl-retention">Owls are deleted after 90 days.</p>
+    </Plate>
+  );
+}

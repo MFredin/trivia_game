@@ -1,3 +1,6 @@
+// Suggest a Question (reached from the Marauder's Map easter egg): a form for a question, its answer, three wrong
+// answers and a source. Submissions wait for an admin and never reach the live bank unreviewed; the player's own
+// submissions and their status are listed below.
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import { getMySuggestions, submitSuggestion } from '../api/suggestions.js';

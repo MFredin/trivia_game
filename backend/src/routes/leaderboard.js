@@ -1,16 +1,19 @@
+import { titleView } from '../lib/titles.js';
 import express from 'express';
 import { pool } from '../db/pool.js';
-import { MODES } from '../lib/modes.js';
+import { MODES, UNRANKED_MODES } from '../lib/modes.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { getCached, setCached } from '../lib/leaderboardCache.js';
 import { currentLeaderboardWindow } from '../lib/leaderboardWindow.js';
 import { dailyKeyFor } from '../lib/questionSelection.js';
 import { optionalAuth } from '../middleware/auth.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
 router.get('/', optionalAuth, async (req, res) => {
-  const mode = MODES[req.query.mode] ? req.query.mode : 'classic';
+  // A mode in UNRANKED_MODES (a tournament match) is not a board: asking for one gets the Classic board, not its scores.
+  const mode = MODES[req.query.mode] && !UNRANKED_MODES.includes(req.query.mode) ? req.query.mode : 'classic';
   const limit = Math.min(Number(req.query.limit) || 20, 100);
   const category = typeof req.query.category === 'string' ? req.query.category : null;
   const canonSource = ['books', 'movies', 'combined'].includes(req.query.canon_source)
@@ -30,7 +33,10 @@ router.get('/', optionalAuth, async (req, res) => {
   const cached = getCached(cacheKey);
   if (cached) return res.json(cached);
 
-  const conditions = [`gs.mode = $1`, `gs.status = 'completed'`];
+  // Phase 2 anti-cheat (docs/anti-cheat-architecture.md): a shadow-flagged run is excluded from
+  // this PUBLIC board only — it still shows up in the player's own session/profile data, and
+  // it is never auto-banned, just held back pending a human look.
+  const conditions = [`gs.mode = $1`, `gs.status = 'completed'`, `gs.flagged_for_review = false`];
   const params = [mode];
 
   // category and difficulty are the two run attributes that can be genuinely NULL (a player
@@ -76,7 +82,7 @@ router.get('/', optionalAuth, async (req, res) => {
   // player once instead of letting one prolific player fill it with their own past attempts.
   const { rows } = await pool.query(
     `WITH ranked AS (
-       SELECT u.username, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
+       SELECT ${displayNameSql('u')} AS username, u.title AS title_id, gs.total_score, gs.category, gs.canon_source, gs.obscurity_filter AS difficulty,
               gs.completed_at, (gs.completed_at - gs.created_at) AS duration,
               ROW_NUMBER() OVER (
                 PARTITION BY gs.user_id
@@ -86,7 +92,7 @@ router.get('/', optionalAuth, async (req, res) => {
        JOIN users u ON u.id = gs.user_id
        WHERE ${conditions.join(' AND ')}
      )
-     SELECT username, total_score, category, canon_source, difficulty, completed_at
+     SELECT username, title_id, total_score, category, canon_source, difficulty, completed_at
      FROM ranked
      WHERE rn = 1
      ORDER BY total_score DESC, duration ASC
@@ -94,7 +100,7 @@ router.get('/', optionalAuth, async (req, res) => {
     params,
   );
 
-  const result = { mode, category, canon_source: canonSource, difficulty, scope, window, entries: rows };
+  const result = { mode, category, canon_source: canonSource, difficulty, scope, window, entries: rows.map(({ title_id: titleId, ...row }) => ({ ...row, title: titleView(titleId) })) };
   setCached(cacheKey, result);
   return res.json(result);
 });
@@ -113,7 +119,7 @@ router.get('/house-cup', async (req, res) => {
     `WITH best_per_user AS (
        SELECT DISTINCT ON (gs.user_id) gs.user_id, gs.total_score
        FROM game_sessions gs
-       WHERE gs.status = 'completed'
+       WHERE gs.status = 'completed' AND gs.flagged_for_review = false AND gs.mode <> ALL($1)
        ORDER BY gs.user_id, gs.total_score DESC
      )
      SELECT u.theme, SUM(b.total_score) AS total_score, COUNT(*) AS players
@@ -121,6 +127,7 @@ router.get('/house-cup', async (req, res) => {
      JOIN users u ON u.id = b.user_id
      GROUP BY u.theme
      ORDER BY total_score DESC`,
+    [UNRANKED_MODES],
   );
 
   const houses = rows

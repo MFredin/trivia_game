@@ -1,0 +1,373 @@
+/* --- Owl Post: the envelope, the inbox and a conversation --- */
+
+/* The envelope in the running header, beside the avatar. 44px like every nav control. */
+.running-account {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.owl-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  /* No frame: the "you are here" underline is shared with the avatar and drawn in chrome.css. */
+  color: var(--silver-400);
+  cursor: pointer;
+}
+
+.owl-link:hover {
+  color: var(--text-on-bg);
+}
+
+.owl-link.on {
+  color: var(--silver-200);
+}
+
+/* The unread count: a filled pill so it reads as a count and not as decoration. */
+.owl-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--rubric);
+  color: var(--parchment-100);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.owl-link-badge {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  /* On the dark page the rubric can be dim; a pale ring keeps the count legible there. */
+  box-shadow: 0 0 0 2px var(--page);
+}
+
+/* --- the inbox --- */
+.owl-row .member-id {
+  width: 100%;
+}
+
+.owl-row-text {
+  flex: 1 1 auto;
+}
+
+.owl-row-when {
+  margin-left: auto;
+  padding-left: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--text-muted-on-surface);
+  white-space: nowrap;
+}
+
+.owl-row .member-name {
+  width: 100%;
+}
+
+.owl-row-preview {
+  font-size: 0.9rem;
+  color: var(--text-muted-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owl-row-preview.is-unread {
+  color: var(--text-on-surface);
+  font-weight: 600;
+}
+
+.owl-retention {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+}
+
+/* --- a conversation --- */
+.owl-thread-title {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.owl-thread-who {
+  flex: 0 1 auto;
+}
+
+.owl-thread-name {
+  font-size: 1.5rem;
+  overflow-wrap: anywhere;
+}
+
+/* A long conversation scrolls inside this box, with the composer below it always on screen, instead of lengthening
+   the page. useFillViewport sets the real max-height from what is left of the screen; the value here is only the
+   fallback before it runs (about 33rem of header, title row, padding and composer; `dvh` follows a phone's
+   collapsing address bar, with `vh` for browsers that do not know it). The floor keeps it usable on a very short
+   screen. */
+.owl-scroll {
+  max-height: calc(100vh - 33rem);
+  max-height: calc(100dvh - 33rem);
+  min-height: 12rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 0.3rem;
+}
+
+.owl-scroll:focus-visible {
+  outline: 2px solid var(--rubric);
+  outline-offset: 2px;
+}
+
+.owl-older {
+  display: block;
+  margin: 0 auto 1rem;
+}
+
+.owl-messages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Mine on the right, theirs on the left, as in any conversation; `align-items` rather than margins
+   so a long message still wraps inside the column instead of widening it. */
+.owl-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.owl-message--mine {
+  align-items: flex-end;
+}
+
+.owl-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: min(100%, 30rem);
+  padding: 0.55rem 0.8rem;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(18, 21, 28, 0.2);
+  border-radius: 10px 10px 10px 2px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-on-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.owl-message--mine .owl-bubble {
+  background: rgba(var(--wash-rgb), 0.22);
+  border-color: var(--rubric);
+  border-radius: 10px 10px 2px 10px;
+}
+
+.owl-bubble-text {
+  /* Their words, not ours: wrap anywhere rather than let one long string widen the page. */
+  overflow-wrap: anywhere;
+}
+
+.owl-bubble-time {
+  font-size: 0.72rem;
+  color: var(--text-muted-on-surface);
+}
+
+/* --- the composer --- */
+.owl-composer {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  background: var(--parchment-100);
+  color: var(--text-on-surface);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(var(--gilt-rgb), 0.7);
+}
+
+.owl-composer textarea {
+  width: 100%;
+  background: #f6f1e6;
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  border-radius: 3px;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-on-surface);
+  resize: vertical;
+}
+
+.owl-composer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-top: 0.6rem;
+}
+
+.owl-composer-help {
+  font-size: 0.8rem;
+  color: var(--text-muted-on-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.owl-blocked {
+  margin: 0;
+}
+
+.owl-composer .error-banner {
+  margin: 0.6rem 0 0;
+}
+
+/* --- a conversation attached to a report, on the moderators' screen --- */
+.report-evidence {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.report-evidence summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.report-evidence-list {
+  margin: 0;
+  padding: 0.4rem 0.8rem;
+  list-style: none;
+  border-left: 3px solid var(--rubric);
+  background: rgba(var(--wash-rgb), 0.1);
+}
+
+.report-evidence-list li {
+  padding: 0.2rem 0;
+  overflow-wrap: anywhere;
+}
+
+.report-evidence-who {
+  font-weight: 700;
+}
+
+.report-evidence-time {
+  font-size: 0.75rem;
+  color: var(--text-muted-on-surface);
+}
+
+@media (max-width: 480px) {
+  .owl-thread-name {
+    font-size: 1.2rem;
+  }
+}
+
+/* --- a message's subject, and writing a new owl --- */
+.owl-bubble-subject {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.owl-row-subject {
+  font-weight: 600;
+}
+
+.owl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.owl-empty-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.owl-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-width: 40rem;
+}
+
+.owl-compose-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* The shared field style is for a row, where `flex: 1` sets its width; in this column it would set
+   its height. */
+.owl-compose .friend-add-input {
+  flex: none;
+}
+
+.owl-compose-optional {
+  font-weight: 400;
+  color: var(--text-muted-on-surface);
+}
+
+.owl-compose-body {
+  width: 100%;
+  resize: vertical;
+  background: #f6f1e6;
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  border-radius: 3px;
+  padding: 0.75rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-on-surface);
+}
+
+.owl-compose-problem {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--oxblood-600);
+}
+
+.owl-compose-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+
+/* A conversation with someone who is not a friend says so, and a stranger's row in the inbox wears a tag. */
+.owl-stranger-note {
+  margin: 0 0 0.9rem;
+}
+
+.owl-row-tag {
+  flex: none;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid rgba(18, 21, 28, 0.35);
+  border-radius: 2px;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-muted-on-surface);
+}
+
+.owl-thread-name-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}

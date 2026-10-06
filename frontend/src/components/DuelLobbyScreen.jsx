@@ -1,3 +1,5 @@
+// Setting up a duel with one opponent: category, difficulty, canon, then send the invitation. Shows the waiting state
+// until they answer (the answer arrives over the WebSocket, handled in useDuels).
 import { useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
@@ -26,7 +28,7 @@ export default function DuelLobbyScreen({ opponentUsername, categories, outgoing
           <div style={{ textAlign: 'center' }}>
             <p className="explanation">Waiting for {opponentUsername} to accept your challenge&hellip;</p>
             <button type="button" className="secondary-button" onClick={onLeave}>
-              Back to Friends
+              Back to Community
             </button>
           </div>
         ) : (

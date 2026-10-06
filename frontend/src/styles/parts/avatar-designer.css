@@ -1,0 +1,319 @@
+/* --- the avatar designer and the "about you" form on Edit Profile --- */
+.designer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.designer-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.4rem, 1fr));
+  gap: 0.4rem;
+}
+
+.designer-locked {
+  margin: 0.45rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted-on-surface);
+}
+
+/* A 44px+ target around a 40px avatar. The ring carries "selected" so it does not depend on colour
+   alone. A locked option stays visible, dimmed and padlocked, so it reads as something to earn. */
+.avatar-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.4rem;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.avatar-option:hover:not(:disabled) {
+  border-color: rgba(18, 21, 28, 0.25);
+}
+
+.avatar-option.is-active {
+  border-color: var(--rubric);
+  background: rgba(var(--wash-rgb), 0.14);
+}
+
+.avatar-option.is-locked {
+  cursor: not-allowed;
+}
+
+.avatar-option.is-locked .avatar {
+  opacity: 0.45;
+}
+
+.avatar-option-lock {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--parchment-100);
+  color: var(--text-on-surface);
+  box-shadow: 0 0 0 1px rgba(18, 21, 28, 0.35);
+}
+
+/* --- about you --- */
+.profile-bio-help {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.profile-bio-count {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.pin-fieldset {
+  border: none;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.pin-fieldset legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.pin-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.08);
+  cursor: pointer;
+}
+
+.pin-option:last-child {
+  border-bottom: none;
+}
+
+.pin-option-name {
+  font-weight: 600;
+}
+
+.pin-option-desc {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+}
+
+/* The save bar stays at the foot of the screen while the page scrolls, because the form is long
+   and the button that matters is at its far end. */
+.edit-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  background: var(--parchment-100);
+  color: var(--text-on-surface);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgba(var(--gilt-rgb), 0.7),
+    0 -10px 30px -12px rgba(0, 0, 0, 0.7);
+}
+
+.edit-savebar-status {
+  font-size: 0.9rem;
+  color: var(--text-muted-on-surface);
+}
+
+.edit-savebar-error {
+  flex-basis: 100%;
+  color: var(--oxblood-600);
+  font-size: 0.9rem;
+}
+
+.edit-savebar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Which part of the avatar is being edited: one row of buttons, each naming what is picked now. */
+.designer-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.designer-group-button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  background: transparent;
+  color: var(--text-on-surface);
+  border: 1px solid rgba(var(--rubric-rgb), 0.45);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  cursor: pointer;
+  min-height: 44px;
+  align-items: center;
+}
+
+.designer-group-button[aria-pressed='true'] {
+  background: var(--text-on-surface);
+  color: var(--parchment-100);
+  border-color: var(--text-on-surface);
+}
+
+.designer-group-value {
+  font-size: 0.82rem;
+  opacity: 0.8;
+}
+
+/* --- Edit Profile: a preview that stays in view, beside the tab being edited --- */
+.profile-editor {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.profile-editor-main {
+  min-width: 0;
+}
+
+.profile-preview {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  min-width: 0;
+}
+
+.profile-preview-who {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.profile-preview-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  overflow-wrap: anywhere;
+}
+
+.profile-preview-house,
+.profile-preview-state {
+  margin: 0;
+  color: var(--text-muted-on-surface);
+  font-size: 0.9rem;
+}
+
+.profile-preview-bio {
+  margin: 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(var(--rubric-rgb), 0.2);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+/* Pinned achievements: what is pinned as chips, and the rest in a scrolling list. */
+.pin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.pin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.3rem 0.15rem 0.8rem;
+  border: 1px solid var(--rubric);
+  border-radius: 999px;
+}
+
+.pin-chip-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.pin-count {
+  color: var(--text-muted-on-surface);
+  font-size: 0.9rem;
+}
+
+.pin-search {
+  width: 100%;
+  margin-bottom: 0.6rem;
+}
+
+.pin-list {
+  max-height: 18rem;
+  overflow-y: auto;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(var(--rubric-rgb), 0.25);
+  border-radius: 3px;
+}
+
+@media (max-width: 720px) {
+  .profile-editor {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+
+  /* The preview becomes a strip across the top that stays while the tab below scrolls. */
+  .profile-preview {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 0.9rem;
+    padding-block: 0.6rem;
+  }
+
+  .profile-preview .avatar {
+    flex: none;
+    width: 56px;
+    height: 56px;
+  }
+
+  .profile-preview-who {
+    align-items: flex-start;
+  }
+
+  .profile-preview-bio,
+  .profile-preview-state {
+    display: none;
+  }
+}

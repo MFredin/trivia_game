@@ -1,0 +1,144 @@
+/* --- the moderators' screen and what a moderated player sees --- */
+.mod-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.mod-chip {
+  padding: 0.15rem 0.55rem;
+  border: 1px solid rgba(18, 21, 28, 0.25);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--text-muted-on-surface);
+}
+
+.mod-suggestion {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.mod-state {
+  margin-left: 0.6rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid rgba(18, 21, 28, 0.3);
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}
+
+.mod-state.is-active {
+  border-color: var(--oxblood-600);
+  color: var(--oxblood-600);
+}
+
+/* --- the action dialog --- */
+.action-fieldset {
+  border: none;
+  margin: 1rem 0;
+  padding: 0;
+  min-width: 0;
+  text-align: left;
+}
+
+.action-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(18, 21, 28, 0.08);
+  cursor: pointer;
+}
+
+.action-option:last-child {
+  border-bottom: none;
+}
+
+.action-option-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.action-suggested {
+  padding: 0.05rem 0.45rem;
+  border-radius: 3px;
+  background: var(--rubric);
+  color: var(--parchment-100);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.action-option-effect {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+}
+
+.action-days,
+.modal-plate .start-form-field {
+  text-align: left;
+}
+
+.action-note-count {
+  margin: 0.3rem 0 0.8rem;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.action-warning {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.7rem;
+  border-left: 3px solid var(--oxblood-600);
+  background: rgba(92, 26, 43, 0.06);
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+/* The modal is narrow by default; this one carries a form. */
+.modal-plate:has(.action-fieldset) {
+  width: min(100%, 560px);
+}
+
+.modal-plate textarea {
+  width: 100%;
+  background: #f6f1e6;
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  border-radius: 3px;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-on-surface);
+  resize: vertical;
+}
+
+/* --- a notice from the moderators --- */
+.notice-note {
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--rubric);
+  background: rgba(var(--wash-rgb), 0.12);
+  color: var(--text-on-surface);
+  overflow-wrap: anywhere;
+}
+
+.notice-taken {
+  font-size: 0.9rem;
+}
+
+/* A report a moderator has sent up: said plainly, so an admin who opens the queue sees it first and why. */
+.mod-escalated {
+  margin: 0.4rem 0 0;
+  padding: 0.4rem 0.7rem;
+  border-left: 3px solid var(--rubric);
+  background: rgba(var(--rubric-rgb), 0.07);
+  font-size: 0.85rem;
+}

@@ -79,6 +79,12 @@ export const ACHIEVEMENTS = [
   },
 
   {
+    id: 'explorer_season',
+    category: 'Explorer',
+    name: 'Feast Guest',
+    description: 'Complete a seasonal run.',
+  },
+  {
     id: 'explorer_all_categories',
     category: 'Explorer',
     name: 'Well-Rounded',
@@ -160,5 +166,54 @@ export const ACHIEVEMENTS = [
     category: 'Social',
     name: 'Study Group',
     description: '3 or more players complete one of your challenge links.',
+  },
+
+  // Added with Titles (lib/titles.js): each is one an earned title can hang on.
+  { id: 'answers_100', category: 'Milestones', name: 'Page Turner', description: 'Answer 100 questions.' },
+  { id: 'answers_500', category: 'Milestones', name: 'Archivist', description: 'Answer 500 questions.' },
+  { id: 'answers_2000', category: 'Milestones', name: 'Keeper of the Stacks', description: 'Answer 2,000 questions.' },
+  {
+    id: 'accuracy_90',
+    category: 'Mastery',
+    name: 'Sharp Mind',
+    description: 'Keep 90% accuracy across at least 200 answers.',
+  },
+  {
+    id: 'mastery_flawless_10',
+    category: 'Mastery',
+    name: 'Perfectionist',
+    description: 'Complete 10 Classic or Daily Challenge runs with no wrong answers.',
+  },
+  {
+    id: 'explorer_all_tiers',
+    category: 'Explorer',
+    name: 'Seasoned Scholar',
+    description: 'Complete a run at every difficulty.',
+  },
+  {
+    id: 'explorer_all_modes',
+    category: 'Explorer',
+    name: 'All-Rounder',
+    description: 'Complete a run in every solo mode: Classic, Daily Challenge, Blitz, Survival and Gauntlet.',
+  },
+  {
+    id: 'dedication_100',
+    category: 'Dedication',
+    name: 'Perennial',
+    description: 'Play the Daily Challenge on 100 different days.',
+  },
+  { id: 'social_duel_wins_25', category: 'Social', name: 'Grand Duellist', description: 'Win 25 duels.' },
+  { id: 'social_friends_25', category: 'Social', name: 'Pillar of the Community', description: 'Have 25 friends.' },
+  {
+    id: 'contrib_question_1',
+    category: 'Contribution',
+    name: 'Contributor',
+    description: 'Have a question you suggested approved.',
+  },
+  {
+    id: 'contrib_question_5',
+    category: 'Contribution',
+    name: 'Quizmaster',
+    description: 'Have 5 questions you suggested approved.',
   },
 ];

@@ -1,3 +1,5 @@
+// The signed-out preview (/api/preview): a few questions without an account, scored on the server like a real run but
+// kept off every leaderboard.
 import { request } from './request.js';
 
 export function startPreview() {

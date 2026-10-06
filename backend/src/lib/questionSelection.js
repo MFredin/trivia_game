@@ -1,3 +1,11 @@
+// Choosing which questions make up a run: filter the bank by category, difficulty and canon (books, movies or
+// both), then draw without repeats.
+//
+// Everything here is pure and takes its random source as an argument (`rng`), so a given seed always gives the same
+// run. That is how the Daily Challenge works (the day's date seeds the draw, so everyone gets the same ten
+// questions) and how tests can assert on a selection. Where the books and the films disagree, "combined" mode
+// favours the questions that depend on the difference.
+
 const DIVERGENCE_WEIGHT_IN_COMBINED = 3;
 
 function filterByCanonSource(questions, canonSource) {
@@ -31,11 +39,14 @@ export function selectQuestionSet({
   category,
   canonSource,
   obscurityTier,
+  theme,
   count,
   excludeIds = new Set(),
   rng,
 }) {
   let pool = category ? questions.filter((q) => q.category === category) : questions.slice();
+  // A season's run draws only on the questions tagged for its occasion.
+  if (theme) pool = pool.filter((q) => Array.isArray(q.themes) && q.themes.includes(theme));
   if (obscurityTier) pool = pool.filter((q) => q.obscurity_tier === obscurityTier);
   pool = filterByCanonSource(pool, canonSource).filter((q) => !excludeIds.has(q.id));
 

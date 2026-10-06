@@ -1,3 +1,11 @@
+// Signs and checks the token that travels with a question (anti-cheat, see docs/anti-cheat-architecture.md).
+//
+// When the server serves a question it hands the client a token: an HMAC over (session, question, the moment it was
+// served). An answer is accepted only with a matching token, so a client cannot answer a question it was never
+// served or claim a different serve time to get a bigger time bonus. (Answering the same question twice is refused
+// separately: services/answerFlow.js checks that it is still unanswered.) The secret is
+// QUESTION_TOKEN_SECRET, required at start-up. (Sign-in tokens are a different thing: lib/authTokens.js.)
+
 import crypto from 'node:crypto';
 import 'dotenv/config';
 

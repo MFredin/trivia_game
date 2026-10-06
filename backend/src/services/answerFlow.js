@@ -7,8 +7,11 @@ import { invalidateLeaderboardCache } from '../lib/leaderboardCache.js';
 import { evaluateAchievements } from './achievements.js';
 import { recordActivity } from './activity.js';
 import { getOpponentSession, maybeFinishDuel } from './duels.js';
+import { decideMatchIfReady } from './tournamentMatches.js';
+import { UNRANKED_MODES } from '../lib/modes.js';
 import { sendToUser } from '../lib/wsServer.js';
 import { SKIP, applyLifelineToScore } from '../lib/lifelines.js';
+import { detectRunAnomaly } from '../lib/anomalyDetection.js';
 
 // A question's clock starts when the player is handed the question (POST /:id/answer no
 // longer pre-serves the next one), but the handover itself still costs a round trip and a
@@ -124,6 +127,48 @@ export async function recordAnswer({ session, servedQuestion, chosenIndex, isSki
 }
 
 /**
+ * Phase 2 anomaly shadow-flag (docs/anti-cheat-architecture.md): on a completed run, looks at
+ * every answer the run actually recorded and flags the session when the pattern — perfect
+ * accuracy, concentrated at the hardest tier, near-minimum response times throughout — looks
+ * more like a scripted lookup than a human run. Shadow-flag only: this never blocks the player
+ * or touches their score, it only marks the row for the leaderboard query (see
+ * routes/leaderboard.js) to skip and for a human to glance at later.
+ *
+ * Restricted to 'per_question' timing modes. A 'session_total' mode (Blitz) stores each
+ * answer's elapsed_ms as time-since-run-start, not time-on-that-question, so "near-minimum
+ * response time" per answer isn't a meaningful read on it.
+ */
+async function flagRunIfAnomalous(session) {
+  const modeConfig = MODES[session.mode];
+  if (modeConfig.timingMode !== 'per_question') return;
+
+  const { rows } = await pool.query(
+    `SELECT sq.correct, sq.timed_out, sq.elapsed_ms, sq.lifeline, q.obscurity_tier
+     FROM session_questions sq
+     JOIN questions q ON q.id = sq.question_id
+     WHERE sq.session_id = $1 AND sq.answered_at IS NOT NULL`,
+    [session.id],
+  );
+
+  const answers = rows.map((row) => ({
+    correct: row.correct,
+    timedOut: row.timed_out,
+    skipped: row.lifeline === SKIP,
+    elapsedMs: row.elapsed_ms,
+    timeLimitMs: session.time_limit_ms,
+    obscurityTier: row.obscurity_tier,
+  }));
+
+  const { flagged, reason } = detectRunAnomaly(answers);
+  if (flagged) {
+    await pool.query('UPDATE game_sessions SET flagged_for_review = true, flag_reason = $1 WHERE id = $2', [
+      reason,
+      session.id,
+    ]);
+  }
+}
+
+/**
  * Everything the player's answer does not depend on: achievements, the personal-best activity
  * entry, duel messaging.
  *
@@ -138,6 +183,9 @@ export async function runPostAnswerBookkeeping({ session, outcome }) {
   const { correct, points, newTotalScore, streakAfter, sessionComplete } = outcome;
   try {
     if (sessionComplete) {
+      // Before the cache invalidation below, so a leaderboard read that re-populates the cache
+      // in the gap between the two can never do it from the pre-flag row.
+      await flagRunIfAnomalous(session);
       invalidateLeaderboardCache();
       await evaluateAchievements(session.user_id);
 
@@ -150,7 +198,7 @@ export async function runPostAnswerBookkeeping({ session, outcome }) {
         [session.user_id, session.id],
       );
       const prevBest = Number(bestRows[0].prev_best ?? 0);
-      if (newTotalScore > prevBest) {
+      if (newTotalScore > prevBest && !UNRANKED_MODES.includes(session.mode)) {
         await recordActivity(session.user_id, 'personal_best', { mode: session.mode, total_score: newTotalScore });
       }
 
@@ -166,6 +214,10 @@ export async function runPostAnswerBookkeeping({ session, outcome }) {
         }
       }
     }
+
+    // The last run of a tournament match finishing is one of the ways a match gets decided; the decision itself, and the
+    // checks on whether it is due, are in services/tournamentMatches.js.
+    if (session.tournament_match_id && sessionComplete) await decideMatchIfReady(session.tournament_match_id);
 
     if (session.duel_id) {
       const opponentSession = await getOpponentSession(session.duel_id, session.user_id);

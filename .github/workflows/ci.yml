@@ -41,9 +41,13 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
         working-directory: backend
+      # Mistakes a reader would also flag (an unused variable, an undefined name); no style rules.
+      - run: npm run lint
+        working-directory: backend
       - run: npm run db:migrate
         working-directory: backend
-      - run: npm run db:seed
+      # The whole bank: the seasonal flow test needs the tagged questions, and every other test runs against it fine.
+      - run: SEED_FILE=question-bank-full-draft.json npm run db:seed
         working-directory: backend
       - run: npm test
         working-directory: backend
@@ -58,6 +62,9 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+        working-directory: frontend
+      # Plain mistakes plus React's hooks rules (a hook called conditionally, an effect missing a dependency).
+      - run: npm run lint
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
@@ -106,13 +113,20 @@ jobs:
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
-      - run: npm run db:migrate && npm run db:seed
+      # The whole bank, not the 40-question starter: the seasonal bundles need their tagged questions.
+      - run: npm run db:migrate && SEED_FILE=question-bank-full-draft.json npm run db:seed
         working-directory: backend
       # nohup and a log file, so the process outlives the step that started it and its output
       # is still readable if the wait below times out.
+      # The browser tests sign more players up and in than ten per quarter hour from one address,
+      # which is the production limit; the override is for this job's API only.
       - name: Start the API
         run: nohup node src/index.js > /tmp/api.log 2>&1 &
         working-directory: backend
+        env:
+          AUTH_RATE_LIMIT_MAX: '200'
+          # Where the dev mailer drops the reset and deletion links for the browser test to read.
+          MAIL_OUTBOX_FILE: /tmp/mail-outbox.jsonl
       - name: Start the app
         run: nohup npx vite --port 5175 --strictPort > /tmp/app.log 2>&1 &
         working-directory: frontend
@@ -127,3 +141,4 @@ jobs:
         working-directory: frontend
         env:
           PLAYWRIGHT_CHROMIUM: ''
+          MAIL_OUTBOX_FILE: /tmp/mail-outbox.jsonl

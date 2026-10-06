@@ -3,7 +3,11 @@ import { ACHIEVEMENTS } from '../lib/achievements.js';
 import { getAllQuestions } from '../repo/questions.js';
 import { sendToUser } from '../lib/wsServer.js';
 import { computeStreaks } from '../lib/streaks.js';
+import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { recordActivity } from './activity.js';
+
+// The modes a player plays alone, which "every solo mode" means (duels and challenge links are not).
+const SOLO_MODES = ['classic', 'daily', 'blitz', 'survival', 'gauntlet'];
 
 async function computeStats(userId) {
   const { rows: unlockedRows } = await pool.query(
@@ -28,11 +32,30 @@ async function computeStats(userId) {
        count(DISTINCT category) FILTER (WHERE status = 'completed' AND category IS NOT NULL) AS categories_played,
        count(*) FILTER (WHERE status = 'completed' AND canon_source = 'books') AS books_only_runs,
        count(*) FILTER (WHERE status = 'completed' AND canon_source = 'movies') AS movies_only_runs,
-       count(DISTINCT daily_key) FILTER (WHERE status = 'completed' AND daily_key IS NOT NULL) AS daily_days
+       count(DISTINCT daily_key) FILTER (WHERE status = 'completed' AND daily_key IS NOT NULL) AS daily_days,
+       count(DISTINCT obscurity_filter) FILTER (WHERE status = 'completed' AND obscurity_filter = ANY($2)) AS tiers_played,
+       count(DISTINCT mode) FILTER (WHERE status = 'completed' AND mode = ANY($3)) AS modes_played,
+       count(*) FILTER (WHERE status = 'completed' AND theme IS NOT NULL) AS seasonal_runs
      FROM game_sessions gs
      WHERE user_id = $1`,
+    [userId, OBSCURITY_TIERS, SOLO_MODES],
+  );
+
+  const {
+    rows: [answerRow],
+  } = await pool.query(
+    `SELECT count(*) AS answers_total, count(*) FILTER (WHERE sq.correct = true) AS correct_answers
+     FROM session_questions sq
+     JOIN game_sessions gs ON gs.id = sq.session_id
+     WHERE gs.user_id = $1 AND sq.answered_at IS NOT NULL`,
     [userId],
   );
+
+  const {
+    rows: [suggestionRow],
+  } = await pool.query(`SELECT count(*) AS approved FROM suggested_questions WHERE suggested_by = $1 AND status = 'approved'`, [
+    userId,
+  ]);
 
   const {
     rows: [enduranceRow],
@@ -125,6 +148,13 @@ async function computeStats(userId) {
     longestDayStreak,
     challengesCreated: Number(challengeRow.challenges_created),
     maxChallengeGroupSize: Number(challengeRow.max_challenge_group_size ?? 0),
+    answersTotal: Number(answerRow.answers_total),
+    correctAnswers: Number(answerRow.correct_answers),
+    tiersPlayed: Number(counts.tiers_played),
+    totalTiers: OBSCURITY_TIERS.length,
+    modesPlayed: Number(counts.modes_played),
+    seasonalRuns: Number(counts.seasonal_runs),
+    approvedSuggestions: Number(suggestionRow.approved),
   };
 }
 
@@ -161,6 +191,21 @@ export const CONDITIONS = {
   consistency_streak_30: (s) => s.longestDayStreak >= 30,
   social_challenge_creator: (s) => s.challengesCreated >= 1,
   social_challenge_group: (s) => s.maxChallengeGroupSize >= 3,
+  answers_100: (s) => s.answersTotal >= 100,
+  answers_500: (s) => s.answersTotal >= 500,
+  answers_2000: (s) => s.answersTotal >= 2000,
+  // A sample first, so ten lucky answers are not a record.
+  accuracy_90: (s) => s.answersTotal >= 200 && s.correctAnswers / s.answersTotal >= 0.9,
+  mastery_flawless_10: (s) => s.flawlessRuns >= 10,
+  explorer_all_tiers: (s) => s.totalTiers > 0 && s.tiersPlayed >= s.totalTiers,
+  explorer_all_modes: (s) => s.modesPlayed >= SOLO_MODES.length,
+  // Any season counts, and a season returns every year, so nothing is missed for good by skipping one.
+  explorer_season: (s) => s.seasonalRuns >= 1,
+  dedication_100: (s) => s.dailyDays >= 100,
+  social_duel_wins_25: (s) => s.duelsWon >= 25,
+  social_friends_25: (s) => s.friendCount >= 25,
+  contrib_question_1: (s) => s.approvedSuggestions >= 1,
+  contrib_question_5: (s) => s.approvedSuggestions >= 5,
 };
 
 // Called after any event that could newly satisfy an achievement (a session completes, a

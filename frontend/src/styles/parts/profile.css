@@ -1,0 +1,187 @@
+/* --- the profile header and its friends plate --- */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+/* min-width 0 so a long username wraps inside the card rather than holding the row open. */
+.profile-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.9rem;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+}
+
+.profile-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--success-ink);
+  font-weight: 600;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.profile-friends-count {
+  color: var(--text-muted-on-surface);
+  font-weight: 400;
+}
+
+/* Fixed minimum column width, not a fixed count: names are different lengths, and `minmax(0, …)`
+   lets a long one wrap inside its cell instead of widening the grid past a phone screen. */
+.profile-friends-grid {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr));
+  gap: 0.5rem;
+}
+
+.profile-friend {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.35rem 0.6rem;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text-on-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-friend:hover {
+  border-color: var(--rubric);
+}
+
+.profile-friend-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.profile-friends-privacy {
+  margin: 0.5rem 0 0;
+}
+
+/* A text-style button for an inline "Change" — sized up to a target through padding, as the
+   colophon link is, so it does not push the line apart. */
+.profile-link {
+  background: none;
+  border: none;
+  padding: 0.75rem 0.4rem;
+  font: inherit;
+  color: var(--rubric);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --- privacy options in Settings --- */
+.privacy-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.privacy-fieldset legend {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.privacy-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  cursor: pointer;
+}
+
+/* Drawn by hand. The input itself is the 44px target (a11y.css sets that floor, and the test that
+   enforces it measures the input), with the 22px ring painted inside it as a gradient — a native
+   radio is a 44px disc at that size, and a smaller one is a smaller target. The negative margins
+   pull the ring back out to the edge of the text column. */
+.privacy-option input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  min-height: 0;
+  margin: -0.55rem -0.4rem -0.55rem -0.7rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 0 8.5px, var(--rubric) 9px 11px, transparent 11.5px);
+}
+
+.privacy-option input:checked {
+  background:
+    radial-gradient(circle, var(--rubric) 0 5px, transparent 5.5px),
+    radial-gradient(circle, transparent 0 8.5px, var(--rubric) 9px 11px, transparent 11.5px);
+}
+
+.privacy-option-label {
+  display: block;
+  font-weight: 600;
+}
+
+.privacy-option-note {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted-on-surface);
+}
+
+@media (max-width: 480px) {
+  /* The avatar and the house line side by side leave a long name too little room on a phone. */
+  .profile-head {
+    gap: 0.8rem;
+  }
+}
+
+/* --- what a player says about themselves, on their profile --- */
+.profile-bio {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 1rem;
+  /* Their words, not ours: wrap anywhere rather than let a long unbroken string widen the card. */
+  overflow-wrap: anywhere;
+}
+
+.profile-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.2rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.profile-fact-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted-on-surface);
+}

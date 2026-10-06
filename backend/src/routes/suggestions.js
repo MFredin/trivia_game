@@ -1,9 +1,21 @@
+// Player-written questions (/api/suggestions).
+//
+//   POST /               submit a question for review (validated; held, never served, until approved)
+//   GET  /mine           the submitter's own suggestions and what became of them
+//   GET  /admin          the review queue                        (admin only)
+//   POST /admin/:id/approve | reject                             (admin only; approval may edit tiers and wording)
+//
+// An approved question is added to the live bank (and the bank's cache is invalidated), and the submitter's
+// achievements are re-checked. A rejected one keeps the reviewer's note so the submitter can see why.
+
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { getAllQuestions, invalidateQuestionCache } from '../repo/questions.js';
 import { OBSCURITY_TIERS } from '../lib/difficultyTiers.js';
 import { DESIGN_TIERS } from '../lib/designTiers.js';
+import { displayNameSql } from '../lib/displayName.js';
+import { evaluateAchievements } from '../services/achievements.js';
 
 const router = express.Router();
 
@@ -99,7 +111,7 @@ router.get('/mine', requireAuth, async (req, res) => {
 router.get('/admin', requireAuth, requireAdmin, async (req, res) => {
   const status = ['pending', 'approved', 'rejected'].includes(req.query.status) ? req.query.status : 'pending';
   const { rows } = await pool.query(
-    `SELECT sq.*, u.username AS submitted_by_username
+    `SELECT sq.*, ${displayNameSql('u')} AS submitted_by_username
      FROM suggested_questions sq
      JOIN users u ON u.id = sq.suggested_by
      WHERE sq.status = $1
@@ -134,6 +146,7 @@ async function nextQuestionId(category) {
 }
 
 router.post('/admin/:id/approve', requireAuth, requireAdmin, async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'suggestion_not_found' });
   const { rows: draftRows } = await pool.query('SELECT * FROM suggested_questions WHERE id = $1', [req.params.id]);
   const draft = draftRows[0];
   if (!draft) return res.status(404).json({ error: 'suggestion_not_found' });
@@ -209,10 +222,14 @@ router.post('/admin/:id/approve', requireAuth, requireAdmin, async (req, res) =>
   invalidateQuestionCache();
   await getAllQuestions(); // repopulate immediately rather than lazily on the next player's request
 
+  // Having one approved can unlock the contributor badges, so the submitter is checked now.
+  await evaluateAchievements(draft.suggested_by);
+
   return res.json({ question: inserted, suggestion: suggestionView(updatedRows[0]) });
 });
 
 router.post('/admin/:id/reject', requireAuth, requireAdmin, async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.status(404).json({ error: 'suggestion_not_found' });
   const { review_note } = req.body ?? {};
   const { rows } = await pool.query(
     `UPDATE suggested_questions

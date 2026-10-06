@@ -24,7 +24,9 @@ async function auditScreen(page) {
         const id = `${el.tagName.toLowerCase()}.${cls || '-'}`;
         if (skip.includes(id)) continue;
         if (r.width < min || r.height < min) small.push(`${id} ${Math.round(r.width)}x${Math.round(r.height)}`);
-        const name = (el.getAttribute('aria-label') || el.textContent || el.value || '').trim();
+        // A field's accessible name is its <label>, which neither textContent nor value reports.
+        const labelText = [...(el.labels ?? [])].map((l) => l.textContent).join(' ');
+        const name = (el.getAttribute('aria-label') || labelText || el.textContent || el.value || '').trim();
         if (!name) unnamed.push(id);
       }
       return { small: [...new Set(small)], unnamed: [...new Set(unnamed)] };
@@ -51,7 +53,7 @@ test('accessibility, at phone width', async (t) => {
     assert.notEqual(ring.width, '0px', 'the outline has width');
   });
 
-  for (const screen of ['Home', 'Leaderboard', 'Friends', 'Achievements', 'Settings']) {
+  for (const screen of ['Home', 'Leaderboard', 'Community', 'Achievements', 'Settings', 'Edit profile', 'Owl Post']) {
     await t.test(`${screen}: every control is named and large enough`, async () => {
       await navigateTo(page, screen);
       const { small, unnamed } = await auditScreen(page);

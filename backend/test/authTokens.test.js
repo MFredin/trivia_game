@@ -18,3 +18,16 @@ test('garbage input is rejected without throwing', () => {
   assert.equal(verifyAuthToken(''), null);
   assert.equal(verifyAuthToken(undefined), null);
 });
+
+test('a token carries the generation it was issued under, and one with none counts as 0', async () => {
+  const { readAuthToken } = await import('../src/lib/authTokens.js');
+  assert.deepEqual(readAuthToken(signAuthToken(42, 3)), { userId: 42, version: 3 });
+  assert.deepEqual(readAuthToken(signAuthToken(42)), { userId: 42, version: 0 });
+
+  // A token issued before versions existed has no `v` at all; it must still be accepted as generation 0, or
+  // shipping this would sign every player out.
+  const crypto = await import('node:crypto');
+  const encoded = Buffer.from(JSON.stringify({ user_id: 42, issued_at: Date.now() })).toString('base64url');
+  const sig = crypto.createHmac('sha256', process.env.AUTH_TOKEN_SECRET).update(encoded).digest('hex');
+  assert.deepEqual(readAuthToken(`${encoded}.${sig}`), { userId: 42, version: 0 });
+});

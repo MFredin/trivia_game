@@ -1,3 +1,5 @@
+// The Leaderboard screen: pick a mode (the five game modes, Duels, or the House Cup), then the scope (everyone or
+// friends), category, difficulty and canon where they apply. Fetches through api/leaderboard.js and api/duels.js.
 import { useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';

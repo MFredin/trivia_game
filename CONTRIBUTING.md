@@ -6,10 +6,15 @@ how changes get written, checked and shipped.
 ## Before you push
 
 ```bash
-cd backend  && npm test                  # unit + session-flow integration tests
+cd backend  && npm run lint && npm test  # lint, then unit + session-flow integration tests
+cd frontend && npm run lint              # lint (React hooks rules included)
 cd frontend && npm run build             # catches anything that will not bundle
 cd frontend && npm run audit             # contrast, dead code, accessibility
 ```
+
+A change to what a screen looks like also runs the browser tests (`cd frontend && npm run e2e`,
+with the app, the API and a database up — see [`docs/compatibility.md`](docs/compatibility.md) for
+the screen-size sweep and what it cannot prove).
 
 CI runs all of these, but a failure found locally costs a minute and a failure found in CI
 costs a round trip.
@@ -67,14 +72,16 @@ Railway deploys `main` automatically, one service per directory. Which means:
 3. **A redeploy does not run pre-deploy.** Railway replays the previous deployment's snapshot,
    so a redeploy does not migrate. Forcing a real build is the only way to run a migration that
    was missed — this cost three attempts to learn once already.
-4. **Verify the deploy reached the browser, do not infer it.** Both services report the commit
-   they were built from: the API at `/api/health`, the frontend in the colophon at the foot of
-   every page. Compare those to the commit you merged rather than correlating timestamps.
+4. **Verify the deploy, do not infer it.** The API reports the commit it was built from at
+   `/api/health`; compare that to the commit you merged rather than correlating timestamps. The
+   frontend no longer prints its build on the page (it was removed from the footer deliberately),
+   so confirm it in the Railway dashboard — the deployment's commit and a green build — and by
+   loading the app. The build's commit still goes to Sentry as the release name, when Sentry is on.
 
 ### After a deploy
 
-Check `/api/health` reports the commit you expect, load the app and confirm the colophon agrees,
-and read the deploy log for errors. If a migration was part of the change, the log should show
+Check `/api/health` reports the commit you expect, check the frontend deployment in the Railway
+dashboard shows the same commit, load the app, and read the deploy log for errors. If a migration was part of the change, the log should show
 `Schema applied.` before the server starts listening.
 
 ## Auditing
@@ -84,11 +91,11 @@ Run the audits before a release and after any change to colour, layout or a shar
 ```bash
 cd frontend && npm run audit:contrast   # WCAG contrast, all five house bindings
 cd frontend && npm run audit:dead       # unreferenced CSS classes, unused exports
-cd frontend && npm run audit:a11y       # touch targets, accessible names, focus ring
-cd frontend && npm run e2e              # a full run in a real browser
+cd frontend && npm run e2e              # real browser: a run, a duel, accessibility (touch targets,
+                                        # names, focus ring), and the screen-size sweep
 ```
 
-The first two need nothing. The last two need the dev server and the API running.
+The first two need nothing. The last needs the dev server, the API and a database running.
 
 Findings that are fixed go in the commit that fixes them. Findings that are **not** being fixed
 go in a dated write-up under `docs/` with the reason — an audit that only records wins is a

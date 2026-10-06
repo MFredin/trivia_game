@@ -46,9 +46,17 @@ export function uniqueName(prefix = 'e2e') {
   return `${prefix}${Math.random().toString(36).slice(2, 9)}`;
 }
 
+/** Answers the age question that begins registration, as an adult unless told otherwise. */
+export async function passAgeGate(page, { month = '6', year = String(new Date().getFullYear() - 30) } = {}) {
+  await page.getByLabel('Month').selectOption(month);
+  await page.getByLabel('Year').selectOption(year);
+  await page.getByRole('button', { name: 'Continue' }).click();
+}
+
 /** Registers a new player through the UI and lands on the start screen. */
 export async function register(page, username = uniqueName()) {
   await page.getByRole('button', { name: /Need an account\? Register/ }).click();
+  await passAgeGate(page);
   await page.locator('input[type=email]').fill(`${username}@test.invalid`);
   await page.locator('input[type=text]').fill(username);
   await page.locator('input[type=password]').fill('password123');
@@ -67,9 +75,28 @@ export async function register(page, username = uniqueName()) {
   return username;
 }
 
+// Settings, the profile and Log out live behind the avatar menu; everything else is a link in
+// the running header.
+const ACCOUNT_MENU_ITEMS = ['Settings', 'Edit profile', 'My profile', 'Manage titles', 'Manage team', 'Review reports', 'Review questions', 'Log out'];
+
 export async function navigateTo(page, label) {
-  await page.locator('.running-nav button', { hasText: new RegExp(`^${label}$`) }).first().click();
+  if (label === 'Owl Post') {
+    // The envelope in the running header, named with its unread count when there is one.
+    await page.getByRole('button', { name: /^Owl Post/ }).click();
+  } else if (ACCOUNT_MENU_ITEMS.includes(label)) {
+    await page.getByRole('button', { name: 'Account menu' }).click();
+    await page.getByRole('menuitem', { name: label }).click();
+  } else {
+    await page.locator('.running-nav button', { hasText: new RegExp(`^${label}$`) }).first().click();
+  }
   await page.waitForTimeout(600);
+}
+
+/** Opens one section of Settings or Edit Profile (they show one at a time) and waits for it to be the current one. */
+export async function openSection(page, name) {
+  const tab = page.getByRole('tab', { name: new RegExp(`^${name}`) });
+  await tab.click();
+  await page.waitForSelector(`[role=tab][aria-selected=true]:has-text("${name}")`);
 }
 
 /** Picks a mode on the start screen and begins the run. */

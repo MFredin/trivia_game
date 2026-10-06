@@ -1,3 +1,9 @@
+// Loads the question bank into the `questions` table (`npm run db:seed`). Safe to re-run: a question that is already
+// there is updated in place, matched by its id, so editing a question in the JSON and seeding again corrects it.
+//
+// Which file is loaded is SEED_FILE (a name inside src/data/), defaulting to the starter bank. Questions written by
+// players and approved in the admin queue are inserted by routes/suggestions.js, not here.
+
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -14,8 +20,8 @@ async function seed() {
     await pool.query(
       `INSERT INTO questions
         (id, category, canon_tags, divergence, obscurity_tier, design_tier,
-         question_text, correct_answer, distractors, explanation, source_ref, needs_factcheck)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         question_text, correct_answer, distractors, explanation, source_ref, needs_factcheck, themes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        ON CONFLICT (id) DO UPDATE SET
          category = EXCLUDED.category,
          canon_tags = EXCLUDED.canon_tags,
@@ -27,7 +33,8 @@ async function seed() {
          distractors = EXCLUDED.distractors,
          explanation = EXCLUDED.explanation,
          source_ref = EXCLUDED.source_ref,
-         needs_factcheck = EXCLUDED.needs_factcheck`,
+         needs_factcheck = EXCLUDED.needs_factcheck,
+         themes = EXCLUDED.themes`,
       [
         q.id,
         q.category,
@@ -41,6 +48,7 @@ async function seed() {
         q.explanation ?? null,
         q.source_ref ?? null,
         q.needs_factcheck ?? false,
+        q.themes ?? [],
       ],
     );
   }

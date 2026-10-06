@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool } from '../db/pool.js';
 import { requireAuth } from '../middleware/auth.js';
+import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/', requireAuth, async (req, res) => {
       : `(ae.user_id = $1 OR ae.user_id IN (SELECT friend_user_id FROM friendships WHERE user_id = $1 AND status = 'accepted'))`;
 
   const { rows } = await pool.query(
-    `SELECT u.username, ae.type, ae.payload, ae.created_at
+    `SELECT ${displayNameSql('u')} AS username, u.avatar, u.avatar_style, u.theme, ae.type, ae.payload, ae.created_at
      FROM activity_events ae
      JOIN users u ON u.id = ae.user_id
      WHERE ${condition}
@@ -26,7 +27,15 @@ router.get('/', requireAuth, async (req, res) => {
   );
 
   return res.json({
-    events: rows.map((r) => ({ username: r.username, type: r.type, payload: r.payload, created_at: r.created_at })),
+    events: rows.map((r) => ({
+      username: r.username,
+      avatar: r.avatar ?? null,
+      avatar_style: r.avatar_style ?? {},
+      theme: r.theme ?? null,
+      type: r.type,
+      payload: r.payload,
+      created_at: r.created_at,
+    })),
   });
 });
 
