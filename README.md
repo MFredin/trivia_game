@@ -1,219 +1,128 @@
-# The Restricted Section — Harry Potter Trivia
+# The Restricted Section
 
-A competitive HP trivia game with server-authoritative scoring, real-time head-to-head duels,
-friends and achievements, and a book/library-themed interface with five selectable house
-bindings. An unofficial fan project — see `docs/ip-risk-notes.md` for the IP-exposure read
-that guides what does and doesn't go into this build. See `docs/` for the original design
-brief and anti-cheat architecture this build started from.
+A competitive Harry Potter trivia game: server-authoritative scoring, real-time head-to-head
+duels, friends, achievements and titles, in a book-and-library interface with five selectable
+house "bindings".
 
-## Stack
+This is an **unofficial fan project**. It is not affiliated with or endorsed by J.K. Rowling,
+Warner Bros., or any rights holder. [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) sets out
+what does and does not go into this build, and it applies to every question and every piece of
+artwork.
 
-- **Backend**: Node/Express + Postgres + WebSockets (`backend/`)
-- **Frontend**: React + Vite (`frontend/`)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Tests and checks](#tests-and-checks)
+- [Deploying to Railway](#deploying-to-railway)
+- [Content pipeline](#content-pipeline)
+- [Documentation](#documentation)
+- [Roadmap](#roadmap)
 
-## Score integrity
-
-The client never computes a score — it only submits an answer. The server issues a signed,
-single-use, session/question-bound token with every question and validates elapsed time against
-its own clock before scoring. See `docs/anti-cheat-architecture.md`.
-
-## What's implemented
+## Features
 
 **Game modes**
-- **Classic Quiz** — 10 questions, per-question timer, category/canon/difficulty filters
-- **Daily Challenge** — one shared 10-question set per day (same seed for every player), one
-  attempt per player per day
-- **Blitz** — 60-second shared time budget, race through as many questions as possible
-- **Survival** — one wrong answer or timeout ends the run
-- **Gauntlet** — three strikes end the run (a middle ground between Classic and Survival)
-- **Live Duel** — real-time head-to-head against a friend (or anyone — duels don't require an
-  existing friendship) over WebSockets: both players get the identical seeded question set, see
-  each other's live score/streak while playing, and land on a synchronized result screen when
-  both finish
 
-**Difficulty, canon, and fairness**
-- Two independent filters: obscurity tier (First Year → Order of the Phoenix) and canon source
-  (books / movies / combined), plus a "Books vs. Movies" category dedicated to genuine
-  book/film adaptation differences
-- Classic mode forces an obscurity-tier floor on a run's first few questions to reduce
-  leaderboard variance from random easy/hard draws
-- Leaderboards rotate on "This Week" / "Today" windows alongside an "All Time" Hall of Fame, so
-  a high early score doesn't lock out everyone who plays later in the period; ties break on run
-  duration
-- Each leaderboard view shows a player's own best run only — repeat attempts don't crowd out
-  other players' single entries
-- A dedicated **Duel leaderboard** ranks players by Wins / Losses / Win %, with the same
-  global/friends scope toggle as the score leaderboards
+| Mode | What it is |
+|---|---|
+| Classic | 10 questions, 30 seconds each, with category, canon and difficulty filters. 50-50 and skip lifelines (one of each per run), Classic only. |
+| Daily Challenge | One shared 10-question set per day, the same for every player. One attempt per player per day. |
+| Blitz | A 60-second shared budget for the whole run: answer as many as you can. |
+| Survival | One wrong answer or timeout ends the run. |
+| Gauntlet | Three strikes end the run. |
+| Live Duel | Real-time head-to-head over WebSockets against a friend or any member. Both players get the identical seeded set, see each other's score and streak live, and land on a synchronised result screen. Canned reactions only, no free-text chat. |
+| Private challenge | A shareable code for a custom quiz (category, difficulty, 10/15/25/30 questions) that a group plays with the identical question set. |
+| Weekly challenge | A system-generated challenge that rotates weekly. |
 
-**Accounts & social**
-- Email/password accounts (scrypt-hashed, signed auth tokens)
-- Mutual friend requests (send, accept, decline) with online-presence indicators, kept live via
-  the same 15s poll across both the friends list and the Online Now tab
-- A member-discovery area on the Friends screen with four tabs: **Online Now** (everyone
-  currently active), **All Members** (the full paginated player directory), **Search**
-  (find anyone by partial username), and **Activity** (a friends-scoped feed of personal bests,
-  achievement unlocks, and duel wins — opt-in, never pushed) — each discovery tab with inline
-  Add / Accept / Challenge actions
-- Global and friends-scoped leaderboards, segmented by mode/category/canon/difficulty
-- **Player profile pages** — lifetime stats (accuracy, favorite category, best score, duel
-  record, achievement count, day streak) for any player, all derived from existing session data,
-  reachable by clicking a username anywhere it appears
-- **Daily play streaks** — a Duolingo-style day-streak (any mode counts, distinct from the
-  existing in-run answer streak), computed on request from actual play history rather than a
-  counter that could drift; shown quietly on the profile and the Start screen once it's 2+ days
-- **Invite-a-friend links** and **private challenge links** — a lazily-generated personal invite
-  code that auto-friends whoever registers through it, and a shareable code for a custom
-  category/difficulty quiz that a group all plays with the identical question set
+**Questions and fairness**
+- Two independent filters: obscurity tier (First Year to Order of the Phoenix) and canon source
+  (books, movies, or combined), plus a "Books vs. Movies" category for genuine adaptation
+  differences.
+- Classic enforces an obscurity-tier floor on a run's first few questions, so the luck of the
+  draw moves the leaderboard less.
+- Leaderboards by mode, category, canon and difficulty; Today, This Week and All Time windows;
+  global and friends scopes; one best run per player per view; ties break on run duration. A
+  separate Duel leaderboard ranks Wins, Losses and Win %, and a House Cup totals scores by house.
 
-**Achievements**
-- 32 achievements across 8 categories (Milestones, Mastery, Streak, Endurance, Speed, Explorer,
-  Dedication, Social), evaluated after each session/friend-request/duel/challenge event and
-  pushed live as an in-app toast the moment one unlocks
+**Accounts and social**
+- Email and password accounts. A password change or reset signs every other session out. Password
+  reset by email, and a public account-deletion page that works without being able to log in.
+- A 13+ age gate at registration (neutral, and nothing is kept for anyone turned away).
+- Friend requests, online presence, and a member-discovery area (Online Now, All Members, Search,
+  Activity).
+- Profiles with lifetime stats, daily play streaks, pinned achievements and an avatar designer
+  (sigils or monogram, style layers).
+- **Owl Post**: short messages between players, with a per-player Open / Friends only / Off
+  setting and limits on how much a stranger can send.
+- Blocking, reporting with conversation evidence, and a moderation queue.
+- **Achievements and titles**: more than 40 achievements across nine categories, announced in-app
+  as they unlock, and each earned title is hung on one. Admins can also grant system titles.
+- Invite links that auto-friend whoever registers through them, and shareable result cards.
+- A guest preview that lets a visitor try a few questions before signing up.
+
+**Roles**: player, moderator (reviews reports and acts within limits) and admin (everything,
+including bans, the question queue, titles and the team). The role is read fresh from the
+account on every request, never from the token.
 
 **Design**
-- A book/library-themed interface — parchment "leaf" cards with gilt corner brackets, a printed
-  running header instead of a web app nav bar, a two-page book-spread layout (with a real
-  binding-groove shadow) on the Start and Question screens, and a page-turn transition between
-  questions (skipped in Blitz, where it would eat into the run's time budget)
-- Typeset in Cormorant Garamond (display) and EB Garamond (body) — one Garamond lineage
-  throughout, instead of mismatched display/body faces
-- Five selectable house color bindings (Gryffindor, Hufflepuff, Slytherin, Ravenclaw, Monochrome),
-  calibrated against the canonical house-color reference rather than eyeballed, via a Settings
-  screen; the choice persists to the player's account. Monochrome is the default for logged-out
-  visitors and any account that hasn't picked a house yet
-- Navigation chrome (running header, page links, filter pills) stays a fixed silver across every
-  house binding — house color is reserved for the game surface itself (plates, buttons, corner
-  brackets), so the app's own UI never clashes with whichever house is active
+- A rare-book treatment: each house is a different binding of it, with parchment leaves, tooled
+  cloth boards, rubricated initials and numerals, a ring-dial timer, book-spine mode selection and
+  a stamped seal on every completed run. Typeset in IM Fell English (display) and EB Garamond
+  (body).
+- Five house bindings (Gryffindor, Hufflepuff, Slytherin, Ravenclaw, Monochrome), chosen in
+  Settings and saved to the account. Monochrome is the default for visitors and for accounts that
+  have not chosen.
+- The house devices (Ember, Furrow, Tide, Gale, Blind Stamp) are original geometric marks drawn by
+  element, not by animal. There are no crests, shields, wands, licensed fonts or image files:
+  every ornament is CSS or inline SVG. See [`CLAUDE.md`](CLAUDE.md) for the design constraints.
+- WCAG contrast is checked against every pairing the app renders, in all five bindings.
 
-**Content**
-- 2,927+ questions across 11 categories, with every (category × difficulty × canon-source)
-  combination holding 60+ questions in both the books-pool and movies-pool
-- **Community submissions**: a hidden easter egg (type "I solemnly swear that I am up to no
-  good" anywhere on the Home screen, or tap the "The Restricted Section" wordmark 7 times —
-  the mobile-friendly equivalent) reveals a "Suggest a Question" form any logged-in player can
-  use. Every submission is reviewed by an admin — who sets the two fields a submitter can't be
-  expected to calibrate (difficulty tier, design tier) and can edit anything else — before it's
-  ever inserted into the live question bank. Rejected submissions stay on record with a note;
-  approved ones go live immediately (no restart needed). See "Content pipeline" below for how
-  to grant admin access.
+## How it works
 
-**Anti-cheat**
-- Server-issued HMAC question tokens; single-use, session/question-bound, server-clock timing
-- Server-side scoring: obscurity tier + design-tier difficulty + divergence rarity + streak +
-  time-remaining bonus
+**Score integrity.** The client never computes a score; it only submits an answer. The server
+issues a signed, single-use token bound to the session and question with every question, and
+validates elapsed time against its own clock before scoring. Nothing that reveals the right answer
+crosses to the client. Runs that look machine-fast are shadow-flagged and held off public
+leaderboards for a manual look rather than banned. See
+[`docs/anti-cheat-architecture.md`](docs/anti-cheat-architecture.md) and
+[`docs/answer-flow.md`](docs/answer-flow.md).
 
-## Roadmap
+**Stack**
+- **Backend** (`backend/`): Node 20, Express 4, Postgres 16, WebSockets (`ws`). The schema is
+  append-only and idempotent, in `backend/src/db/schema.sql`.
+- **Frontend** (`frontend/`): React 18 and Vite. A reducer-driven `App.jsx` composes per-feature
+  hooks and routes screens.
 
-Grouped by theme and rough sequencing. Not commitments — a working plan, revised as priorities
-shift. "Category" marks the kind of value each item adds; "Phase" is when it's currently
-expected to land. See `docs/phase4-scaffold.md` and `docs/phase5-scaffold.md` (both shipped) for
-implementation-ready specs, and `docs/stack-audit-2026-09.md` / `docs/design-audit-2026-09.md`
-for the two hardening passes that ran alongside Phase 5.
+**Layout.** One feature, one file at every layer: a screen brings its own component, stylesheet,
+API module and hook; a resource brings its own route and service. Routes stay thin and the rules
+live in `lib/` and `services/`, where they can be tested without HTTP. The rules, and why, are in
+[`ARCHITECTURE.md`](ARCHITECTURE.md).
 
-The **Second Edition design overhaul** (`docs/design-overhaul-concept.md`) shipped in six
-phases on top of Phase 5: the app is now presented as a rare book, each house a different
-*binding* of it, with rubricated initials and numerals, gold-leaf moments, tooled cloth
-boards, a ring-dial timer, book-spine mode selection and a stamped seal on every completed
-run. Colour is verified rather than eyeballed — `cd frontend && npm run audit:contrast`
-checks 210 real colour pairings across all five bindings and fails the build on a
-regression (findings: `docs/contrast-audit-2026-09.md`).
+## Quick start
 
-| Phase | Theme | Focus |
-|---|---|---|
-| **Phase 4** | Growth & Quick Wins | Make it easy for people to hear about this and start playing — ✅ shipped |
-| **Phase 5** | Social & Retention Depth | Give players reasons to come back, and to come back together — ✅ shipped |
-| **Phase 6** | Bigger Swings | Larger gameplay and content investments |
+You need Node 20 and a Postgres database.
 
-### Phase 4 — Growth & Quick Wins ✅ shipped
-
-| Feature | Category | Why |
-|---|---|---|
-| Shareable result cards | Growth | A shareable summary after any run/duel is the cheapest, highest-leverage growth lever available — the same mechanic that made Wordle spread |
-| Invite-a-friend links | Growth | Turns the friend/member features already shipped into an actual growth engine instead of a closed loop |
-| Guest preview mode | Growth | Let a visitor play a few sample questions before hitting the signup wall — every bit of signup friction costs casual traffic |
-| House Cup leaderboard | Gameplay | Aggregate every player's scores by chosen house into a standing inter-house board — nearly free to build on existing house data, and very on-theme |
-| Auth rate limiting | Technical | `/auth/login` and `/auth/register` have no throttling yet — cheap hardening before real traffic arrives |
-
-### Phase 5 — Social & Retention Depth ✅ shipped
-
-Every item held to a "stay optional, stay light" rule: the quiz stays the whole point, nothing
-pushes a notification for someone else's activity, and every new screen is reached by an
-existing tab or a single optional link rather than new mandatory nav chrome.
-
-| Feature | Category | Why |
-|---|---|---|
-| Private challenge links | Gameplay | Assemble a custom quiz (category/difficulty) and share a code so a group all plays the identical set and compares scores, without the Daily Challenge's fixed daily seed |
-| Activity feed | Social | "Alice just beat her high score in Potions" — makes the app feel alive with few concurrent users, built from events already emitted on session completion |
-| Player profile page | Retention | Lifetime stats — accuracy, favorite category, total questions answered — from data already stored per session |
-| Daily login/play streaks | Retention | A Duolingo-style day-streak, distinct from the existing in-run answer streak |
-| Achievement expansion | Retention | New achievements building on what's shipped — duel win-streaks, "10 friends," and (once challenge links shipped) challenge-creator/challenge-group achievements |
-
-**Hardening alongside Phase 5**: three stack-audit findings that had been documented but never
-actually fixed (duplicate pending duel invites, stale friends-list presence, a double-fire
-achievement toast under concurrent evaluation), plus a full design/UX audit that found and fixed
-two root-cause contrast bugs (a nav-tab component styled only for the dark page background, used
-inside a light card on the Friends screen; a house accent color applied directly to text on the
-dark page) and two mobile-only layout bugs. See `docs/stack-audit-2026-09.md` and
-`docs/design-audit-2026-09.md` for the full findings.
-
-### Phase 6 — Bigger Swings ✅ four of six shipped
-
-| Feature | Category | Why |
-|---|---|---|
-| Tournament brackets | Gameplay | Multi-round elimination duels among a friend group, run over a few days — cheaper to build now than when first scoped, since private challenge links already solved "give N players the identical seeded question set" |
-| Lifelines (50-50, skip) ✅ | Gameplay | Adds strategic depth to Classic mode; needs server-side handling to keep the anti-cheat model intact |
-| Canned duel reactions ✅ | Social | Lightweight reactions during a live duel, without the moderation burden of free-text chat |
-| Seasonal content bundles | Content | Timed to real-world anniversaries (book/film release dates) — a good scheduled-retention hook |
-| Mobile & accessibility pass ✅ | Technical | The design audit caught two mobile-only layout bugs by sampling a handful of screens at phone width, not an exhaustive pass — most casual trivia traffic is mobile, and this still warrants a dedicated pass across every screen and real device testing, not just a viewport-width screenshot check |
-| Achievement showcase on profile ✅ | Retention | The profile page currently shows only an "X / 32 unlocked" count — surfacing a few actual unlocked badges would tie the profile and achievements systems together for near-zero new backend work (the data's already there) |
-| Featured weekly challenge ✅ | Retention | A system-generated private challenge (reusing that infra directly) auto-rotated weekly, giving a lighter-weight, fresher-content sibling to the fixed-forever Daily Challenge without the full Seasonal Content investment |
-
-Still open from Phase 6: **tournament brackets** and **seasonal content bundles**. The mobile
-and accessibility pass shipped as part of the platform audit below rather than on its own.
-
-### Platform audit — September 2026 ✅ shipped
-
-A whole-codebase pass after Phase 6: closed an authorization gap on the session routes, added
-seven missing database indexes, split the frontend bundle (a release now costs a returning
-player 17 kB gzipped instead of 70 kB), gave the app a keyboard focus ring and WCAG-sized
-touch targets, added CI and the first integration tests, and broke the 2,375-line stylesheet
-into per-feature files. Findings, measurements and the two things deliberately left alone are
-written up in [`docs/platform-audit-2026-09.md`](docs/platform-audit-2026-09.md). The October code and screen-size audit is [`docs/code-audit-2026-10.md`](docs/code-audit-2026-10.md); what the screen-size test covers is in [`docs/compatibility.md`](docs/compatibility.md).
-
-### Carried over, not yet scheduled
-
-- **Discord bot tie-in** — dropped for now, needs bot credentials to revisit
-- **Anomaly-detection shadow-flagging** — for bot-speed-but-legitimate answers slipping past the
-  token-based anti-cheat
-- **`App.jsx` state extraction** — 938 lines holding 30+ `useState` calls; the run's state wants
-  to be a `useReducer`. Deliberately not attempted during the audit (see the write-up)
-- **Railway Config as Code migration** — `railway.toml` is deprecated in favour of
-  `.railway/railway.ts`; existing files work until 2026-12-01
-
-## Running locally
-
-### Backend
+**Backend**
 
 ```bash
 cd backend
 npm install
-cp .env.example .env   # set DATABASE_URL, QUESTION_TOKEN_SECRET, AUTH_TOKEN_SECRET
+cp .env.example .env    # set DATABASE_URL, QUESTION_TOKEN_SECRET, AUTH_TOKEN_SECRET
 npm run db:migrate
 npm run db:seed
 npm run dev             # http://localhost:4000
 ```
 
-`db:seed` loads `src/data/question-bank-starter.json` (a small 40-question sample) by default.
-To seed the full 2,927-question bank, set `SEED_FILE`:
+`db:seed` loads a 40-question sample by default. To load the full bank (about 2,900 questions
+across 11 categories), set `SEED_FILE`:
 
 ```bash
 SEED_FILE=question-bank-full-draft.json npm run db:seed
 ```
 
-`db:seed` upserts by question `id`, so it's safe to re-run after pulling in new content — it
-won't duplicate existing questions.
+It upserts by question `id`, so it is safe to re-run after pulling in new content.
 
-### Frontend
+**Frontend**
 
 ```bash
 cd frontend
@@ -221,81 +130,146 @@ npm install
 npm run dev             # http://localhost:5173, proxies /api and /ws to the backend
 ```
 
+## Configuration
+
+Copy `backend/.env.example` to `backend/.env`. Only the first three are needed locally.
+
+**Backend**
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | Yes | Postgres connection string. |
+| `QUESTION_TOKEN_SECRET` | Yes | Signs the single-use question tokens. |
+| `AUTH_TOKEN_SECRET` | Yes | Signs auth tokens. Must differ from the one above. |
+| `PORT` | No | Defaults to 4000. |
+| `NODE_ENV` | Production | Set to `production` on Railway. |
+| `ALLOWED_ORIGIN` | Production | The frontend's public URL, to lock CORS down (comma-separate several). |
+| `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL` | For email | Password reset and account-deletion emails. Without both the key and sender, nothing is sent and the app hides the reset link. `APP_URL` is the frontend's public address and falls back to `ALLOWED_ORIGIN`. |
+| `SENTRY_DSN` | No | Error tracking. Inert when unset. See [`docs/monitoring.md`](docs/monitoring.md). |
+| `GITHUB_FEEDBACK_TOKEN`, `GITHUB_FEEDBACK_REPO` | No | Lets the Submit Feedback link file a GitHub issue. Use a fine-grained token with only "Issues: write" on that one repo. Without them the endpoint returns 503. |
+| `SEED_FILE` | No | Question file for `db:seed`. |
+
+**Frontend** (baked in at build time, so redeploy after changing them)
+
+| Variable | Purpose |
+|---|---|
+| `VITE_API_URL` | The backend's public URL **plus `/api`**. Leave unset locally. |
+| `VITE_PARENT_CONTACT_EMAIL` | A private address shown to anyone under 13 who is turned away at registration. Set one before launch. |
+| `VITE_SENTRY_DSN` | Error tracking. Inert when unset. |
+
 ## Tests and checks
 
 CI runs all of these on every push to `main` and every pull request
 (`.github/workflows/ci.yml`). To run them yourself:
 
 ```bash
-cd backend  && npm test          # unit tests, plus the session-flow integration tests
-cd frontend && npm run build     # catches anything that will not bundle
-cd frontend && npm run audit     # WCAG contrast across all five bindings, plus dead code
-cd frontend && npm run e2e       # a real browser: a solo run, a two-browser duel, a11y
+cd backend  && npm run lint && npm test   # lint, then unit and session-flow integration tests
+cd frontend && npm run lint               # includes the React hooks rules
+cd frontend && npm run build              # catches anything that will not bundle
+cd frontend && npm run audit              # WCAG contrast across all five bindings, plus dead code
+cd frontend && npm run e2e                # a real browser: solo run, two-browser duel, a11y, screen sizes
 ```
 
-The session-flow tests need a database and read `DATABASE_URL` from `backend/.env`. Without
-one they skip rather than fail, so `npm test` still works on a machine with no Postgres.
+- The session-flow tests need a database and read `DATABASE_URL` from `backend/.env`. Without one
+  they skip rather than fail.
+- `audit:contrast` exits non-zero if any gated pairing falls below its WCAG threshold. Each house
+  rebinds the role tokens, so a colour that reads well in one binding can fail in another.
+  `audit:dead` is a report to read, not a gate.
+- `e2e` needs the API, the dev server and a database running. Registration is rate limited per IP,
+  so a rapid re-run is refused, and the suite says so instead of timing out. It expects the app
+  at `http://localhost:5175` (CI runs `npx vite --port 5175`); set `E2E_BASE_URL` if yours is
+  elsewhere. What the screen-size sweep
+  covers, and what it cannot prove, is in [`docs/compatibility.md`](docs/compatibility.md).
 
-`audit:contrast` exits non-zero if any gated pairing falls below its WCAG threshold — each
-house rebinds the role tokens, so a colour that reads well in one binding can fail in another.
-`audit:dead` reports unreferenced CSS classes and exports; it is a report to read, not a gate.
-
-`e2e` needs the API and the dev server running, and drives a real browser at phone width. The
-duel spec opens two of them. Registration is rate limited per IP (10 per 15 minutes), so a
-rapid re-run will be refused — the suite says so rather than timing out mysteriously.
-
-Where code goes is decided by [`ARCHITECTURE.md`](ARCHITECTURE.md); how changes get written
-and shipped by [`CONTRIBUTING.md`](CONTRIBUTING.md).
+How changes are written and shipped is in [`CONTRIBUTING.md`](CONTRIBUTING.md). `main` is
+deployed, so nothing lands there without a green pull request.
 
 ## Deploying to Railway
 
-This repo is a two-service monorepo: `backend/` runs the API (including the WebSocket server,
-on the same port — no extra Railway config needed since it's a persistent Node process, not
-serverless), `frontend/` runs a static build served by `serve`. Each service ships its own
-`railway.toml`. Create two Railway services from the same GitHub repo, pointing each at a
+This is a two-service monorepo. `backend/` runs the API and the WebSocket server on the same
+port, as a persistent Node process. `frontend/` is a static build served by `serve`. Each service
+has its own `railway.toml`. Create two Railway services from the same GitHub repo, each with a
 different root directory:
 
-1. **Postgres**: in your Railway project, add a Postgres plugin — it provides `DATABASE_URL`.
-2. **Backend service** — root directory `backend`:
-   - Variables: `DATABASE_URL` (reference the Postgres plugin), `QUESTION_TOKEN_SECRET` and
-     `AUTH_TOKEN_SECRET` (two different long random strings — the backend won't start without
-     both), `NODE_ENV=production`.
-   - After a deploy that changes the schema or question bank, run `npm run db:migrate` and/or
-     `SEED_FILE=question-bank-full-draft.json npm run db:seed` once (Railway's one-off command
-     runner, under the service's "Deploy" tab, or from a Codespace with `DATABASE_URL` and
-     `NODE_ENV=production` exported).
-   - The backend caches the question list in memory per process, so after seeding new
-     questions, restart (or redeploy) the service for it to pick them up.
-   - Note its public URL (Settings → Networking → Generate Domain) — the frontend needs it.
-   - Once you know the frontend's domain, set `ALLOWED_ORIGIN` on this service to that URL to
-     lock CORS down (comma-separate if you have more than one).
-3. **Frontend service** — root directory `frontend`:
-   - Variables: `VITE_API_URL` set to the backend's public URL **plus `/api`**
-     (e.g. `https://trivia-backend-production.up.railway.app/api`). Vite bakes this in at build
-     time, so redeploy the frontend if you ever change the backend's URL.
-   - Generate a public domain for this service too — that's the URL players use.
+1. **Postgres.** Add a Postgres plugin to the project. It provides `DATABASE_URL`.
+2. **Backend service**, root directory `backend`:
+   - Set `DATABASE_URL` (reference the plugin), `QUESTION_TOKEN_SECRET`, `AUTH_TOKEN_SECRET`
+     (two different long random strings; the backend will not start without both) and
+     `NODE_ENV=production`. Add the optional variables from [Configuration](#configuration) as
+     needed.
+   - Every build runs `npm run db:migrate` as a pre-deploy step (set in `railway.toml`). A
+     **redeploy** replays the previous snapshot and does not run it, so a schema change needs a
+     push or a fresh build.
+   - The question bank is not seeded automatically. After a deploy that changes it, run
+     `SEED_FILE=question-bank-full-draft.json npm run db:seed` once, from Railway's one-off command
+     runner or from a shell with `DATABASE_URL` and `NODE_ENV=production` exported. The backend
+     caches the question list per process, so restart the service afterwards.
+   - Generate a public domain (Settings, Networking). The frontend needs it.
+   - Once you know the frontend's domain, set `ALLOWED_ORIGIN` to it.
+3. **Frontend service**, root directory `frontend`:
+   - Set `VITE_API_URL` to the backend's public URL plus `/api`
+     (for example `https://trivia-backend-production.up.railway.app/api`).
+   - Generate a public domain. That is the URL players use.
 
-Both `railway.toml` files set `builder = "NIXPACKS"`, which auto-detects the Node app in each
-root directory and runs its `package.json` scripts (`build` then `start`) with no extra config.
+Both services use `builder = "NIXPACKS"`, which detects the Node app and runs `build` then
+`start` with no extra configuration. Uptime checks and error tracking are covered in
+[`docs/monitoring.md`](docs/monitoring.md).
 
 ## Content pipeline
 
-Two ways new questions reach the bank:
+New questions reach the bank two ways:
 
-1. **Batch generation** — `backend/src/data/question-bank-full-draft.json` (an array of question
-   objects under a `questions` key). Each question carries a `needs_factcheck` flag — set by
-   whoever drafted it whenever they weren't fully confident in a fact rather than guessing — so
-   a human reviewer can filter for it later without re-checking everything. New batches are
-   generated, validated (schema, duplicate IDs, duplicate `question_text`), and merged into that
-   file before being seeded; see recent commit history for the process.
-2. **Community submissions** — any player can submit one via the "Suggest a Question" easter egg
-   (see "What's implemented" above); an admin reviews it and, on approval, it's inserted straight
-   into the live `questions` table (no reseed or restart needed — the in-memory question cache
-   is invalidated immediately). To make an account an admin, there's no self-serve flow by
-   design — run this directly against the database:
-   ```sql
-   UPDATE users SET is_admin = true WHERE email = 'you@example.com';
-   ```
+1. **Batch generation.** `backend/src/data/question-bank-full-draft.json` holds the bank under a
+   `questions` key. Each question has a `needs_factcheck` flag, set by whoever drafted it when they
+   were not fully confident in a fact, so a reviewer can filter for it later. New batches are
+   validated (schema, duplicate IDs, duplicate `question_text`) and merged into that file before
+   seeding.
+2. **Community submissions.** A hidden easter egg (type "I solemnly swear that I am up to no
+   good" on the Home screen, or tap the wordmark seven times on mobile) opens a "Suggest a
+   Question" form for any logged-in player. An admin reviews each one, sets the difficulty and
+   design tiers a submitter cannot be expected to calibrate, and may edit anything else. Approved
+   questions go live immediately, with no reseed or restart. Rejected ones stay on record with a
+   note.
 
-See `docs/ip-risk-notes.md` for what's in and out of bounds when drafting new questions,
-however they arrive.
+There is no self-serve way to become an admin, by design. Run this against the database:
+
+```sql
+UPDATE users SET is_admin = true WHERE email = 'you@example.com';
+```
+
+An admin can then appoint moderators and grant titles from the app.
+
+## Documentation
+
+| Document | What it covers |
+|---|---|
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Where code goes, and the rules behind it |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How changes are checked and shipped |
+| [`CLAUDE.md`](CLAUDE.md) | The short version of both, plus the design constraints, for agents |
+| [`docs/anti-cheat-architecture.md`](docs/anti-cheat-architecture.md), [`docs/answer-flow.md`](docs/answer-flow.md) | Score integrity and the answer path |
+| [`docs/social-safety.md`](docs/social-safety.md) | Profiles, blocking, reports, Owl Post, titles, age gate, retention, roles |
+| [`docs/design-overhaul-concept.md`](docs/design-overhaul-concept.md), [`docs/design-brief-v2.md`](docs/design-brief-v2.md) | The book-and-binding design and the house devices |
+| [`docs/contrast-audit-2026-09.md`](docs/contrast-audit-2026-09.md), [`docs/compatibility.md`](docs/compatibility.md) | Colour contrast and screen-size testing |
+| [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) | What is in and out of bounds for content and artwork |
+| [`docs/legal/`](docs/legal) | Terms and Privacy drafts (they need an attorney before launch) |
+| [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
+| `docs/*-audit-*.md` | Dated audits: platform, stack, design, code, question bank |
+| [`docs/phase4-scaffold.md`](docs/phase4-scaffold.md), [`docs/phase5-scaffold.md`](docs/phase5-scaffold.md) | The specs behind the growth and retention phases (both shipped) |
+
+## Roadmap
+
+Phases 4 and 5 (growth, then social and retention depth) and most of Phase 6 have shipped, along
+with the Second Edition design overhaul, the social-safety work and the audits listed above. What
+is still open is a working plan, not a commitment:
+
+- **Tournament brackets**: multi-round elimination duels among a friend group, run over a few
+  days. Private challenge links already solve "give N players the identical seeded set".
+- **Seasonal content bundles**: questions timed to book and film anniversaries.
+- **Discord bot tie-in**: parked until there are bot credentials.
+- **Railway Config as Code**: `railway.toml` is deprecated in favour of `.railway/railway.ts`.
+  Existing files keep working until **2026-12-01**.
+- **Audit follow-ups**: a report-only frontend Content Security Policy, the Vite 8 upgrade, and a
+  pass on real iOS and Android devices (the screen-size test is a Chromium emulation).
+- **Before launch**: set the email variables above, have an attorney review `docs/legal/`, and
+  decide what to do about accounts created before the age gate existed, which were never asked
+  their age.
