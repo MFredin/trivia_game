@@ -13,7 +13,7 @@ that integration — it's a setup task for whoever owns the Railway deployment.
 
 **Endpoint to monitor:** `https://<production-host>/api/health`
 
-This is the same path Railway's own `healthcheckPath` already polls (see `backend/railway.toml`),
+This is the same path Railway's own `healthcheckPath` already polls (see `.railway/railway.ts`),
 so there is nothing new to add to the backend. A healthy response is:
 
 ```
@@ -36,7 +36,7 @@ check interval, which is plenty for a project this size, plus email/SMS/webhook 
 state change. [Better Uptime](https://betteruptime.com) (now part of Better Stack) is a solid
 alternative with a similar free tier and a nicer incident timeline if you outgrow UptimeRobot's.
 Railway also has its own basic uptime/restart visibility built into the dashboard already (it's
-what drives `restartPolicyType = "ON_FAILURE"` in `railway.toml`), but that only tells you the
+what drives the service's `ON_FAILURE` restart policy), but that only tells you the
 *process* is alive, not that `/api/health` is actually reachable from outside — an external
 monitor is what catches a DNS, TLS, proxy or Railway-platform problem that a healthy process
 can't see from the inside.

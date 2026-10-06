@@ -20,7 +20,7 @@ estimated; where a fix went in, the verification that proves it is named.
 | 10 | Dead CSS rules, unused exports, duplicated constants | Low | Fixed |
 | 11 | Missing favicon — the app's only console error | Low | Fixed |
 | 12 | `App.jsx` holds 30+ pieces of state in 938 lines | Medium | Fixed (second pass) |
-| 13 | Railway Config as Code is deprecated | Low | **Left alone — see below** |
+| 13 | Railway Config as Code is deprecated | Low | **Left alone, then migrated (see below)** |
 
 ## 1. Session routes took the run's id as their only credential
 
@@ -166,7 +166,8 @@ written down in [`ARCHITECTURE.md`](../ARCHITECTURE.md).
 **13. Railway Config as Code (`railway.toml`) is deprecated** in favour of
 `.railway/railway.ts`; existing files keep working until **2026-12-01**. Both services should
 migrate before then. Not urgent, and not something to fold into an audit whose other changes
-all need to deploy cleanly.
+all need to deploy cleanly. It was done afterwards as its own change; see
+[`railway-iac-migration.md`](railway-iac-migration.md).
 
 ## Second pass: structure as a standing rule
 
