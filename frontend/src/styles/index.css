@@ -45,3 +45,7 @@
 @import './parts/titles.css';
 @import './parts/section-tabs.css';
 @import './parts/tournaments.css';
+@import './parts/switch.css';
+@import './parts/holiday-settings.css';
+@import './parts/holiday-overlay.css';
+@import './parts/halloween.css';

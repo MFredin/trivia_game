@@ -1,0 +1,79 @@
+/* --- the holiday overlay's shell (components/HolidayOverlay.jsx) ---
+   A fixed layer behind the whole page. z-index -1 puts it above the page's own background, which is painted on the canvas, and
+   below every piece of content, so nothing it draws can cover a question, an answer, a button or the timer. The scenes
+   (halloween.css) draw into it; the rules here are the ones every scene shares.
+
+   Three states, set as attributes by the component:
+     data-calm="on"       a question is on screen. Everything stops moving and the extras go (anything marked holiday-mover or
+                          holiday-idle, plus the lights and eyes), leaving a still backdrop. The quiz is the only thing that moves.
+     data-motion="still"  the player turned "Animated background" off. The scene stays, nothing in it moves, and the travellers
+                          (holiday-mover) are not drawn, because parked in mid-air they would just look stuck.
+     prefers-reduced-motion  treated exactly as "still", whatever the switch says.
+   A scene must put every animation on a class these rules can reach, and must change only transform and opacity, so the browser
+   can hand it all to the graphics card. */
+.holiday {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.holiday-bg,
+.holiday-sky,
+.holiday-land {
+  position: absolute;
+  inset: 0;
+}
+
+.holiday-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.holiday[data-calm='on'] .holiday-mover,
+.holiday[data-calm='on'] .holiday-idle,
+.holiday[data-calm='on'] .holiday-wisp,
+.holiday[data-calm='on'] .holiday-eyes,
+.holiday[data-motion='still'] .holiday-mover {
+  display: none;
+}
+
+.holiday[data-calm='on'] *,
+.holiday[data-motion='still'] * {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holiday * {
+    animation: none !important;
+  }
+
+  .holiday .holiday-mover {
+    display: none;
+  }
+}
+
+/* Where there is no empty margin to decorate, the pieces that need room are not drawn. The page's content is 1040px wide and a
+   piece in the margin needs about 120px each side of it, so below 1280px the margins are gone: a pale shape marked holiday-margin
+   would sit behind the nav, a heading or the footer and cost it legibility (the contrast audit measures the dark parts of the
+   scene; it cannot measure a moon). A phone has less room still, and also drops what is marked holiday-wide. */
+@media (max-width: 1279px) {
+  .holiday .holiday-margin {
+    display: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .holiday .holiday-wide {
+    display: none !important;
+  }
+}
+
+@media print {
+  .holiday {
+    display: none;
+  }
+}

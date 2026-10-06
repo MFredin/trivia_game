@@ -1,0 +1,39 @@
+/* --- Settings -> Appearance: the holiday overlay's two switches (components/HolidaySettings.jsx) --- */
+.holiday-setting {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  padding-block: 0.9rem;
+  border-top: 1px solid rgba(var(--gilt-rgb), 0.4);
+}
+
+.holiday-setting-text {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.holiday-setting-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--text-ink);
+}
+
+.holiday-setting-note {
+  margin: 0.25rem 0 0;
+  max-width: 46ch;
+  color: var(--text-muted-on-surface);
+  font-size: 1rem;
+}
+
+/* Stacked, the text's flex-basis would become a height, so it is reset: a column row is as tall as its text. */
+@media (max-width: 520px) {
+  .holiday-setting {
+    flex-direction: column;
+  }
+
+  .holiday-setting-text {
+    flex: 0 1 auto;
+  }
+}
