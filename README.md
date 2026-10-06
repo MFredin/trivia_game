@@ -34,6 +34,7 @@ artwork.
 | Private challenge | A shareable code for a custom quiz (category, difficulty, 10/15/25/30 questions) that a group plays with the identical question set. |
 | Tournament | A knockout bracket for 3 to 16 friends, joined by a code. Each match is two players answering the same ten questions on their own time inside a 24, 48 or 72 hour deadline. It never touches a leaderboard. |
 | Weekly challenge | A system-generated challenge that rotates weekly. |
+| Seasonal bundle | A themed set (the Halloween Feast, the Yule Feast) for the few weeks around its occasion, shown as an "In season" card on the Start screen. Optional, and it comes back every year. |
 
 **Questions and fairness**
 - Two independent filters: obscurity tier (First Year to Order of the Phoenix) and canon source
@@ -254,9 +255,11 @@ An admin can then appoint moderators and grant titles from the app.
 | [`docs/contrast-audit-2026-09.md`](docs/contrast-audit-2026-09.md), [`docs/compatibility.md`](docs/compatibility.md) | Colour contrast and screen-size testing |
 | [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) | What is in and out of bounds for content and artwork |
 | [`docs/legal/`](docs/legal) | Terms and Privacy drafts (they need an attorney before launch) |
+| [`docs/seasonal-content-plan.md`](docs/seasonal-content-plan.md) | Seasonal question bundles: calendar, content pipeline, and how it was built |
 | [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
 | `docs/*-audit-*.md` | Dated audits: platform, stack, design, code, question bank |
 | [`docs/phase4-scaffold.md`](docs/phase4-scaffold.md), [`docs/phase5-scaffold.md`](docs/phase5-scaffold.md) | The specs behind the growth and retention phases (both shipped) |
+| [`docs/discord-bot-plan.md`](docs/discord-bot-plan.md) | The Discord bot (tabled): how to build it, get it live, and which Discord review processes apply |
 
 ## Roadmap
 
@@ -264,7 +267,6 @@ Phases 4 and 5 (growth, then social and retention depth) and most of Phase 6 hav
 with the Second Edition design overhaul, the social-safety work and the audits listed above. What
 is still open is a working plan, not a commitment:
 
-- **Seasonal content bundles**: questions timed to book and film anniversaries.
 - **Discord bot tie-in**: parked until there are bot credentials.
 - **Railway Config as Code**: `railway.toml` is deprecated in favour of `.railway/railway.ts`.
   Existing files keep working until **2026-12-01**.

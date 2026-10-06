@@ -5,6 +5,15 @@ import Plate from './Plate.jsx';
 import Leaderboard from './Leaderboard.jsx';
 import { getChallenge } from '../api/challenges.js';
 
+// A challenge is one of three kinds, told apart by what it carries: a season, the featured weekly one, or a player's own.
+const eyebrow = (c) => (c?.season ? 'In season' : c?.featured_week ? 'Featured this week' : 'Private Challenge');
+const title = (c) => {
+  if (!c) return 'Private Challenge';
+  if (c.season) return `${c.season.label} ${c.season.year}`;
+  if (c.featured_week) return c.category;
+  return `${c.created_by_username}'s Challenge`;
+};
+
 export default function ChallengeScreen({ code, token, onPlay, onCancel }) {
   const [challenge, setChallenge] = useState(null);
   const [error, setError] = useState(null);
@@ -37,16 +46,10 @@ export default function ChallengeScreen({ code, token, onPlay, onCancel }) {
     <div>
       <div className="screen-head">
         <div>
-          {/* The featured weekly challenge comes through this same screen but has no
-              creator, so it must not render as "null's Challenge". */}
-          <p className="screen-eyebrow">{challenge?.featured_week ? 'Featured this week' : 'Private Challenge'}</p>
-          <h2 className="screen-title">
-            {challenge?.featured_week
-              ? challenge.category
-              : challenge
-                ? `${challenge.created_by_username}'s Challenge`
-                : 'Private Challenge'}
-          </h2>
+          {/* The featured weekly challenge and a season come through this same screen but have no creator, so they
+              must not render as "null's Challenge". */}
+          <p className="screen-eyebrow">{eyebrow(challenge)}</p>
+          <h2 className="screen-title">{title(challenge)}</h2>
         </div>
         {onCancel && (
           <button type="button" className="secondary-button" onClick={onCancel}>
@@ -72,7 +75,9 @@ export default function ChallengeScreen({ code, token, onPlay, onCancel }) {
           <Plate>
             <p className="explanation" style={{ margin: 0 }}>
               {[challenge.category, challenge.difficulty].filter(Boolean).join(' · ') || 'All categories · Any difficulty'}
-              {` — ${challenge.question_count} questions, the same set for everyone who plays this link.`}
+              {challenge.season
+                ? ` — ${challenge.question_count} questions from this occasion alone, the same set for everyone who plays it.`
+                : ` — ${challenge.question_count} questions, the same set for everyone who plays this link.`}
             </p>
           </Plate>
           <Plate>

@@ -34,7 +34,8 @@ async function computeStats(userId) {
        count(*) FILTER (WHERE status = 'completed' AND canon_source = 'movies') AS movies_only_runs,
        count(DISTINCT daily_key) FILTER (WHERE status = 'completed' AND daily_key IS NOT NULL) AS daily_days,
        count(DISTINCT obscurity_filter) FILTER (WHERE status = 'completed' AND obscurity_filter = ANY($2)) AS tiers_played,
-       count(DISTINCT mode) FILTER (WHERE status = 'completed' AND mode = ANY($3)) AS modes_played
+       count(DISTINCT mode) FILTER (WHERE status = 'completed' AND mode = ANY($3)) AS modes_played,
+       count(*) FILTER (WHERE status = 'completed' AND theme IS NOT NULL) AS seasonal_runs
      FROM game_sessions gs
      WHERE user_id = $1`,
     [userId, OBSCURITY_TIERS, SOLO_MODES],
@@ -152,6 +153,7 @@ async function computeStats(userId) {
     tiersPlayed: Number(counts.tiers_played),
     totalTiers: OBSCURITY_TIERS.length,
     modesPlayed: Number(counts.modes_played),
+    seasonalRuns: Number(counts.seasonal_runs),
     approvedSuggestions: Number(suggestionRow.approved),
   };
 }
@@ -197,6 +199,8 @@ export const CONDITIONS = {
   mastery_flawless_10: (s) => s.flawlessRuns >= 10,
   explorer_all_tiers: (s) => s.totalTiers > 0 && s.tiersPlayed >= s.totalTiers,
   explorer_all_modes: (s) => s.modesPlayed >= SOLO_MODES.length,
+  // Any season counts, and a season returns every year, so nothing is missed for good by skipping one.
+  explorer_season: (s) => s.seasonalRuns >= 1,
   dedication_100: (s) => s.dailyDays >= 100,
   social_duel_wins_25: (s) => s.duelsWon >= 25,
   social_friends_25: (s) => s.friendCount >= 25,
