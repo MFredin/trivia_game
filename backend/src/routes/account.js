@@ -8,6 +8,7 @@ import { rateLimit } from '../lib/rateLimiter.js';
 import { deleteAccount } from '../services/accountDeletion.js';
 import { revokeSessions } from '../services/sessions.js';
 import { isReservedUsername } from '../lib/usernames.js';
+import { parseHolidayPrefs } from '../lib/holidayOverlay.js';
 
 const router = express.Router();
 
@@ -55,6 +56,19 @@ router.patch('/privacy', async (req, res) => {
   const { rows } = await pool.query(
     `UPDATE users SET friends_visibility = $1 WHERE id = $2 RETURNING ${USER_COLUMNS}`,
     [visibility, req.userId],
+  );
+  return res.json({ user: userView(rows[0]) });
+});
+
+// The holiday overlay's two switches. Either or both may be sent; COALESCE leaves the one that was not sent as it was.
+router.patch('/holiday', async (req, res) => {
+  const prefs = parseHolidayPrefs(req.body);
+  if (!prefs) return res.status(400).json({ error: 'invalid_holiday_settings' });
+
+  const { rows } = await pool.query(
+    `UPDATE users SET holiday_overlay = COALESCE($1, holiday_overlay), holiday_motion = COALESCE($2, holiday_motion)
+     WHERE id = $3 RETURNING ${USER_COLUMNS}`,
+    [prefs.overlay ?? null, prefs.motion ?? null, req.userId],
   );
   return res.json({ user: userView(rows[0]) });
 });

@@ -567,3 +567,9 @@ CREATE INDEX IF NOT EXISTS idx_game_sessions_tournament_match ON game_sessions (
 CREATE INDEX IF NOT EXISTS idx_tournament_players_user ON tournament_players (user_id);
 CREATE INDEX IF NOT EXISTS idx_tournament_matches_open ON tournament_matches (status, deadline);
 CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments (status, created_at);
+
+-- Holiday overlay (lib/holidayOverlay.js): the seasonal decoration drawn behind the app. Both settings are on by default,
+-- so a player who never opens Settings still gets the overlay while a holiday is on. `holiday_overlay` is the decoration
+-- itself; `holiday_motion` is whether it moves, so someone who likes the scene but not the drifting fog can keep it still.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS holiday_overlay BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS holiday_motion BOOLEAN NOT NULL DEFAULT true;
