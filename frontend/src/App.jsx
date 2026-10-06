@@ -20,6 +20,7 @@ import { useSafety } from './features/safety/useSafety.js';
 import { useProfileEditor } from './features/profile/useProfileEditor.js';
 import { useModerationNotices } from './features/moderation/useModerationNotices.js';
 import { useOwlPost } from './features/owlpost/useOwlPost.js';
+import { useHoliday } from './features/holiday/useHoliday.js';
 import { restrictionMessage } from './features/moderation/restrictionMessage.js';
 import ModerationNoticeModal from './components/ModerationNoticeModal.jsx';
 import RenameModal from './components/RenameModal.jsx';
@@ -54,6 +55,8 @@ const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
 const TournamentScreen = lazy(() => import('./components/TournamentScreen.jsx'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
+// Decoration, and only for part of the year: it must not be in the bundle a player downloads to reach question one.
+const HolidayOverlay = lazy(() => import('./components/HolidayOverlay.jsx'));
 
 // Each deferred screen gets its own Suspense boundary rather than one around the whole shell,
 // so fetching a chunk never blanks the nav bar or a run already in progress. Modals fall back
@@ -263,6 +266,7 @@ export default function App() {
     onUserChanged: auth.updateUser,
   });
   const safety = useSafety({ token: auth.token, active: screen === 'settings' });
+  const holiday = useHoliday({ token: auth.token, user: auth.user, onUserChanged: auth.updateUser });
   const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
 
   const leaderboard = useLeaderboard({ authToken: auth.token });
@@ -435,6 +439,12 @@ export default function App() {
   return (
     <div className="app-shell">
       <Embers />
+      {/* Behind everything, so it is never over a question. It stops moving while one is on screen, a guest's preview included. */}
+      {holiday.scene && holiday.overlayOn && (
+        <Suspense fallback={null}>
+          <HolidayOverlay scene={holiday.scene} animated={holiday.animated} calm={screen === 'question' || screen === 'preview'} />
+        </Suspense>
+      )}
       {screen !== 'auth' && screen !== 'preview' && screen !== 'recovery' && (
         <NavBar
           currentUser={auth.user}
@@ -521,6 +531,7 @@ export default function App() {
             user={auth.user}
             account={account}
             safety={safety}
+            holiday={holiday}
             onSelectTheme={auth.selectTheme}
           />
         </Suspense>

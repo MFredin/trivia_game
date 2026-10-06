@@ -256,6 +256,7 @@ An admin can then appoint moderators and grant titles from the app.
 | [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) | What is in and out of bounds for content and artwork |
 | [`docs/legal/`](docs/legal) | Terms and Privacy drafts (they need an attorney before launch) |
 | [`docs/seasonal-content-plan.md`](docs/seasonal-content-plan.md) | Seasonal question bundles: calendar, content pipeline, and how it was built |
+| [`docs/holiday-overlay.md`](docs/holiday-overlay.md) | The Halloween backdrop: when it is on, the two Settings switches, and the rules that keep it out of the quiz's way |
 | [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
 | `docs/*-audit-*.md` | Dated audits: platform, stack, design, code, question bank |
 | [`docs/phase4-scaffold.md`](docs/phase4-scaffold.md), [`docs/phase5-scaffold.md`](docs/phase5-scaffold.md) | The specs behind the growth and retention phases (both shipped) |

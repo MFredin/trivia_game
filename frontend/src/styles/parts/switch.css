@@ -1,0 +1,77 @@
+/* --- the app's on/off switch (components/Switch.jsx) ---
+   The input is the touch target and is transparent; the track and knob are drawn beside it inside the same box. */
+.switch {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  font-family: var(--font-display);
+  color: var(--text-ink);
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch-track {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border: 1px solid var(--text-muted-on-surface);
+  border-radius: 99px;
+  background: rgba(var(--rubric-rgb), 0.16);
+  pointer-events: none;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--parchment-100);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: transform 160ms ease;
+}
+
+.switch input:checked + .switch-track {
+  background: var(--rubric);
+  border-color: var(--rubric);
+}
+
+.switch input:checked + .switch-track .switch-knob {
+  transform: translateX(24px);
+}
+
+.switch input:disabled + .switch-track {
+  border-style: dashed;
+}
+
+.switch input:focus-visible + .switch-track {
+  outline: 3px solid var(--gilt);
+  outline-offset: 2px;
+}
+
+.switch-state {
+  min-width: 1.8rem;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch-track,
+  .switch-knob {
+    transition: none;
+  }
+}

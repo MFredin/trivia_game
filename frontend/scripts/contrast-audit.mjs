@@ -118,6 +118,20 @@ function build(house) {
   add('section tab hint on page', t('--silver-400'), page, 4.5, '.section-tab-hint, .settings-rail-note');
   add('section tab marker on page', onbg, page, 3.0, '.section-tab-pip and the selected rule (non-text)');
 
+  // The holiday overlay lightens the page behind page-level text: the purple haze along the top (to 60% at the very edge, behind the
+  // nav and the first heading) and the fog along the foot (to 34%, behind the colophon). These are the lightest grounds that text
+  // can sit on while it is on, so text that passes here passes everywhere the overlay draws. Not under a question: the overlay stills
+  // and the plate covers it. The moon's glow is not listed because it is not drawn where text is (it is hidden below 1280px).
+  const haze = over(t('--holiday-haunt-rgb'), page, 0.6);
+  const fog = over(t('--holiday-fog-rgb'), page, 0.34);
+  add('page body text on holiday haze', t('--text-on-bg'), haze, 4.5, '.holiday-haze behind page copy');
+  add('on-page eyebrow on holiday haze', onbg, haze, 4.5, '.holiday-haze behind .screen-eyebrow');
+  add('nav link on holiday haze', t('--silver-400'), haze, 4.5, '.holiday-haze behind .running-nav button');
+  add('nav active link on holiday haze', t('--silver-200'), haze, 4.5, '.holiday-haze behind .running-nav button.on');
+  add('colophon text on holiday fog', t('--text-muted'), fog, 4.5, '.holiday-fog behind .colophon');
+  add('page body text on holiday fog', t('--text-on-bg'), fog, 4.5, '.holiday-fog behind page copy');
+  add('nav hint on holiday fog', t('--silver-400'), fog, 4.5, '.holiday-fog behind .settings-rail-note');
+
   // on cloth (spines, the Ex Libris board, the question spread's spine strip)
   add('spine label on cloth', tooling, cloth, 4.5, '.mode-spine label');
   add('tooling rules on cloth', over(tooling, cloth, 0.85), cloth, 3.0, 'spine rules / board frame');

@@ -29,6 +29,7 @@ import owlPostRouter from './routes/owlPost.js';
 import adminTitlesRouter from './routes/adminTitles.js';
 import adminTeamRouter from './routes/adminTeam.js';
 import accountRecoveryRouter from './routes/accountRecovery.js';
+import holidayRouter from './routes/holiday.js';
 
 export function createApp() {
   const app = express();
@@ -88,6 +89,7 @@ export function createApp() {
   app.use('/api/admin/titles', adminTitlesRouter);
   app.use('/api/admin/team', adminTeamRouter);
   app.use('/api/auth', accountRecoveryRouter);
+  app.use('/api/holiday', holidayRouter);
 
   // Mounted after every route, as Express requires for error-handling middleware. No-op
   // unless SENTRY_DSN is set — see lib/sentry.js. Reports and then hands off to the default

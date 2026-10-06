@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import SectionTabs, { panelProps } from './SectionTabs.jsx';
 import AppearanceSettings from './AppearanceSettings.jsx';
+import HolidaySettings from './HolidaySettings.jsx';
 import PrivacySettings from './PrivacySettings.jsx';
 import OwlPostSettings from './OwlPostSettings.jsx';
 import ChallengeSettings from './ChallengeSettings.jsx';
@@ -17,7 +18,7 @@ const SECTIONS = [
   { id: 'account', label: 'Account', hint: 'Password and deletion', icon: 'user' },
 ];
 
-export default function SettingsScreen({ user, onSelectTheme, account, safety }) {
+export default function SettingsScreen({ user, onSelectTheme, account, safety, holiday }) {
   const [section, setSection] = useState('appearance');
 
   return (
@@ -34,7 +35,18 @@ export default function SettingsScreen({ user, onSelectTheme, account, safety })
           <p className="settings-rail-note">Changes on this page save as you make them.</p>
         </div>
         <div {...panelProps('settings', section)} className="settings-panel">
-          {section === 'appearance' && <AppearanceSettings theme={user.theme} onSelectTheme={onSelectTheme} />}
+          {section === 'appearance' && (
+            <>
+              <AppearanceSettings theme={user.theme} onSelectTheme={onSelectTheme} />
+              <HolidaySettings
+                scene={holiday.scene}
+                overlay={holiday.overlayOn}
+                motion={holiday.animated}
+                onChange={holiday.save}
+                error={holiday.error}
+              />
+            </>
+          )}
           {section === 'privacy' && (
             <>
               <PrivacySettings value={user.friends_visibility} onChange={account.setFriendsVisibility} error={account.privacyError} />
