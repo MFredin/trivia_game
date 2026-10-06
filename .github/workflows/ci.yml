@@ -46,7 +46,8 @@ jobs:
         working-directory: backend
       - run: npm run db:migrate
         working-directory: backend
-      - run: npm run db:seed
+      # The whole bank: the seasonal flow test needs the tagged questions, and every other test runs against it fine.
+      - run: SEED_FILE=question-bank-full-draft.json npm run db:seed
         working-directory: backend
       - run: npm test
         working-directory: backend
@@ -112,7 +113,8 @@ jobs:
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
-      - run: npm run db:migrate && npm run db:seed
+      # The whole bank, not the 40-question starter: the seasonal bundles need their tagged questions.
+      - run: npm run db:migrate && SEED_FILE=question-bank-full-draft.json npm run db:seed
         working-directory: backend
       # nohup and a log file, so the process outlives the step that started it and its output
       # is still readable if the wait below times out.

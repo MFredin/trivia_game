@@ -51,6 +51,9 @@ const DESIGN_TIERS = ['Direct', 'Some distractors', 'Trick phrasing', 'Requires 
 // This is distinct from the two-value VALID_CANON_TAGS a *submitted draft* is restricted to
 // in backend/src/routes/suggestions.js — that's a narrower, input-side rule, not the bank's.
 const CANON_TAG_VALUES = ['book', 'movie', 'both'];
+// The seasonal theme tags a question may carry (backend/src/lib/seasons.js). `themes` is optional: most questions have
+// none. test/seasonCoverage.test.js is what fails the build if this list and SEASONS drift apart.
+const SEASON_THEMES = ['halloween', 'yule'];
 
 const REQUIRED_FIELDS = [
   'id', 'category', 'canon_tags', 'divergence', 'obscurity_tier', 'design_tier',
@@ -159,6 +162,9 @@ for (const q of qs) {
   if (!DESIGN_TIERS.includes(q.design_tier)) issues.push(`invalid design_tier: ${JSON.stringify(q.design_tier)}`);
   if (typeof q.divergence !== 'boolean') issues.push('divergence not boolean');
   if (typeof q.needs_factcheck !== 'boolean') issues.push('needs_factcheck not boolean');
+  if ('themes' in q && (!Array.isArray(q.themes) || q.themes.some((t) => !SEASON_THEMES.includes(t)))) {
+    issues.push(`invalid themes: ${JSON.stringify(q.themes)}`);
+  }
 
   if (issues.length > 0) {
     report.malformed.push({ id: q.id, category: q.category, question_text: q.question_text, issues });
@@ -176,4 +182,9 @@ console.log(
 );
 console.log(`Correct-answer-as-own-distractor: ${report.answerAsDistractor.length}`);
 console.log(`Malformed entries: ${report.malformed.length}`);
+for (const theme of SEASON_THEMES) {
+  const tagged = qs.filter((q) => Array.isArray(q.themes) && q.themes.includes(theme));
+  const byTier = OBSCURITY_TIERS.map((t) => `${t} ${tagged.filter((q) => q.obscurity_tier === t).length}`).join(', ');
+  console.log(`Season "${theme}": ${tagged.length} tagged (${byTier})`);
+}
 console.log(`Full detail written to ${outPath}`);

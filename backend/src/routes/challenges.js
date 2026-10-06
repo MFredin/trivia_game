@@ -9,6 +9,8 @@ import { getAllQuestions } from '../repo/questions.js';
 import { pickNextQuestion, serveQuestion } from '../services/sessionQuestions.js';
 import { evaluateAchievements } from '../services/achievements.js';
 import { featuredChallengeSpec } from '../lib/featuredChallenge.js';
+import { SEASONS, activeSeason, seasonKey, seasonFromKey } from '../lib/seasons.js';
+import { seasonalChallengeSpec } from '../lib/seasonalChallenge.js';
 import { displayNameSql } from '../lib/displayName.js';
 
 const router = express.Router();
@@ -88,6 +90,61 @@ router.get('/featured', async (req, res) => {
   }
 });
 
+// The season running now, or null. Outside production a request may name a season to treat as active (?force=halloween),
+// so a developer or a browser test can see a bundle out of its window. It is ignored in production, so it can never
+// switch a season on for players.
+function currentSeason(forcedKey, now = new Date()) {
+  const forced = process.env.NODE_ENV !== 'production' && forcedKey;
+  return (forced && SEASONS.find((s) => s.key === forced)) || activeSeason(now);
+}
+
+// Registered BEFORE GET /:code, for the same reason as /featured. The row is created on first request, guarded by the
+// UNIQUE constraint on season_key, and a season the bank cannot field (too few tagged questions) is not offered at all.
+// Open, like /featured: it is the same set for everyone and holds nothing personal.
+router.get('/season', async (req, res) => {
+  try {
+    const now = new Date();
+    const season = currentSeason(req.query.force, now);
+    if (!season) return res.json({ season: null });
+    const key = seasonKey(season, now);
+
+    const find = async () => (await pool.query('SELECT * FROM challenges WHERE season_key = $1', [key])).rows[0];
+    let row = await find();
+    if (!row) {
+      const spec = seasonalChallengeSpec(season, await getAllQuestions());
+      if (!spec) return res.json({ season: null });
+      for (let attempt = 0; attempt < 5 && !row; attempt++) {
+        const code = crypto.randomBytes(4).toString('hex');
+        try {
+          const { rows } = await pool.query(
+            `INSERT INTO challenges (code, created_by, category, canon_source, obscurity_filter, season_key, theme)
+             VALUES ($1, NULL, $2, $3, $4, $5, $6)
+             RETURNING *`,
+            [code, spec.category, spec.canonSource, spec.difficulty, key, spec.theme],
+          );
+          row = rows[0];
+        } catch (err) {
+          if (err.code !== '23505') throw err;
+          // Either the code collided or another request just created this season's row.
+          row = await find();
+        }
+      }
+      if (!row) return res.status(500).json({ error: 'internal_error' });
+    }
+
+    const { rows } = await pool.query(
+      `SELECT count(DISTINCT user_id)::int AS players FROM game_sessions WHERE challenge_id = $1 AND status = 'completed'`,
+      [row.id],
+    );
+    return res.json({
+      season: { key, label: season.label, blurb: season.blurb, code: row.code, players: rows[0].players },
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
 async function describeFeatured(challenge, week) {
   const { rows } = await pool.query(
     `SELECT count(DISTINCT user_id)::int AS players
@@ -102,6 +159,12 @@ async function describeFeatured(challenge, week) {
     difficulty: challenge.obscurity_filter,
     players: rows[0].players,
   };
+}
+
+// A seasonal challenge's name and year, for titling its screen; null for every other kind of challenge.
+function describeSeasonKey(key) {
+  const found = seasonFromKey(key);
+  return found ? { key, label: found.season.label, year: found.year } : null;
 }
 
 // Requires a login, unlike /featured above: a challenge code names one player's private
@@ -137,6 +200,7 @@ router.get('/:code', requireAuth, async (req, res) => {
     code: challenge.code,
     created_by_username: challenge.created_by_username,
     featured_week: challenge.featured_week ?? null,
+    season: describeSeasonKey(challenge.season_key),
     category: challenge.category,
     canon_source: challenge.canon_source,
     difficulty: challenge.obscurity_filter,
@@ -156,8 +220,8 @@ router.post('/:code/start', requireAuth, async (req, res) => {
 
   const { rows: sessionRows } = await pool.query(
     `INSERT INTO game_sessions
-      (user_id, mode, category, canon_source, obscurity_filter, question_count, time_limit_ms, challenge_id, leaderboard_window)
-     VALUES ($1, 'challenge', $2, $3, $4, $5, $6, $7, $8)
+      (user_id, mode, category, canon_source, obscurity_filter, question_count, time_limit_ms, challenge_id, leaderboard_window, theme)
+     VALUES ($1, 'challenge', $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
     [
       req.userId,
@@ -168,6 +232,7 @@ router.post('/:code/start', requireAuth, async (req, res) => {
       modeConfig.timeLimitMs,
       challenge.id,
       window,
+      challenge.theme ?? null,
     ],
   );
   const session = sessionRows[0];

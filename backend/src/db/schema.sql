@@ -192,6 +192,19 @@ ALTER TABLE challenges ADD COLUMN IF NOT EXISTS featured_week TEXT UNIQUE;
 -- "use the mode default."
 ALTER TABLE challenges ADD COLUMN IF NOT EXISTS question_count INTEGER;
 
+-- Seasonal bundles (docs/seasonal-content-plan.md). A question can carry the theme tags of the occasions it suits
+-- ('halloween', 'yule'); most carry none. Tagged questions still appear in ordinary runs, so tagging a question
+-- never removes it from the bank.
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS themes TEXT[] NOT NULL DEFAULT '{}';
+CREATE INDEX IF NOT EXISTS idx_questions_themes ON questions USING GIN (themes);
+
+-- A season's run is a system challenge, so it has no creator, keyed by season and year ("halloween-2026") and created
+-- on first request. UNIQUE is what makes that safe when two players ask at once, the same as featured_week. `theme`
+-- is the questions.themes tag the run draws on; it is copied onto each session so choosing questions needs no join.
+ALTER TABLE challenges ADD COLUMN IF NOT EXISTS season_key TEXT UNIQUE;
+ALTER TABLE challenges ADD COLUMN IF NOT EXISTS theme TEXT;
+ALTER TABLE game_sessions ADD COLUMN IF NOT EXISTS theme TEXT;
+
 -- "Alice just beat her personal best" — a small, friends-scoped activity feed. Never pushed
 -- (no toast, no badge); it's a tab a player opens when they're curious, on the Friends screen.
 CREATE TABLE IF NOT EXISTS activity_events (

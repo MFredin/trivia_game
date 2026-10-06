@@ -25,6 +25,7 @@ const baseStats = {
   totalTiers: 4,
   modesPlayed: 0,
   approvedSuggestions: 0,
+  seasonalRuns: 0,
 };
 
 test('every achievement in the catalog has a matching condition and a unique id', () => {
@@ -94,4 +95,9 @@ test('the bigger social and contribution badges', () => {
   assert.equal(CONDITIONS.contrib_question_1({ ...baseStats, approvedSuggestions: 1 }), true);
   assert.equal(CONDITIONS.contrib_question_5({ ...baseStats, approvedSuggestions: 4 }), false);
   assert.equal(CONDITIONS.contrib_question_5({ ...baseStats, approvedSuggestions: 5 }), true);
+});
+
+test('Feast Guest needs one completed seasonal run, of any season', () => {
+  assert.equal(CONDITIONS.explorer_season({ ...baseStats, seasonalRuns: 0 }), false);
+  assert.equal(CONDITIONS.explorer_season({ ...baseStats, seasonalRuns: 1 }), true);
 });

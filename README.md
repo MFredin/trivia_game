@@ -33,6 +33,7 @@ artwork.
 | Live Duel | Real-time head-to-head over WebSockets against a friend or any member. Both players get the identical seeded set, see each other's score and streak live, and land on a synchronised result screen. Canned reactions only, no free-text chat. |
 | Private challenge | A shareable code for a custom quiz (category, difficulty, 10/15/25/30 questions) that a group plays with the identical question set. |
 | Weekly challenge | A system-generated challenge that rotates weekly. |
+| Seasonal bundle | A themed set (the Halloween Feast, the Yule Feast) for the few weeks around its occasion, shown as an "In season" card on the Start screen. Optional, and it comes back every year. |
 
 **Questions and fairness**
 - Two independent filters: obscurity tier (First Year to Order of the Phoenix) and canon source
@@ -252,6 +253,7 @@ An admin can then appoint moderators and grant titles from the app.
 | [`docs/contrast-audit-2026-09.md`](docs/contrast-audit-2026-09.md), [`docs/compatibility.md`](docs/compatibility.md) | Colour contrast and screen-size testing |
 | [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) | What is in and out of bounds for content and artwork |
 | [`docs/legal/`](docs/legal) | Terms and Privacy drafts (they need an attorney before launch) |
+| [`docs/seasonal-content-plan.md`](docs/seasonal-content-plan.md) | Seasonal question bundles: calendar, content pipeline, and how it was built |
 | [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
 | `docs/*-audit-*.md` | Dated audits: platform, stack, design, code, question bank |
 | [`docs/phase4-scaffold.md`](docs/phase4-scaffold.md), [`docs/phase5-scaffold.md`](docs/phase5-scaffold.md) | The specs behind the growth and retention phases (both shipped) |
@@ -265,7 +267,6 @@ is still open is a working plan, not a commitment:
 
 - **Tournament brackets**: multi-round elimination duels among a friend group, run over a few
   days. Private challenge links already solve "give N players the identical seeded set".
-- **Seasonal content bundles**: questions timed to book and film anniversaries.
 - **Discord bot tie-in**: parked until there are bot credentials.
 - **Railway Config as Code**: `railway.toml` is deprecated in favour of `.railway/railway.ts`.
   Existing files keep working until **2026-12-01**.
