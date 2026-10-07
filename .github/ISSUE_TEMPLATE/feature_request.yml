@@ -1,0 +1,27 @@
+name: Feature or content idea
+description: Suggest a change to the game, or a question for the bank.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The quiz is the product. Ideas that stay optional and light, and never slow the path from opening the app
+        to answering question one, are the ones that fit. For a new question, you can also use *Suggest a question*
+        inside the game.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would this let a player do?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What do you have in mind?
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Content and artwork rules
+      options:
+        - label: It uses no official artwork, crests, fonts or quoted book or film text beyond a short phrase.
+          required: true

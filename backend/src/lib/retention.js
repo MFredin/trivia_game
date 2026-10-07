@@ -1,5 +1,5 @@
 // How long records kept for safety are kept. Each period has a reason, and each is the privacy policy's
-// to state (docs/legal/privacy-policy.md), so a change here is a change there.
+// to state, so a change here is a change to the published policy.
 
 // A copy of someone's messages attached to a report. Goes with the messages themselves (lib/owlPost.js
 // RETENTION_DAYS) once the report is closed: it was kept to be judged, and has been.

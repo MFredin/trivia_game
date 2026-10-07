@@ -8,7 +8,7 @@ as CONTRIBUTING asks.
 ## How it was done
 
 - A new browser test, `frontend/e2e/overflow-matrix.test.mjs`, walks the whole app at eleven widths (320–1920 px) with
-  worst-case content. See [`compatibility.md`](compatibility.md).
+  worst-case content. See [`compatibility.md`](../compatibility.md).
 - ESLint was added to both packages (the repo had none). Backend: recommended rules. Frontend: recommended rules plus
   React's `rules-of-hooks` and `exhaustive-deps`. Both run in CI.
 - `npm audit` for both packages; greps for risky patterns (template-literal SQL, `innerHTML`, `eval`, unguarded

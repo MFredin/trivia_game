@@ -5,9 +5,9 @@ duels, friends, achievements and titles, in a book-and-library interface with fi
 house "bindings".
 
 This is an **unofficial fan project**. It is not affiliated with or endorsed by J.K. Rowling,
-Warner Bros., or any rights holder. [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) sets out
-what does and does not go into this build, and it applies to every question and every piece of
-artwork.
+Warner Bros., or any rights holder. The rules for what does and does not go into this build
+(it applies to every question and every piece of artwork) are in
+[`CONTRIBUTING.md`](CONTRIBUTING.md#content-and-artwork).
 
 - [Features](#features)
 - [How it works](#how-it-works)
@@ -18,6 +18,7 @@ artwork.
 - [Content pipeline](#content-pipeline)
 - [Documentation](#documentation)
 - [Roadmap](#roadmap)
+- [Contributing and licence](#contributing-and-licence)
 
 ## Features
 
@@ -251,15 +252,13 @@ An admin can then appoint moderators and grant titles from the app.
 | [`docs/anti-cheat-architecture.md`](docs/anti-cheat-architecture.md), [`docs/answer-flow.md`](docs/answer-flow.md) | Score integrity and the answer path |
 | [`docs/social-safety.md`](docs/social-safety.md) | Profiles, blocking, reports, Owl Post, titles, age gate, retention, roles |
 | [`docs/tournament-brackets-plan.md`](docs/tournament-brackets-plan.md) | Knockout tournaments among friends: the design, and how it was built |
-| [`docs/design-overhaul-concept.md`](docs/design-overhaul-concept.md), [`docs/design-brief-v2.md`](docs/design-brief-v2.md) | The book-and-binding design and the house devices |
-| [`docs/contrast-audit-2026-09.md`](docs/contrast-audit-2026-09.md), [`docs/compatibility.md`](docs/compatibility.md) | Colour contrast and screen-size testing |
-| [`docs/ip-risk-notes.md`](docs/ip-risk-notes.md) | What is in and out of bounds for content and artwork |
-| [`docs/legal/`](docs/legal) | Terms and Privacy drafts (they need an attorney before launch) |
+| [`docs/design-overhaul-concept.md`](docs/design-overhaul-concept.md) | The book-and-binding design and the house devices |
+| [`docs/compatibility.md`](docs/compatibility.md) | Screen-size and browser testing, and what it cannot prove |
 | [`docs/seasonal-content-plan.md`](docs/seasonal-content-plan.md) | Seasonal question bundles: calendar, content pipeline, and how it was built |
 | [`docs/holiday-overlay.md`](docs/holiday-overlay.md) | The six holiday overlays: when each is on, the Settings switches, the admin-only preview selector, and the rules that keep them out of the quiz's way |
 | [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
-| `docs/*-audit-*.md` | Dated audits: platform, stack, design, code, question bank |
-| [`docs/phase4-scaffold.md`](docs/phase4-scaffold.md), [`docs/phase5-scaffold.md`](docs/phase5-scaffold.md) | The specs behind the growth and retention phases (both shipped) |
+| [`docs/repository-settings.md`](docs/repository-settings.md) | The GitHub and Railway settings that protect `main`, and why |
+| [`docs/audits/`](docs/audits) | Dated audits: platform, code and screen size, colour contrast, question bank |
 | [`docs/railway-iac-migration.md`](docs/railway-iac-migration.md) | Railway configuration as code: what replaced `railway.toml`, the steps left to apply it, and how to work with it |
 | [`docs/discord-bot-plan.md`](docs/discord-bot-plan.md) | The Discord bot (tabled): how to build it, get it live, and which Discord review processes apply |
 
@@ -276,6 +275,13 @@ is still open is a working plan, not a commitment:
   [`docs/railway-iac-migration.md`](docs/railway-iac-migration.md).
 - **Audit follow-ups**: a report-only frontend Content Security Policy, the Vite 8 upgrade, and a
   pass on real iOS and Android devices (the screen-size test is a Chromium emulation).
-- **Before launch**: set the email variables above, have an attorney review `docs/legal/`, and
-  decide what to do about accounts created before the age gate existed, which were never asked
-  their age.
+- **Before launch**: set the email variables above, have an attorney review the Terms of Service
+  and Privacy Policy (drafted, but kept out of this repository until they are reviewed), and decide
+  what to do about accounts created before the age gate existed, which were never asked their age.
+
+## Contributing and licence
+
+Contributions are welcome: read [`CONTRIBUTING.md`](CONTRIBUTING.md), and report security problems
+through [`SECURITY.md`](SECURITY.md). The code is released under the [MIT licence](LICENSE). That
+licence covers the code only: the Harry Potter names, terms and settings belong to their owners and
+are used here as unofficial fan trivia, and the question bank is not offered for reuse elsewhere.

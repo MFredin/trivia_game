@@ -52,7 +52,7 @@ reminders, "your friend just beat you"). It does none of that.
 |---|---|---|---|
 | D1 | Receive interactions over **HTTP**, or hold a **gateway** connection? | **HTTP.** | No second always-on process, no reconnect logic, no intents. It runs inside the existing API service. See section 5. |
 | D2 | Who owns the Discord application? | A **team** whose owner is you, created from the start. | Verification (later) asks the team owner for an identity document; an app owned by a personal account is harder to hand over. |
-| D3 | What is the bot called? | A **neutral name that does not contain a Harry Potter trademark.** | Discord's App Directory content policy says an app's name, description and commands must not contain IP-violating content (**Confirmed**). The repo's own [`ip-risk-notes.md`](ip-risk-notes.md) says to keep the project low-profile. A listing is far more visible than the app. Ask an attorney before choosing, since "The Restricted Section" is itself a phrase from the books. |
+| D3 | What is the bot called? | A **neutral name that does not contain a Harry Potter trademark.** | Discord's App Directory content policy says an app's name, description and commands must not contain IP-violating content (**Confirmed**). The repo's own content rules (CONTRIBUTING.md, "Content and artwork") say to keep the project low-profile. A listing is far more visible than the app. Ask an attorney before choosing, since "The Restricted Section" is itself a phrase from the books. |
 | D4 | Public bot from day one, or private to your own community first? | **Private first**, public later. | Under 75 servers there is no verification, no ID check and no review at all (section 6). Prove it with real members first. |
 | D5 | Ship "play in Discord" (Phase 3)? | **No, not in the first release.** | It puts the answer path on a surface the anti-cheat model doesn't cover. See Phase 3. |
 | D6 | Do we want the app listed in Discord's App Directory? | **Optional, after verification.** | Not needed to use the bot. Needs a support server, a privacy policy and terms (section 6). |
@@ -73,7 +73,7 @@ Everything here can start today, and none of it touches production behaviour.
 - `backend/scripts/discord-simulator.mjs`: signs interaction payloads with a throwaway test keypair and posts
   them to the local endpoint. This is how CI and a developer exercise the bot **without Discord,
   a tunnel, or credentials**.
-- Legal: add Discord to the privacy-policy drafts (section 8). This has a lead time, so start it now.
+- Legal: add Discord to the privacy policy (section 8). This has a lead time, so start it now.
 
 ```js
 // lib/discordSignature.js: the whole verification, no dependency. Tested against a generated keypair:
@@ -303,8 +303,8 @@ with this project's "nothing pushes" rule.
    not film art or house crests.
 3. Create a **support server** (also required later for Discovery). Put the rules, a link to the app and the
    non-affiliation line in it.
-4. Publish URLs for the **privacy policy and terms of service**. They exist as drafts in `docs/legal/`
-   and are not published; they must be reviewed first (section 8).
+4. Publish URLs for the **privacy policy and terms of service**. They are drafted but not
+   published, and must be reviewed by an attorney first (section 8).
 5. Create a **second, development** application and a private test server.
 
 **B. Build and prove locally** (Phase 0 and 1 above, simulator only). No Discord needed.
@@ -346,7 +346,7 @@ stops being able to join more until it is verified.**
 
 ## 8. Privacy, legal and policy changes
 
-Touching `docs/legal/` means an attorney review. Prepare the edits, do not publish them.
+Touching the privacy policy or terms means an attorney review. Prepare the edits, do not publish them.
 
 - **Privacy policy**: Discord becomes a service the app talks to. State what is stored (a Discord user id, and
   for Phase 2 the server and channel id of a subscription), what is not (no Discord token if Linked Roles are skipped,
@@ -358,7 +358,7 @@ Touching `docs/legal/` means an attorney review. Prepare the edits, do not publi
 - **Account deletion**: add the link row to [`accountDeletion.js`](../backend/src/services/accountDeletion.js) and its test.
 - **Data requests**: Discord's policy expects apps to honour user data deletion requests (**Recall**: confirm the exact
   wording). Unlink plus account deletion covers it for our data.
-- **IP**: add a bullet to [`ip-risk-notes.md`](ip-risk-notes.md) about app name, description and icon.
+- **IP**: add the app name, description and icon to the content-and-artwork rules in CONTRIBUTING.md.
 
 ## 9. What to re-check on the day (with tags)
 

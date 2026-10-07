@@ -1,0 +1,8 @@
+# Every change needs the owner's review; GitHub requests it automatically.
+# Listed again below because these are the files that decide what ships and who can reach it.
+*                          @MFredin
+/.github/                  @MFredin
+/.railway/                 @MFredin
+/backend/src/db/           @MFredin
+/backend/src/lib/tokens.js @MFredin
+/backend/src/lib/authTokens.js @MFredin

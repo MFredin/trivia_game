@@ -21,7 +21,7 @@
  *
  * Judgment calls this script cannot make — factual correctness, ambiguous phrasing, whether a
  * correct_answer actually answers the question it's attached to — are a human (or a careful
- * read against canon) problem; see docs/question-bank-audit-2026-10.md for that pass.
+ * read against canon) problem; see docs/audits/question-bank-audit-2026-10.md for that pass.
  *
  * Usage: node backend/scripts/question-bank-audit.mjs [path-to-json] [out.json]
  *   path-to-json defaults to backend/src/data/question-bank-full-draft.json
