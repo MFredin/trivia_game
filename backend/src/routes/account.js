@@ -60,15 +60,23 @@ router.patch('/privacy', async (req, res) => {
   return res.json({ user: userView(rows[0]) });
 });
 
-// The holiday overlay's two switches. Either or both may be sent; COALESCE leaves the one that was not sent as it was.
+// The holiday overlay's two switches, and an admin's own choice of overlay. Any of the three may be sent; the ones not sent are left as
+// they were. The choice is the one setting here that is not for everyone, so a request that names it from anyone but an admin is
+// refused outright rather than half applied.
 router.patch('/holiday', async (req, res) => {
   const prefs = parseHolidayPrefs(req.body);
   if (!prefs) return res.status(400).json({ error: 'invalid_holiday_settings' });
 
+  if ('override' in prefs) {
+    const { rows: who } = await pool.query('SELECT is_admin FROM users WHERE id = $1', [req.userId]);
+    if (!who[0]?.is_admin) return res.status(403).json({ error: 'admin_only' });
+  }
+
   const { rows } = await pool.query(
-    `UPDATE users SET holiday_overlay = COALESCE($1, holiday_overlay), holiday_motion = COALESCE($2, holiday_motion)
-     WHERE id = $3 RETURNING ${USER_COLUMNS}`,
-    [prefs.overlay ?? null, prefs.motion ?? null, req.userId],
+    `UPDATE users SET holiday_overlay = COALESCE($1, holiday_overlay), holiday_motion = COALESCE($2, holiday_motion),
+       holiday_override = CASE WHEN $3 THEN $4 ELSE holiday_override END
+     WHERE id = $5 RETURNING ${USER_COLUMNS}`,
+    [prefs.overlay ?? null, prefs.motion ?? null, 'override' in prefs, prefs.override ?? null, req.userId],
   );
   return res.json({ user: userView(rows[0]) });
 });
