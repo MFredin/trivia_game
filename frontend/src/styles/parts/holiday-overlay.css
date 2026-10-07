@@ -89,6 +89,12 @@
   from { transform: rotate(-2.6deg); }
   to { transform: rotate(2.6deg); }
 }
+/* Nothing the overlay draws takes a tap. A prop's glow is wider than the prop, so on its own it would sit over a button; pointer-events is inherited,
+   so the wrappers are enough, and the e2e test checks every drawn element. */
+.hol-wrap,
+.hol-foot {
+  pointer-events: none;
+}
 .hol-pd {
   position: absolute;
   pointer-events: none;

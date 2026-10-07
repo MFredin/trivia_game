@@ -139,6 +139,14 @@ test('every holiday draws on a phone and on a wide screen without a complaint or
       assert.ok((await page.locator('.hol-foot').count()) === 1, `${holiday} has no foot`);
       assert.notEqual(await computed(page, '.hol-foot', 'display'), 'none', `${holiday}'s foot is hidden on a phone`);
       assert.ok((await overflow(page)) <= 0, `${holiday} makes a phone page wider than the screen`);
+      // Nothing the overlay draws may take a tap: a glow wider than its prop once sat over a dialog's button.
+      const catching = await page.evaluate(() =>
+        [...document.querySelectorAll('.holiday *, .hol-wrap *, .hol-foot, .hol-foot *, .hol-gut, .hol-gut *')]
+          .filter((el) => getComputedStyle(el).pointerEvents !== 'none')
+          .map((el) => el.tagName.toLowerCase() + '.' + el.className)
+          .slice(0, 5),
+      );
+      assert.deepEqual(catching, [], `${holiday} draws something that takes taps`);
       await page.setViewportSize(DESKTOP);
       await page.waitForTimeout(300);
       assert.ok((await overflow(page)) <= 0, `${holiday} makes a wide page wider than the screen`);

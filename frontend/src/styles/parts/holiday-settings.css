@@ -29,8 +29,9 @@
 
 /* The admin's list of holidays. The same look as the Start screen's fields (a ruled line under a faint wash), at the 44px floor every field has. */
 .holiday-select {
-  flex: none;
-  min-width: 11rem;
+  flex: 0 1 auto;
+  min-width: min(11rem, 100%);
+  max-width: 100%;
   background: rgba(255, 255, 255, 0.22);
   color: var(--text-on-surface);
   border: none;
