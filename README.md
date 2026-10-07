@@ -257,6 +257,7 @@ An admin can then appoint moderators and grant titles from the app.
 | [`docs/seasonal-content-plan.md`](docs/seasonal-content-plan.md) | Seasonal question bundles: calendar, content pipeline, and how it was built |
 | [`docs/holiday-overlay.md`](docs/holiday-overlay.md) | The six holiday overlays: when each is on, the Settings switches, the admin-only preview selector, and the rules that keep them out of the quiz's way |
 | [`docs/monitoring.md`](docs/monitoring.md) | Uptime checks and Sentry |
+| [`docs/repository-settings.md`](docs/repository-settings.md) | The GitHub and Railway settings that protect `main`, and why |
 | [`docs/audits/`](docs/audits) | Dated audits: platform, code and screen size, colour contrast, question bank |
 | [`docs/railway-iac-migration.md`](docs/railway-iac-migration.md) | Railway configuration as code: what replaced `railway.toml`, the steps left to apply it, and how to work with it |
 | [`docs/discord-bot-plan.md`](docs/discord-bot-plan.md) | The Discord bot (tabled): how to build it, get it live, and which Discord review processes apply |
