@@ -1,0 +1,30 @@
+name: Bug report
+description: Something in the game or the code does not work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The shortest path from opening the app to the problem.
+      placeholder: "1. Sign in\n2. Open Settings\n3. ..."
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: "iPhone 14, Safari 17 / Windows, Chrome 130"
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or console output
+      description: Do not paste passwords, tokens or other people's private messages.

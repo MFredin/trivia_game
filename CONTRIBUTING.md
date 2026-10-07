@@ -3,6 +3,40 @@
 Read [`ARCHITECTURE.md`](ARCHITECTURE.md) first — it decides where code goes. This file covers
 how changes get written, checked and shipped.
 
+## Contributing from outside
+
+Contributions are welcome under the repository's [MIT licence](LICENSE): by opening a pull request
+you agree your change is released under it. Please follow the [code of conduct](CODE_OF_CONDUCT.md).
+
+1. **Open an issue first** for anything bigger than a small fix, so effort is not spent on something
+   that does not fit. The quiz is the product: new features stay optional and light, and must not slow
+   the path from opening the app to answering question one.
+2. **Fork, branch, change, open a pull request against `main`.** Nobody pushes to `main` directly,
+   the maintainer included: it is protected, and every change reaches it through a pull request.
+3. **CI must be green** (`backend`, `frontend` and `e2e` jobs) and the maintainer must review before
+   merge. The first run on a fork's pull request waits for the maintainer to approve it, which is
+   normal and says nothing about the change.
+4. **Merging is shipping.** `main` deploys to production automatically, which is why the rules in
+   this file are not optional.
+5. **Security problems go through [`SECURITY.md`](SECURITY.md)**, not a public issue.
+
+To run the project locally, follow [Quick start in the README](README.md#quick-start).
+
+## Content and artwork
+
+This is an unofficial fan project and its use of the subject matter stays modest:
+
+- **No official artwork, crests, logos, fonts or imagery.** No house crests, house animals, wands or
+  lightning bolts. The look is drawn with CSS and inline SVG, and colour goes through the role tokens
+  in `styles/tokens.css`. No image files in the repository.
+- **Questions describe, they do not quote.** Original wording only; reproduce nothing beyond an
+  unavoidable short phrase (a spell, an epitaph) from a book or film. Every question has one defensible
+  answer that can be checked against the books or films.
+- **Neutral names and no claims of endorsement.** Nothing may say or suggest the project is official,
+  licensed or affiliated.
+- **The licence covers the code.** The Harry Potter names, terms and settings belong to their owners
+  and are used here as fan trivia. The question bank is not offered for reuse in other products.
+
 ## Before you push
 
 ```bash
@@ -98,5 +132,5 @@ cd frontend && npm run e2e              # real browser: a run, a duel, accessibi
 The first two need nothing. The last needs the dev server, the API and a database running.
 
 Findings that are fixed go in the commit that fixes them. Findings that are **not** being fixed
-go in a dated write-up under `docs/` with the reason — an audit that only records wins is a
-marketing document. See [`docs/platform-audit-2026-09.md`](docs/platform-audit-2026-09.md).
+go in a dated write-up under `docs/audits/` with the reason — an audit that only records wins is a
+marketing document. See [`docs/audits/platform-audit-2026-09.md`](docs/audits/platform-audit-2026-09.md).

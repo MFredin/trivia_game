@@ -7,9 +7,21 @@ on:
     branches: [main]
   pull_request:
 
+# Read-only token for every job: CI builds and tests, it never writes to the repository. A pull request from a
+# fork runs with no secrets at all, which is also why none of these jobs may need one.
+permissions:
+  contents: read
+
+# A new push to a pull request makes the older run pointless. A push to main is never cancelled: every commit
+# that reaches production should have a finished result.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     # The session-flow tests need a real database — that part of the app is exactly what the
     # pure unit tests could not cover, and what has actually broken in front of players.
@@ -54,6 +66,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -79,6 +92,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     # The browser tests drive the real app against the real API, so this job needs both
     # services and a database, exactly as a player would have.
