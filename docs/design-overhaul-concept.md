@@ -1,7 +1,7 @@
 # Design overhaul concept — "The Illuminated Archive" (Second Edition)
 
 Status: **shipped** — Phases A–F complete (2026-09-17). Contrast verified across all
-five bindings; see docs/contrast-audit-2026-09.md and `npm run audit:contrast`. Companion design canvas: the "Restricted Section Overhaul"
+five bindings; see docs/audits/contrast-audit-2026-09.md and `npm run audit:contrast`. Companion design canvas: the "Restricted Section Overhaul"
 artifact (sixteen artboards: Start, Question, Reveal and Monochrome Question on desktop; Start,
 Question, Reveal, nav drawer and Monochrome Question on phone; Start + Question for Hufflepuff,
 Slytherin and Ravenclaw; System).
@@ -136,7 +136,7 @@ cloth → charcoal with pale tooling; glow → neutral lamp; the device → an e
 "two-tone structure" the current tokens file describes still holds, which is the proof that
 the system is structural rather than decorative.
 
-## IP guardrails (additions to `docs/ip-risk-notes.md`)
+## IP guardrails (see "Content and artwork" in CONTRIBUTING.md)
 - No crests, shields, or house animals anywhere — devices are elemental and geometric.
 - No wand, lightning bolt, spectacles, letter-with-wax-seal, or film-title lettering.
 - The seal ring text is the app's own name, never a school or ministry name.
@@ -191,7 +191,7 @@ No schema or backend work; the overhaul is CSS, SVG and JSX only.
    *all five* bindings, and Hufflepuff's house name at 1.25:1 (invisible) on the House Cup
    board and player profiles. All fixed; the audit is committed as
    `frontend/scripts/contrast-audit.mjs` (`npm run audit:contrast`) so it guards future
-   work rather than being a one-off. Full findings: docs/contrast-audit-2026-09.md.
+   work rather than being a one-off. Full findings: docs/audits/contrast-audit-2026-09.md.
 
 ## Decisions (made 2026-09-17)
 1. Display face: **IM Fell English**.
@@ -204,7 +204,7 @@ No schema or backend work; the overhaul is CSS, SVG and JSX only.
 ## What Phase F changed in the system
 
 Two rules came out of the audit and are now the standing guidance (table in
-docs/contrast-audit-2026-09.md):
+docs/audits/contrast-audit-2026-09.md):
 
 1. **Pick the token by what it sits on, not by which house it belongs to.** Parchment takes
    `--rubric`; the dark page takes `--onbg`; cloth takes `--tooling`; the rubric fill and

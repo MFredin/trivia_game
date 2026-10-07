@@ -161,23 +161,23 @@ handler that starts a duel is the one place a run begins without anyone making a
 
 The result is `features/{auth,run,duels,leaderboard,achievements}/`, App.jsx down to 466 lines
 of routing and composition, and one `run.begin()` where there were four resets. The rule is
-written down in [`ARCHITECTURE.md`](../ARCHITECTURE.md).
+written down in [`ARCHITECTURE.md`](../../ARCHITECTURE.md).
 
 **13. Railway Config as Code (`railway.toml`) is deprecated** in favour of
 `.railway/railway.ts`; existing files keep working until **2026-12-01**. Both services should
 migrate before then. Not urgent, and not something to fold into an audit whose other changes
 all need to deploy cleanly. It was done afterwards as its own change; see
-[`railway-iac-migration.md`](railway-iac-migration.md).
+[`railway-iac-migration.md`](../railway-iac-migration.md).
 
 ## Second pass: structure as a standing rule
 
 The first pass fixed defects. The second answered a different question — what stops this
 recurring — and produced three things:
 
-- **[`ARCHITECTURE.md`](../ARCHITECTURE.md)**, which states where code goes: one feature, one
+- **[`ARCHITECTURE.md`](../../ARCHITECTURE.md)**, which states where code goes: one feature, one
   file, at every layer, and never an append-target that every feature also appends to. The
   three files that stay shared are indexes rather than append-targets.
-- **[`CONTRIBUTING.md`](../CONTRIBUTING.md)** and **[`CLAUDE.md`](../CLAUDE.md)**, covering how
+- **[`CONTRIBUTING.md`](../../CONTRIBUTING.md)** and **[`CLAUDE.md`](../../CLAUDE.md)**, covering how
   changes get written, tested, reviewed and deployed, binding agent work to the same rules.
 - **The audits, committed as tooling rather than run once.** `npm run audit` (contrast + dead
   code), `npm run e2e` (19 browser assertions), both wired into CI. The accessibility
@@ -216,7 +216,7 @@ the add-a-friend form (its button 30px past the plate edge).
 `e2e/layout.test.mjs` now asserts that nothing extends past the viewport on any screen at 390px
 and 430px, including a question screen built up to the worst state a Gauntlet run can reach.
 The rule and the two CSS defaults behind it are written into
-[`ARCHITECTURE.md`](../ARCHITECTURE.md).
+[`ARCHITECTURE.md`](../../ARCHITECTURE.md).
 
 ## Checks that came back clean
 

@@ -1,5 +1,5 @@
 // The minimum age to hold an account, and the check that enforces it at registration. The Service is
-// for players of this age and over (docs/legal/coppa-options.md, Option A). A birth date is asked for
+// for players of this age and over (a deliberate choice: no under-13 accounts and no parent-approved mode). A birth date is asked for
 // only to make this one decision: it is never stored, logged or returned, and nothing else from the
 // request is read until it has passed.
 export const MINIMUM_AGE = 13;

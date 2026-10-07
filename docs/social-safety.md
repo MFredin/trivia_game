@@ -38,7 +38,7 @@ bio is free text, so it is the one field with a filter and a removal path:
 - A blocked player's bio is hidden with the rest of their profile, and deleting an account clears it.
 
 Free text from young players also touches the age / COPPA question flagged for the attorney reviewing
-`docs/legal/`; if that is unresolved, the bio is the first thing to switch off.
+the Terms and Privacy Policy; if that is unresolved, the bio is the first thing to switch off.
 
 ## Who can see what
 
@@ -151,7 +151,7 @@ play and still read. Harassment's ladder is warn → mute → suspend → ban. A
 log like a suspension.
 
 **The age question.** Free-text messaging between young players is a larger COPPA concern than bios. If
-the attorney review (`docs/legal/`) has not settled a minimum age, hold Owl Post back at launch rather
+the attorney review of the Terms and Privacy Policy has not settled a minimum age, hold Owl Post back at launch rather
 than ship it.
 
 ## Deleting an account
@@ -205,7 +205,7 @@ shipping it signed nobody out.
 - **Bio moderation beyond the filter** (a human reviewing every bio, or an external moderation service) —
   the filter and the report path are the minimum, not a substitute for a policy.
 - Whether "scores kept, un-named" satisfies the privacy law that applies to the operator is a
-  question for the attorney reviewing `docs/legal/` (PR #46), not something this code decides.
+  question for the attorney reviewing the Terms and Privacy Policy, not something this code decides.
 
 
 ## Challenges (duel invites)
@@ -264,7 +264,7 @@ fixed list, so there is nothing to moderate: no free text, no upload.
 
 ## Minimum age: 13 and over
 
-By decision (see `docs/legal/coppa-options.md`, Option A) the Service is for players aged 13 and over; a
+By decision (founder, October 2026: no under-13 accounts and no parent-approved mode) the Service is for players aged 13 and over; a
 parent-approved mode for younger players is deferred. Registration enforces it:
 
 - **The age question comes first**, before email, name or password: a month and a year, neutral (nothing

@@ -191,8 +191,7 @@ export async function runPostAnswerBookkeeping({ session, outcome }) {
 
       // Simplified on purpose: an all-time personal best across ANY mode/filter, not a true
       // per-segment "best at this category+tier" check (that would mean replaying the
-      // leaderboard's own segmentation logic on every completion) — see
-      // docs/phase5-scaffold.md §2.
+      // leaderboard's own segmentation logic on every completion).
       const { rows: bestRows } = await pool.query(
         `SELECT max(total_score) AS prev_best FROM game_sessions WHERE user_id = $1 AND status = 'completed' AND id != $2`,
         [session.user_id, session.id],
