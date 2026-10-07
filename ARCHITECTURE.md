@@ -47,6 +47,7 @@ frontend/src/
   components/       one component per file, presentational where it can be
   features/         one directory per feature: its hook, and anything only it uses
   constants/        shared values with no behaviour
+  holidays/         one art module per holiday overlay, loaded on demand; see docs/holiday-overlay.md
   hooks/            hooks used by more than one feature
   lib/              pure helpers, no React
   styles/
