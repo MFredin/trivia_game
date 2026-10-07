@@ -38,13 +38,7 @@ export default function SettingsScreen({ user, onSelectTheme, account, safety, h
           {section === 'appearance' && (
             <>
               <AppearanceSettings theme={user.theme} onSelectTheme={onSelectTheme} />
-              <HolidaySettings
-                scene={holiday.scene}
-                overlay={holiday.overlayOn}
-                motion={holiday.animated}
-                onChange={holiday.save}
-                error={holiday.error}
-              />
+              <HolidaySettings holiday={holiday} onChange={holiday.save} />
             </>
           )}
           {section === 'privacy' && (

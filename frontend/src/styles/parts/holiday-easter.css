@@ -1,0 +1,170 @@
+/* --- Easter (holidays/easter.js) ---
+   Pastel spring. On every screen width: a lavender haze and a green mist, blossom petals and a butterfly down the gutters, painted eggs hanging
+   from every plate, a blossom branch, a chick and tulips on every plate, and a meadow with a rabbit at the end of each page. From 1280px up
+   the margins add an egg tree, a rainbow, a big basket and a bed of tulips. */
+
+.app-shell[data-holiday="easter"] {
+  --pink: #f2a7c3;
+  --pink2: #d77aa0;
+  --lav: #b9a6e6;
+  --mint: #9bd8b4;
+  --yel: #f6e07a;
+  --sky: #8fc8ee;
+  --peach: #f6b98e;
+  --grass: #3f8f4c;
+  --grass2: #1f4f2c;
+  --twig: #6a4a30;
+  --blossom: #f8cadb;
+  --chick: #f7d84a;
+  --beak: #f08a2a;
+  --bunny: #efe6ef;
+  --dust: #fff4c2;
+}
+:root[data-house='monochrome'] .app-shell[data-holiday="easter"] {
+  --pink: #cfcfcf;
+  --pink2: #9a9a9a;
+  --lav: #bdbdbd;
+  --mint: #d6d6d6;
+  --yel: #e6e6e6;
+  --sky: #b8b8b8;
+  --peach: #c4c4c4;
+  --grass: #7a7a7a;
+  --grass2: #2a2a2a;
+  --twig: #6a6a6a;
+  --blossom: #e6e6e6;
+  --chick: #e6e6e6;
+  --beak: #9a9a9a;
+  --bunny: #ececec;
+  --dust: #ffffff;
+}
+.gpetal {
+  position: absolute;
+  top: 0;
+  left: var(--gx);
+  width: 9px;
+  height: 6px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--blossom);
+  opacity: 0;
+  animation: hol-gfall var(--t) linear infinite;
+  animation-delay: var(--d);
+}
+.gfly {
+  position: absolute;
+  width: 15px;
+  right: 1px;
+  bottom: -20px;
+  animation: hol-gflut 22s linear infinite;
+  animation-delay: var(--d);
+}
+.gfly svg {
+  display: block;
+  width: 100%;
+  animation: hol-wingflap .32s ease-in-out infinite alternate;
+}
+.pd-blossom {
+  top: -14px;
+  right: 6px;
+  width: 116px;
+  transform-origin: 100% 0;
+  animation: hol-sprigsway 6s ease-in-out infinite alternate;
+}
+.pd-eggline {
+  left: 16%;
+  right: 34%;
+  top: -9px;
+  height: 40px;
+}
+.hol-egghang {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  width: 15px;
+  transform-origin: 50% 0;
+  animation: hol-sway 5s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.hol-egghang svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.pd-chick {
+  right: 14px;
+  bottom: -13px;
+  width: 104px;
+}
+.pd-tulips {
+  left: 10px;
+  bottom: -12px;
+  width: 74px;
+}
+.ea-hill {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  bottom: -4px;
+  height: 60px;
+  width: calc(100% + 40px);
+  fill: var(--grass2);
+}
+.ea-bunny {
+  position: absolute;
+  left: 66%;
+  bottom: 14px;
+  width: 40px;
+}
+.ea-bunny svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.ea-bunny .ear {
+  transform-origin: 50% 90%;
+  transform-box: fill-box;
+  animation: hol-eartwitch 7s ease-in-out infinite;
+}
+.app-shell[data-holiday="easter"] .hol-foot::before {
+  content: "";
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  bottom: 0;
+  height: 130px;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(var(--holiday-mist-rgb), .2), rgba(var(--holiday-mist-rgb), 0) 72%);
+}
+.ea-rainbow {
+  position: absolute;
+  right: -60px;
+  top: 20px;
+  width: 200px;
+  height: 200px;
+  opacity: .85;
+}
+.ea-eggtree {
+  position: absolute;
+  left: 2px;
+  top: 150px;
+  width: 112px;
+  height: 300px;
+}
+.ea-eggtree .hol-egghang { width: 17px; }
+
+@keyframes hol-gflut {
+  0% { transform: translate(0,0); }
+  25% { transform: translate(-3px, calc(100vh * -.25)); }
+  50% { transform: translate(2px, calc(100vh * -.5)); }
+  75% { transform: translate(-3px, calc(100vh * -.75)); }
+  100% { transform: translate(1px, calc(100vh * -1 - 40px)); }
+}
+
+@keyframes hol-wingflap {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(.35); }
+}
+
+@keyframes hol-eartwitch {
+  0%,86%,100% { transform: rotate(0deg); }
+  90% { transform: rotate(-9deg); }
+  94% { transform: rotate(6deg); }
+}

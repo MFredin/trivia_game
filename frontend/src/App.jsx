@@ -21,6 +21,9 @@ import { useProfileEditor } from './features/profile/useProfileEditor.js';
 import { useModerationNotices } from './features/moderation/useModerationNotices.js';
 import { useOwlPost } from './features/owlpost/useOwlPost.js';
 import { useHoliday } from './features/holiday/useHoliday.js';
+import { HolidayContext } from './features/holiday/holidayContext.js';
+import HolidayOverlay from './components/HolidayOverlay.jsx';
+import HolidayFoot from './components/HolidayFoot.jsx';
 import { restrictionMessage } from './features/moderation/restrictionMessage.js';
 import ModerationNoticeModal from './components/ModerationNoticeModal.jsx';
 import RenameModal from './components/RenameModal.jsx';
@@ -55,8 +58,6 @@ const ProfileScreen = lazy(() => import('./components/ProfileScreen.jsx'));
 const ChallengeScreen = lazy(() => import('./components/ChallengeScreen.jsx'));
 const TournamentScreen = lazy(() => import('./components/TournamentScreen.jsx'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal.jsx'));
-// Decoration, and only for part of the year: it must not be in the bundle a player downloads to reach question one.
-const HolidayOverlay = lazy(() => import('./components/HolidayOverlay.jsx'));
 
 // Each deferred screen gets its own Suspense boundary rather than one around the whole shell,
 // so fetching a chunk never blanks the nav bar or a run already in progress. Modals fall back
@@ -436,15 +437,22 @@ export default function App() {
           ? 'start'
           : screen;
 
+  // The holiday is drawn only while the player has not turned the overlay off. Everything that dresses the page keys on these attributes.
+  const dressedScene = holiday.scene && holiday.overlayOn ? holiday.scene : null;
+  const holidayAttributes = dressedScene
+    ? {
+        'data-holiday': dressedScene,
+        'data-holiday-calm': screen === 'question' || screen === 'preview' ? 'on' : 'off',
+        'data-holiday-motion': holiday.animated ? 'full' : 'still',
+      }
+    : {};
+
   return (
-    <div className="app-shell">
+    <HolidayContext.Provider value={dressedScene}>
+    <div className="app-shell" {...holidayAttributes}>
       <Embers />
       {/* Behind everything, so it is never over a question. It stops moving while one is on screen, a guest's preview included. */}
-      {holiday.scene && holiday.overlayOn && (
-        <Suspense fallback={null}>
-          <HolidayOverlay scene={holiday.scene} animated={holiday.animated} calm={screen === 'question' || screen === 'preview'} />
-        </Suspense>
-      )}
+      <HolidayOverlay scene={dressedScene} />
       {screen !== 'auth' && screen !== 'preview' && screen !== 'recovery' && (
         <NavBar
           currentUser={auth.user}
@@ -739,6 +747,7 @@ export default function App() {
           />
         </Suspense>
       )}
+      <HolidayFoot />
       <div className="colophon">
         <p>
           An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,
@@ -757,5 +766,6 @@ export default function App() {
         </Suspense>
       )}
     </div>
+    </HolidayContext.Provider>
   );
 }

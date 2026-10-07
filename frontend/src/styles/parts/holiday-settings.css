@@ -27,6 +27,33 @@
   font-size: 1rem;
 }
 
+/* The admin's list of holidays. The same look as the Start screen's fields (a ruled line under a faint wash), at the 44px floor every field has. */
+.holiday-select {
+  flex: none;
+  min-width: 11rem;
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--text-on-surface);
+  border: none;
+  border-bottom: 2px solid var(--brass-500);
+  border-radius: 0;
+  padding: 0.6rem 0.3rem;
+  font-family: var(--font-body);
+}
+
+.holiday-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--rubric);
+  border-radius: 99px;
+  color: var(--rubric);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
 /* Stacked, the text's flex-basis would become a height, so it is reset: a column row is as tall as its text. */
 @media (max-width: 520px) {
   .holiday-setting {

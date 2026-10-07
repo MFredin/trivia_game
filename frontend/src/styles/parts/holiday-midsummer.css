@@ -1,0 +1,206 @@
+/* --- Midsummer (holidays/midsummer.js) ---
+   The sun that does not set. On every screen width: a dusky haze with a golden glow along the horizon, fireflies drifting up the gutters, a
+   flower festoon, a bee, a posy and daisies on every plate, and a maypole, a bonfire, birches and wildflowers at the end of each page. From
+   1280px up the margins add a low golden sun and a tall birch. */
+
+.app-shell[data-holiday="midsummer"] {
+  --gold: #f2c14e;
+  --rose: #e58f9a;
+  --corn: #5a86e0;
+  --daisy: #f6f1e0;
+  --poppy: #dc4630;
+  --leaf: #5a9a4a;
+  --leaf2: #2f6b3a;
+  --birch: #e9e4d6;
+  --fire: #ff9a3c;
+  --sun: #ffd76a;
+  --meadow: #1c3a1c;
+  --dust: #fff2a8;
+}
+:root[data-house='monochrome'] .app-shell[data-holiday="midsummer"] {
+  --gold: #e6e6e6;
+  --rose: #bdbdbd;
+  --corn: #9a9a9a;
+  --daisy: #f2f2f2;
+  --poppy: #8c8c8c;
+  --leaf: #8a8a8a;
+  --leaf2: #4a4a4a;
+  --birch: #e6e6e6;
+  --fire: #f0f0f0;
+  --sun: #f0f0f0;
+  --meadow: #202020;
+  --dust: #ffffff;
+}
+.gfire {
+  position: absolute;
+  left: var(--gx);
+  top: 100%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--dust);
+  box-shadow: 0 0 9px 4px rgba(255,236,140,.5);
+  opacity: 0;
+  animation: hol-glowfly var(--t) ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.pd-festoon {
+  top: -14px;
+  right: 4px;
+  width: 134px;
+  transform-origin: 100% 0;
+  animation: hol-sprigsway 7s ease-in-out infinite alternate;
+}
+.pd-bee {
+  left: 54px;
+  top: -22px;
+  width: 22px;
+  animation: hol-beepath 11s ease-in-out infinite;
+}
+.pd-bee svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.pd-bee .wing {
+  animation: hol-wingbuzz .09s linear infinite alternate;
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+}
+.pd-posy {
+  right: 22px;
+  bottom: -14px;
+  width: 58px;
+}
+.pd-daisies {
+  left: 12px;
+  bottom: -11px;
+  width: 62px;
+}
+.ms-hill {
+  position: absolute;
+  left: -20px;
+  right: -20px;
+  bottom: -4px;
+  height: 54px;
+  width: calc(100% + 40px);
+  fill: var(--meadow);
+}
+.app-shell[data-holiday="midsummer"] .hol-foot::before {
+  content: "";
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  bottom: 0;
+  height: 140px;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(var(--holiday-warm-rgb), .14), rgba(var(--holiday-warm-rgb), 0) 72%);
+  animation: hol-hearth 8s ease-in-out infinite;
+}
+.ms-pole {
+  position: absolute;
+  left: 58%;
+  bottom: 8px;
+  width: 72px;
+  transform-origin: 50% 100%;
+}
+.ms-pole svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.ms-pole .rib {
+  transform-origin: 0 0;
+  animation: hol-ribbonwave 4.5s ease-in-out infinite alternate;
+  transform-box: fill-box;
+}
+.ms-fire {
+  position: absolute;
+  left: 16%;
+  bottom: 8px;
+  width: 44px;
+}
+.ms-fire svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.ms-fire .fl {
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+  animation: hol-flame 2.3s ease-in-out infinite;
+}
+.ms-fire .sp { animation: hol-spark 3.2s ease-out infinite; }
+.ms-birch {
+  position: absolute;
+  bottom: 8px;
+  width: 26px;
+}
+.ms-birch svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.ms-sun {
+  position: absolute;
+  right: -70px;
+  bottom: 140px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,226,140,.9) 0%, rgba(255,200,90,.5) 24%, rgba(255,170,70,.14) 52%, rgba(255,170,70,0) 70%);
+  animation: hol-breathe 9s ease-in-out infinite;
+}
+.ms-tree {
+  position: absolute;
+  left: 4px;
+  top: 110px;
+  width: 118px;
+  height: 380px;
+}
+.ms-tree .lv {
+  transform-origin: 50% 0;
+  transform-box: fill-box;
+  animation: hol-leafsway 4.5s ease-in-out infinite alternate;
+}
+
+@keyframes hol-glowfly {
+  0% { transform: translate(0,0); opacity: 0; }
+  12% { opacity: .95; }
+  25% { opacity: .2; }
+  40% { opacity: 1; }
+  55% { opacity: .3; }
+  70% { opacity: .95; }
+  100% { transform: translate(var(--wx, 4px), calc(100vh * -.55)); opacity: 0; }
+}
+
+@keyframes hol-beepath {
+  0% { transform: translate(0,0); }
+  20% { transform: translate(46px,-6px); }
+  40% { transform: translate(78px,10px); }
+  55% { transform: translate(40px,2px); }
+  75% { transform: translate(-8px,-2px); }
+  100% { transform: translate(0,0); }
+}
+
+@keyframes hol-wingbuzz {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(.3); }
+}
+
+@keyframes hol-ribbonwave {
+  from { transform: skewX(-6deg) rotate(-2deg); }
+  to { transform: skewX(6deg) rotate(2deg); }
+}
+
+@keyframes hol-spark {
+  0% { transform: translate(0,0); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate(var(--sx, 4px), -34px); opacity: 0; }
+}
+.ms-fl {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c);
+}

@@ -1,0 +1,245 @@
+/* --- Thanksgiving (holidays/thanksgiving.js) ---
+   The page is a table seen from above. On every screen width: wood planks behind everything with a warm vignette, a leaf garland swaying
+   along the very top edge, leaves drifting down the gutters, a leaf-and-berry vine, a falling leaf and gourds on every plate, and a laid
+   table at the end of each page. From 1280px up the margins add tea lights, a place setting, cranberries, a harvest basket and a pie. */
+
+.app-shell[data-holiday="thanksgiving"] {
+  --wood-rgb: 255, 190, 110;
+  --steam-rgb: 255, 240, 220;
+  --linen: #ead9b8;
+  --linen2: #cdb487;
+  --brass: #b88a3e;
+  --napkin: #a8442a;
+  --wicker: #8f5d2c;
+  --wicker2: #5a3718;
+  --pit: #24140a;
+  --pumpkin: #e07b24;
+  --pumpkin2: #a8520f;
+  --apple: #b3261e;
+  --grape: #5b2a6e;
+  --wheat: #d9b95c;
+  --berry: #c2282a;
+  --stem: #6d6a2e;
+  --gourd2: #e2c25a;
+  --gourd2-d: #a8862a;
+  --pumpkin2: #a8520f;
+  --leaf1: #c2501c;
+  --leaf2: #e29a2b;
+  --leaf3: #d8b43c;
+  --leaf4: #93301b;
+  --vine: #4a3a1c;
+  --crust: #c98a3a;
+  --crust2: #8f5d22;
+  --filling: #7a3319;
+  --china: #e8e0cf;
+  --candle: #ffe9b0;
+}
+:root[data-house='monochrome'] .app-shell[data-holiday="thanksgiving"] {
+  --wood-rgb: 255, 255, 255;
+  --steam-rgb: 245, 245, 245;
+  --linen: #e6e6e6;
+  --linen2: #b8b8b8;
+  --brass: #a8a8a8;
+  --napkin: #6a6a6a;
+  --wicker: #7a7a7a;
+  --wicker2: #484848;
+  --pit: #1a1a1a;
+  --pumpkin: #c4c4c4;
+  --pumpkin2: #8a8a8a;
+  --apple: #8c8c8c;
+  --grape: #5c5c5c;
+  --wheat: #d0d0d0;
+  --berry: #9a9a9a;
+  --stem: #7a7a7a;
+  --gourd2: #d6d6d6;
+  --gourd2-d: #8a8a8a;
+  --leaf1: #9a9a9a;
+  --leaf2: #c4c4c4;
+  --leaf3: #dedede;
+  --leaf4: #6e6e6e;
+  --vine: #4a4a4a;
+  --crust: #bcbcbc;
+  --crust2: #888;
+  --filling: #5a5a5a;
+  --china: #e6e6e6;
+  --candle: #ffffff;
+}
+.hol-planks {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.42) 0 2px, rgba(255,255,255,.03) 2px 3px, transparent 3px 168px),
+    repeating-linear-gradient(90deg, rgba(var(--wood-rgb), .04) 0 168px, rgba(0,0,0,.07) 168px 336px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(0deg, rgba(var(--wood-rgb), .03) 0 1px, transparent 1px 9px);
+}
+.warm-vig {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 42%, rgba(var(--holiday-warm-rgb), .05) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,.62) 100%);
+  animation: hol-breathe 11s ease-in-out infinite;
+}
+.hol-vine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  height: 2px;
+  background: var(--vine);
+}
+.hol-gl {
+  position: absolute;
+  top: 4px;
+  width: 22px;
+  transform-origin: 50% 0;
+  animation: hol-leafsway 5.5s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+.hol-gl svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  color: var(--c);
+}
+.hol-gberry {
+  position: absolute;
+  top: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--berry);
+}
+.hol-item { position: absolute; }
+.hol-item svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.tealight {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+}
+.tealight svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.tl-pool {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 190px;
+  aspect-ratio: 1;
+  transform: translate(-50%,-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--holiday-warm-rgb), .3) 0%, rgba(var(--holiday-warm-rgb), .1) 36%, rgba(var(--holiday-warm-rgb), 0) 66%);
+  animation: hol-pool 3.4s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.tl-flame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: #fff6d6;
+  box-shadow: 0 0 10px 4px rgba(var(--holiday-warm-rgb), .85);
+  animation: hol-flame 2.6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.hol-steam {
+  position: absolute;
+  width: 18px;
+  height: 40px;
+  opacity: 0;
+  animation: hol-steam 6.5s ease-out infinite;
+  animation-delay: var(--d);
+}
+.hol-steam svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@keyframes hol-steam {
+  0% { transform: translateY(0) scaleX(.8); opacity: 0; }
+  25% { opacity: .55; }
+  100% { transform: translateY(-46px) scaleX(1.5); opacity: 0; }
+}
+.gleaf {
+  position: absolute;
+  top: 0;
+  width: 13px;
+  color: var(--c);
+  opacity: 0;
+  animation: hol-gfall var(--t) linear infinite;
+  animation-delay: var(--d);
+}
+.gleaf svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.pd-sprig {
+  top: -13px;
+  right: 8px;
+  width: 100px;
+  transform-origin: 100% 0;
+  animation: hol-sprigsway 6s ease-in-out infinite alternate;
+}
+.pd-gourds {
+  right: 22px;
+  bottom: -15px;
+  width: 104px;
+}
+.pd-leaf {
+  left: 12px;
+  top: -11px;
+  width: 26px;
+  transform-origin: 50% 0;
+  animation: hol-leafsway 5s ease-in-out infinite alternate;
+}
+.th-foot .th-runner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  bottom: 0;
+  border-radius: 6px;
+  background: linear-gradient(#4b2f1a, #3a2413);
+  border: 1px solid rgba(255,210,150,.18);
+  box-shadow: inset 0 0 0 4px rgba(0,0,0,.18), inset 0 0 0 5px rgba(255,210,150,.16);
+}
+.th-fplate {
+  position: absolute;
+  top: 14px;
+  width: 58px;
+}
+.th-fplate svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.th-ftl {
+  position: absolute;
+  top: 38px;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+}
+.th-ftl svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.th-ftl .tl-pool { width: 120px; }
+.th-ftl .tl-flame {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+}

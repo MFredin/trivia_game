@@ -2,10 +2,13 @@
 // a `secondary` node to get the two-page book-spread treatment instead — the same parchment
 // sheet split into a left and right leaf with a real binding-groove shadow down the middle,
 // rather than a plain single card.
+import HolidayDressing from './HolidayDressing.jsx';
+
 export default function Plate({ children, secondary, className = '', style, noGilt = false }) {
   if (secondary) {
     return (
       <div className={`book-spread ${className}`} style={style}>
+        <HolidayDressing />
         <div className="book-spread-leaf left">
           <span className="plate-corner tl" />
           <span className="plate-corner bl" />
@@ -26,6 +29,7 @@ export default function Plate({ children, secondary, className = '', style, noGi
       <span className="plate-corner tr" />
       <span className="plate-corner bl" />
       <span className="plate-corner br" />
+      <HolidayDressing />
       {children}
     </div>
   );
