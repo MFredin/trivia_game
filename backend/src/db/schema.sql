@@ -573,3 +573,8 @@ CREATE INDEX IF NOT EXISTS idx_tournaments_status ON tournaments (status, create
 -- itself; `holiday_motion` is whether it moves, so someone who likes the scene but not the drifting fog can keep it still.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS holiday_overlay BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS holiday_motion BOOLEAN NOT NULL DEFAULT true;
+
+-- An admin's own choice of which holiday overlay to see, whatever the date, so they can preview any of them at any time of year
+-- (lib/holidayOverlay.js). NULL follows the calendar, which is what everyone else always does. Only an admin may set it, and
+-- userView hides it from anyone who is not one, so a stored value on an account that has since lost the flag does nothing.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS holiday_override TEXT;

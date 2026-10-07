@@ -1,16 +1,19 @@
-/* --- the holiday overlay's shell (components/HolidayOverlay.jsx) ---
-   A fixed layer behind the whole page. z-index -1 puts it above the page's own background, which is painted on the canvas, and
-   below every piece of content, so nothing it draws can cover a question, an answer, a button or the timer. The scenes
-   (halloween.css) draw into it; the rules here are the ones every scene shares.
+/* --- the holiday overlay: what every holiday shares (components/HolidayOverlay.jsx, HolidayDressing.jsx, HolidayFoot.jsx) ---
+   Decoration is drawn in four tiers, and which tier a piece belongs to is decided by one question: can text ever be there?
+     1. The backdrop: a fixed layer behind the whole page (.holiday). Dark washes only, because pale ones would sit behind text.
+     2. The gutters (.hol-gut): the 16px strips either side of the content. Nothing the app draws ever enters them, so anything may
+        drift down them, however pale. They are the reason a phone, where the plates fill the width, still gets details.
+     3. Plate dressing (.hol-pd): props that sit on a plate's edges and corners and move with it, so they exist at every width and are
+        placed clear of the text padding. Thin line art (.hol-line) sits behind the plate's text; props (.hol-prop) sit over its edge.
+     4. The foot (.hol-foot): a scene in the page flow, above the footer, text-free by construction.
+   The large margin scene (.hol-margin) is what a screen 1280px wide or more adds: the page is 1040px, so a margin exists only there, and
+   a pale piece in it can never be behind text. Below that, margin pieces are not drawn at all.
 
-   Three states, set as attributes by the component:
-     data-calm="on"       a question is on screen. Everything stops moving and the extras go (anything marked holiday-mover or
-                          holiday-idle, plus the lights and eyes), leaving a still backdrop. The quiz is the only thing that moves.
-     data-motion="still"  the player turned "Animated background" off. The scene stays, nothing in it moves, and the travellers
-                          (holiday-mover) are not drawn, because parked in mid-air they would just look stuck.
-     prefers-reduced-motion  treated exactly as "still", whatever the switch says.
-   A scene must put every animation on a class these rules can reach, and must change only transform and opacity, so the browser
-   can hand it all to the graphics card. */
+   The state lives on .app-shell, set by App.jsx:  data-holiday="<key>"  data-holiday-calm="on|off"  data-holiday-motion="full|still"
+     calm    a question is on screen. Everything stops moving and the props and drifters go, so the quiz is the only thing that moves.
+     still   the player turned "Animated background" off, or the device asks for reduced motion. The scene stays and nothing in it moves;
+             the movers (.hol-mover) are not drawn, because parked in mid-air they would just look stuck.
+   Every animation here changes transform or opacity only, so the browser can hand it to the graphics card. */
 .holiday {
   position: fixed;
   inset: 0;
@@ -20,60 +23,259 @@
   contain: layout paint;
 }
 
-.holiday-bg,
-.holiday-sky,
-.holiday-land {
+.hol-scene {
   position: absolute;
   inset: 0;
 }
 
-.holiday-defs {
+.hol-defs {
   position: absolute;
   width: 0;
   height: 0;
 }
 
-.holiday[data-calm='on'] .holiday-mover,
-.holiday[data-calm='on'] .holiday-idle,
-.holiday[data-calm='on'] .holiday-wisp,
-.holiday[data-calm='on'] .holiday-eyes,
-.holiday[data-motion='still'] .holiday-mover {
-  display: none;
+/* A plate that carries line art stacks it between its own background and its text. */
+.app-shell[data-holiday] .plate {
+  isolation: isolate;
 }
 
-.holiday[data-calm='on'] *,
-.holiday[data-motion='still'] * {
+/* The Start screen's book spread has its own leaves, which paint over a negative layer, so its line art sits just above them instead. */
+.app-shell[data-holiday] .book-spread > .hol-pd.hol-line {
+  z-index: 1;
+}
+
+.app-shell[data-holiday] .book-spread {
+  position: relative;
+}
+
+@keyframes hol-drift {
+  to { transform: translateX(-50%); }
+}
+
+@keyframes hol-breathe {
+  0%,100% { opacity: .72; }
+  50% { opacity: 1; }
+}
+
+@keyframes hol-twinkle {
+  0%,100% { opacity: .15; }
+  50% { opacity: 1; }
+}
+
+@keyframes hol-pool {
+  0%,100% { opacity: .8; transform: translate(-50%,-50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%,-50%) scale(1.06); }
+}
+
+@keyframes hol-flame {
+  0%,100% { transform: scale(1,1) rotate(0deg); opacity: .95; }
+  25% { transform: scale(.94,1.1) rotate(-2.5deg); }
+  55% { transform: scale(1.04,.92) rotate(2deg); opacity: 1; }
+  80% { transform: scale(.97,1.06) rotate(-1deg); opacity: .88; }
+}
+
+@keyframes hol-leafsway {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(5deg); }
+}
+
+@keyframes hol-hearth {
+  0%,100% { opacity: .72; }
+  35% { opacity: 1; }
+  60% { opacity: .82; }
+}
+
+@keyframes hol-wreathsway {
+  from { transform: rotate(-2.6deg); }
+  to { transform: rotate(2.6deg); }
+}
+/* Nothing the overlay draws takes a tap. A prop's glow is wider than the prop, so on its own it would sit over a button; pointer-events is inherited,
+   so the wrappers are enough, and the e2e test checks every drawn element. */
+.hol-wrap,
+.hol-foot {
+  pointer-events: none;
+}
+.hol-pd {
+  position: absolute;
+  pointer-events: none;
+}
+.hol-pd svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.hol-pd.hol-line { z-index: -1; }
+.hol-pd.hol-prop { z-index: 3; }
+.hol-gut {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  pointer-events: none;
+}
+.hol-gut.l { left: 0; }
+.hol-gut.r { right: 0; }
+.hol-foot {
+  position: relative;
+  height: 96px;
+  margin-top: 22px;
+}
+
+@keyframes hol-sway {
+  0%,100% { transform: rotate(-3.5deg); }
+  50% { transform: rotate(3.5deg); }
+}
+
+@keyframes hol-flit {
+  0%,100% { transform: translate(0,0); }
+  25% { transform: translate(-6px,6px); }
+  50% { transform: translate(4px,11px); }
+  75% { transform: translate(8px,3px); }
+}
+
+@keyframes hol-gfall {
+  0% { transform: translate(0,-24px) rotate(0deg); opacity: 0; }
+  8% { opacity: .9; }
+  30% { transform: translate(-4px, calc(100vh * .3)) rotate(120deg); }
+  60% { transform: translate(3px, calc(100vh * .6)) rotate(240deg); }
+  94% { opacity: .85; }
+  100% { transform: translate(-2px, calc(100vh * 1 + 20px)) rotate(360deg); opacity: 0; }
+}
+
+@keyframes hol-sprigsway {
+  from { transform: rotate(-1.6deg); }
+  to { transform: rotate(1.8deg); }
+}
+.sc-vig {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 52%, rgba(0,0,0,.6) 100%);
+  animation: hol-breathe 9s ease-in-out infinite;
+}
+.sc-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 250px;
+  background: linear-gradient(to bottom, rgba(var(--holiday-haze-rgb), .4), rgba(var(--holiday-haze-rgb), 0));
+  animation: hol-breathe 12s ease-in-out infinite;
+}
+.sc-mist {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 200%;
+  height: 280px;
+  background-repeat: repeat-x;
+  background-size: 50% 100%;
+  background-image: radial-gradient(ellipse 22% 52% at 24% 78%, rgba(var(--holiday-mist-rgb), .21), rgba(var(--holiday-mist-rgb), 0) 72%), radial-gradient(ellipse 22% 44% at 52% 92%, rgba(var(--holiday-mist-rgb), .15), rgba(var(--holiday-mist-rgb), 0) 72%), radial-gradient(ellipse 22% 56% at 78% 82%, rgba(var(--holiday-mist-rgb), .18), rgba(var(--holiday-mist-rgb), 0) 72%);
+  animation: hol-drift 100s linear infinite;
+}
+.sc-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 260px;
+  background: radial-gradient(ellipse 70% 100% at 50% 100%, rgba(var(--holiday-warm-rgb), .14), rgba(var(--holiday-warm-rgb), 0) 70%);
+  animation: hol-hearth 8s ease-in-out infinite;
+}
+.sc-dust {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--dust, #fff);
+  opacity: .2;
+  animation: hol-twinkle 3.6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.hol-mini { position: absolute; }
+.hol-mini svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.sc-pool {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 180px;
+  aspect-ratio: 1;
+  transform: translate(-50%,-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--holiday-warm-rgb), .3), rgba(var(--holiday-warm-rgb), .1) 36%, rgba(var(--holiday-warm-rgb), 0) 66%);
+  animation: hol-pool 3.4s ease-in-out infinite;
+}
+
+@media (max-width: 1279px) {
+  .hol-margin { display: none !important; }
+}
+
+/* --- the three states --- */
+.app-shell[data-holiday-calm='on'] .hol-mover,
+.app-shell[data-holiday-calm='on'] .hol-prop,
+.app-shell[data-holiday-motion='still'] .hol-mover {
+  display: none !important;
+}
+
+.app-shell[data-holiday-calm='on'] :is(.holiday, .hol-pd, .hol-foot, .hol-gut) *,
+.app-shell[data-holiday-calm='on'] :is(.holiday, .hol-pd, .hol-foot, .hol-gut),
+.app-shell[data-holiday-motion='still'] :is(.holiday, .hol-pd, .hol-foot, .hol-gut) *,
+.app-shell[data-holiday-motion='still'] :is(.holiday, .hol-pd, .hol-foot, .hol-gut) {
   animation: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .holiday * {
+  .app-shell[data-holiday] :is(.holiday, .hol-pd, .hol-foot, .hol-gut) *,
+  .app-shell[data-holiday] :is(.holiday, .hol-pd, .hol-foot, .hol-gut) {
     animation: none !important;
   }
 
-  .holiday .holiday-mover {
+  .app-shell[data-holiday] .hol-mover {
+    display: none !important;
+  }
+}
+
+/* The colophon is 11px fine print, the one place a wash behind a line of text costs real legibility, so on a holiday it gets a dark scrim behind it
+   (the contrast audit measures it) and its usual 75% opacity is lifted. The scrim runs on past the text to cover the page's bottom padding. */
+.app-shell[data-holiday] .colophon {
+  position: relative;
+  isolation: isolate;
+  opacity: 1;
+}
+
+.app-shell[data-holiday] .colophon::before {
+  content: '';
+  position: absolute;
+  inset: 0 -1.25rem -4rem;
+  z-index: -1;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5) 35%);
+  pointer-events: none;
+}
+
+/* The foot's glows (a pumpkin's light, a candle's) are wider than the pumpkin or the candle, so one near an edge would run past the screen and
+   widen the page: the sideways scroll the layout rules forbid. The foot therefore runs the full width of the page (out into the shell's 20px side
+   padding) and clips horizontally at its own edge, which on a phone is the edge of the screen. `clip`, unlike `hidden`, leaves it unclipped
+   vertically, so a flame or a glow can still rise past the top of the band. (clip-path would not do: it hides the overflow but does not stop
+   it widening the page.) */
+.hol-foot {
+  margin-inline: -1.25rem;
+  overflow-x: clip;
+}
+
+/* A wide screen has the margin scene and its own ground, so the in-flow foot would be a second one. */
+@media (min-width: 1280px) {
+  .hol-foot {
     display: none;
   }
 }
 
-/* Where there is no empty margin to decorate, the pieces that need room are not drawn. The page's content is 1040px wide and a
-   piece in the margin needs about 120px each side of it, so below 1280px the margins are gone: a pale shape marked holiday-margin
-   would sit behind the nav, a heading or the footer and cost it legibility (the contrast audit measures the dark parts of the
-   scene; it cannot measure a moon). A phone has less room still, and also drops what is marked holiday-wide. */
-@media (max-width: 1279px) {
-  .holiday .holiday-margin {
-    display: none !important;
-  }
-}
-
-@media (max-width: 720px) {
-  .holiday .holiday-wide {
-    display: none !important;
-  }
-}
-
 @media print {
-  .holiday {
+  .holiday,
+  .hol-pd,
+  .hol-foot {
     display: none;
   }
 }

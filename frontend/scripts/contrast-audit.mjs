@@ -45,6 +45,24 @@ for (const m of css.matchAll(/:root(?:\[data-house='([a-z]+)'\])?\s*\{([\s\S]*?)
   );
 }
 const HOUSES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'monochrome'];
+// The holiday overlays' washes (tokens.css): per scene, and one rebinding of them all to greys for Monochrome.
+const washTokens = (block) =>
+  Object.fromEntries([...block.matchAll(/--holiday-(haze|mist|warm)-rgb\s*:\s*([^;]+);/g)].map((d) => [d[1], d[2].split(',').map((n) => Number(n.trim()))]));
+const HOLIDAY_WASHES = {};
+for (const m of css.matchAll(/\.app-shell\[data-holiday='([a-z]+)'\]\s*\{([\s\S]*?)\n\}/g)) HOLIDAY_WASHES[m[1]] = washTokens(m[2]);
+const HOLIDAY_MONO = washTokens((css.match(/:root\[data-house='monochrome'\] \.app-shell\[data-holiday\]\s*\{([\s\S]*?)\n\}/) ?? [])[1] ?? '');
+// Which washes each scene draws behind text, and how opaque each is at its peak: [token, alpha].
+// The black scrim under the colophon on a holiday: its peak opacity.
+const COLOPHON_SCRIM = 0.5;
+const HOLIDAY_LAYERS = {
+  halloween: { top: [['haze', 0.58]], bottom: [['mist', 0.32], ['mist', 0.34]] }, // .hw-haze; .hw-mist, .hw-foot::before
+  thanksgiving: { top: [], bottom: [] }, // planks and a vignette: dark only
+  yule: { top: [], bottom: [['warm', 0.15], ['warm', 0.16]] }, // .hol-hearth, .yu-foot::before
+  newyear: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14]] }, // .sc-haze; .sc-mist, .sc-glow
+  easter: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14], ['mist', 0.2]] }, // .sc-haze; .sc-mist, .sc-glow, .ea-foot::before
+  midsummer: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14], ['warm', 0.14]] }, // .sc-haze; .sc-mist, .sc-glow, .ms-foot::before
+};
+
 
 function tok(house, name) {
   const v = (blocks[house] ?? {})[name] ?? blocks.gryffindor[name];
@@ -118,19 +136,33 @@ function build(house) {
   add('section tab hint on page', t('--silver-400'), page, 4.5, '.section-tab-hint, .settings-rail-note');
   add('section tab marker on page', onbg, page, 3.0, '.section-tab-pip and the selected rule (non-text)');
 
-  // The holiday overlay lightens the page behind page-level text: the purple haze along the top (to 60% at the very edge, behind the
-  // nav and the first heading) and the fog along the foot (to 34%, behind the colophon). These are the lightest grounds that text
-  // can sit on while it is on, so text that passes here passes everywhere the overlay draws. Not under a question: the overlay stills
-  // and the plate covers it. The moon's glow is not listed because it is not drawn where text is (it is hidden below 1280px).
-  const haze = over(t('--holiday-haunt-rgb'), page, 0.6);
-  const fog = over(t('--holiday-fog-rgb'), page, 0.34);
-  add('page body text on holiday haze', t('--text-on-bg'), haze, 4.5, '.holiday-haze behind page copy');
-  add('on-page eyebrow on holiday haze', onbg, haze, 4.5, '.holiday-haze behind .screen-eyebrow');
-  add('nav link on holiday haze', t('--silver-400'), haze, 4.5, '.holiday-haze behind .running-nav button');
-  add('nav active link on holiday haze', t('--silver-200'), haze, 4.5, '.holiday-haze behind .running-nav button.on');
-  add('colophon text on holiday fog', t('--text-muted'), fog, 4.5, '.holiday-fog behind .colophon');
-  add('page body text on holiday fog', t('--text-on-bg'), fog, 4.5, '.holiday-fog behind page copy');
-  add('nav hint on holiday fog', t('--silver-400'), fog, 4.5, '.holiday-fog behind .settings-rail-note');
+  // The holiday overlays lighten the page behind page-level text: a wash along the top edge (behind the nav and the first heading) and, along
+  // the foot, a mist and a warm glow (behind the footer). These are the lightest grounds text can sit on while a holiday is on, so text that
+  // passes here passes everywhere the overlay draws. Everything else a holiday draws is in the gutters, on a plate's edge or in the page's own
+  // foot band, none of which has text, so none of it is measured; the moon's glow and the margin scene are not drawn where text is (they need
+  // 1280px, where the page has empty margins).
+  //
+  // The alphas are the peaks of the gradients in styles/parts/holiday-*.css, written down here because a stylesheet cannot be read for them:
+  // change one there and change it here. Layers that overlap are composited in order at their peaks, which no real pixel reaches: it is the
+  // worst case, on purpose.
+  for (const [scene, layers] of Object.entries(HOLIDAY_LAYERS)) {
+    const wash = { ...HOLIDAY_WASHES[scene], ...(house === 'monochrome' ? HOLIDAY_MONO : {}) };
+    const lit = (list, base) => list.reduce((bg, [token, alpha]) => over(wash[token], bg, alpha), base);
+    if (layers.top.length) {
+      const haze = lit(layers.top, page);
+      add(`page body text on ${scene} haze`, t('--text-on-bg'), haze, 4.5, `.holiday backdrop behind page copy (${scene})`);
+      add(`on-page eyebrow on ${scene} haze`, onbg, haze, 4.5, `backdrop behind .screen-eyebrow (${scene})`);
+      add(`nav link on ${scene} haze`, t('--silver-400'), haze, 4.5, `backdrop behind .running-nav button (${scene})`);
+      add(`nav active link on ${scene} haze`, t('--silver-200'), haze, 4.5, `backdrop behind .running-nav button.on (${scene})`);
+    }
+    if (layers.bottom.length) {
+      const foot = lit(layers.bottom, page);
+      // The colophon is fine print, so on a holiday it gets a dark scrim behind it (holiday-overlay.css, .colophon::before) and its
+      // usual 75% opacity is lifted: a wash behind 11px text is the one place a wash costs real legibility.
+      add(`colophon text on ${scene} foot wash`, t('--text-muted'), over([0, 0, 0], foot, COLOPHON_SCRIM), 4.5, `.colophon over the foot washes, under its scrim (${scene})`);
+      add(`page body text on ${scene} foot wash`, t('--text-on-bg'), foot, 4.5, `backdrop behind page copy at the foot (${scene})`);
+    }
+  }
 
   // on cloth (spines, the Ex Libris board, the question spread's spine strip)
   add('spine label on cloth', tooling, cloth, 4.5, '.mode-spine label');

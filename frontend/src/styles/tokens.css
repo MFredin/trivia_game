@@ -95,35 +95,6 @@
 
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.2  0 0 0 0 0.14  0 0 0 0 0.08  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
-  /* The holiday overlay's colours (components/HalloweenScene.jsx). They are a night scene, not house colours: a pumpkin is orange
-     in the four coloured houses and the scene is the same whichever one is bound, so the defaults here are the scene's own and only
-     the fog and the pumpkins' tint follow the binding, in each house's block below. Monochrome rebinds all of them to greys, because that binding is colourless
-     everywhere and an orange pumpkin would be the one thing in it that is not. Pick a token by what it paints, not by house.
-       --holiday-haunt-rgb   the purple haze along the top edge and the clouds
-       --holiday-fog-rgb     the fog that drifts along the foot; tinted per house so it reads as part of the page's own light
-       --holiday-ground      the hills, tree and gravestones: the darkest thing on the page
-       --holiday-moon*       the moon's face, its craters and its glow
-       --holiday-pumpkin*    the jack-o'-lanterns: skin, shaded lobes, the cut face's light, the stem; --holiday-warm-rgb is
-                             the candle glow they throw on the ground
-       --holiday-wisp*       the ghost-lights rising through the fog; --holiday-eye* the eyes that open in the dark */
-  --holiday-haunt-rgb: 70, 34, 104;
-  --holiday-fog-rgb: 140, 104, 176;
-  --holiday-ground: #0c0612;
-  --holiday-moon: #f1e8cc;
-  --holiday-moon-edge: #cdbf94;
-  --holiday-moon-rgb: 241, 232, 204;
-  --holiday-witch: #3a2556;
-  --holiday-witch-rim: #9a82c4;
-  --holiday-bat: #2a1a40;
-  --holiday-pumpkin: #ee7a1c;
-  --holiday-pumpkin-deep: #b34f0b;
-  --holiday-candle: #ffd27a;
-  --holiday-stem: #566b2e;
-  --holiday-warm-rgb: 255, 170, 60;
-  --holiday-wisp: #bff3cb;
-  --holiday-wisp-rgb: 191, 243, 203;
-  --holiday-eye: #ffb84d;
-  --holiday-eye-rgb: 255, 184, 77;
 }
 
 /* Hufflepuff: gold & black. Rubric, tooling, gilt and leaf take the dark channel. */
@@ -162,10 +133,6 @@
   --wash-rgb: 236, 185, 57;
   --ember: #ffd66b;
   --ember-rgb: 236, 185, 57;
-  --holiday-fog-rgb: 150, 112, 150;
-  --holiday-pumpkin: #e2641b;
-  --holiday-pumpkin-deep: #a8440a;
-  --holiday-candle: #ffd77a;
 }
 
 /* Slytherin: green & silver. */
@@ -200,10 +167,6 @@
   --wash-rgb: 42, 98, 61;
   --ember: #e6e6e6;
   --ember-rgb: 201, 201, 201;
-  --holiday-fog-rgb: 90, 132, 142;
-  --holiday-pumpkin: #f08a24;
-  --holiday-pumpkin-deep: #b45a0f;
-  --holiday-candle: #ffdc88;
 }
 
 /* Ravenclaw: navy & bronze. */
@@ -242,10 +205,6 @@
   --wash-rgb: 42, 74, 138;
   --ember: #e2bd80;
   --ember-rgb: 185, 141, 82;
-  --holiday-fog-rgb: 110, 122, 192;
-  --holiday-pumpkin: #f08a24;
-  --holiday-pumpkin-deep: #b45a0f;
-  --holiday-candle: #ffdc88;
 }
 
 /* Monochrome: no house color, just tone — the metal reads slightly lighter than the
@@ -286,22 +245,50 @@
   --wash-rgb: 28, 28, 28;
   --ember: #e6e6e6;
   --ember-rgb: 200, 200, 200;
-  --holiday-haunt-rgb: 64, 64, 64;
-  --holiday-fog-rgb: 120, 120, 120;
-  --holiday-ground: #0a0a0a;
-  --holiday-moon: #ececec;
-  --holiday-moon-edge: #bdbdbd;
-  --holiday-moon-rgb: 236, 236, 236;
-  --holiday-witch: #3a3a3a;
-  --holiday-witch-rim: #a0a0a0;
-  --holiday-bat: #262626;
-  --holiday-pumpkin: #bdbdbd;
-  --holiday-pumpkin-deep: #7f7f7f;
-  --holiday-candle: #ffffff;
-  --holiday-stem: #6e6e6e;
+}
+
+/* The holiday overlays' washes (components/HolidayOverlay.jsx, docs/holiday-overlay.md): the only parts of a holiday scene that can sit behind
+   page-level text, so the only parts the contrast audit measures, for every house.
+     --holiday-haze-rgb   the wash along the top edge, behind the nav and the first heading (up to about 55% opaque at the very edge)
+     --holiday-mist-rgb   the mist along the foot, behind the footer (up to about 34%)
+     --holiday-warm-rgb   warm light: the glow on the horizon and the pools candles, lanterns and fires throw
+   A scene that has no top haze or no mist (Thanksgiving, Yule) simply does not define it. The rest of a scene's colour (the pumpkins, the eggs,
+   the balloons) is drawn only where no text can be, so it lives with the scene in styles/parts/holiday-*.css. Monochrome rebinds the washes
+   to greys, because that binding is colourless everywhere. */
+.app-shell[data-holiday='halloween'] {
+  --holiday-haze-rgb: 70, 34, 104;
+  --holiday-mist-rgb: 140, 104, 176;
+  --holiday-warm-rgb: 255, 170, 60;
+}
+
+.app-shell[data-holiday='thanksgiving'] {
+  --holiday-warm-rgb: 255, 170, 70;
+}
+
+.app-shell[data-holiday='yule'] {
+  --holiday-warm-rgb: 255, 188, 96;
+}
+
+.app-shell[data-holiday='newyear'] {
+  --holiday-haze-rgb: 40, 56, 132;
+  --holiday-mist-rgb: 120, 100, 170;
+  --holiday-warm-rgb: 255, 214, 120;
+}
+
+.app-shell[data-holiday='easter'] {
+  --holiday-haze-rgb: 112, 72, 140;
+  --holiday-mist-rgb: 80, 150, 110;
+  --holiday-warm-rgb: 255, 226, 150;
+}
+
+.app-shell[data-holiday='midsummer'] {
+  --holiday-haze-rgb: 118, 66, 104;
+  --holiday-mist-rgb: 130, 150, 80;
+  --holiday-warm-rgb: 255, 190, 90;
+}
+
+:root[data-house='monochrome'] .app-shell[data-holiday] {
+  --holiday-haze-rgb: 64, 64, 64;
+  --holiday-mist-rgb: 120, 120, 120;
   --holiday-warm-rgb: 255, 255, 255;
-  --holiday-wisp: #ffffff;
-  --holiday-wisp-rgb: 255, 255, 255;
-  --holiday-eye: #ffffff;
-  --holiday-eye-rgb: 255, 255, 255;
 }

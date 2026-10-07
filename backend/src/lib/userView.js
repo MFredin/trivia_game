@@ -4,7 +4,7 @@ import { roleOf } from './roles.js';
 // The one shape a signed-in player's own account takes on the wire, and the columns that feed it.
 // Kept in one place because five routes return it and they had begun to disagree about which
 // fields it carried.
-export const USER_COLUMNS = 'id, username, email, theme, is_admin, avatar, avatar_style, friends_visibility, bio, favorite_book, favorite_subject, pinned_achievements, must_rename, owl_post, challenges, muted_until, title, is_moderator, holiday_overlay, holiday_motion';
+export const USER_COLUMNS = 'id, username, email, theme, is_admin, avatar, avatar_style, friends_visibility, bio, favorite_book, favorite_subject, pinned_achievements, must_rename, owl_post, challenges, muted_until, title, is_moderator, holiday_overlay, holiday_motion, holiday_override';
 
 export function userView(row) {
   return {
@@ -26,6 +26,7 @@ export function userView(row) {
     challenges: row.challenges ?? 'open',
     holiday_overlay: row.holiday_overlay ?? true,
     holiday_motion: row.holiday_motion ?? true,
+    holiday_override: row.is_admin ? (row.holiday_override ?? null) : null,
     title: titleView(row.title),
     // Only while it is in force; an expired mute is no mute.
     muted_until: row.muted_until && row.muted_until > new Date() ? row.muted_until : null,

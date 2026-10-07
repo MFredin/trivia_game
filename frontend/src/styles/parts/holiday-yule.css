@@ -1,0 +1,312 @@
+/* --- Yule (holidays/yule.js) ---
+   The page is a frosted window on the longest night. On every screen width: a dark casing round the edge, a sill along the foot with firelight
+   rising off it, icicles along the top edge, snow down the gutters, icicles, frost and a hanging wreath and a holly sprig on every plate, and a
+   windowsill of candles at the end of each page. From 1280px up the margins add frost in the corners, a large wreath and taller candles. */
+
+.app-shell[data-holiday="yule"] {
+  --frame: #1b120c;
+  --sill: #23180f;
+  --frost: #e6f2ff;
+  --ice-rgb: 196, 224, 250;
+  --glint: #ffffff;
+  --pine1: #2d6a44;
+  --pine2: #468a5c;
+  --berry: #d4352c;
+  --ribbon: #b3261e;
+  --ribbon2: #86190f;
+  --wax1: #f0e6cf;
+  --wax2: #b3261e;
+  --wax3: #2f6b45;
+}
+:root[data-house='monochrome'] .app-shell[data-holiday="yule"] {
+  --frame: #121212;
+  --sill: #1a1a1a;
+  --frost: #f0f0f0;
+  --ice-rgb: 220, 220, 220;
+  --glint: #ffffff;
+  --pine1: #6a6a6a;
+  --pine2: #8c8c8c;
+  --berry: #d6d6d6;
+  --ribbon: #cfcfcf;
+  --ribbon2: #8a8a8a;
+  --wax1: #e6e6e6;
+  --wax2: #b8b8b8;
+  --wax3: #8a8a8a;
+}
+.hol-frame {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 9px var(--frame), inset 0 0 0 11px rgba(255,225,180,.07), inset 0 0 90px rgba(0,0,0,.6);
+}
+.hol-sill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34px;
+  background: linear-gradient(#2e2015, var(--sill));
+  border-top: 2px solid rgba(255,225,180,.12);
+  box-shadow: 0 -10px 24px rgba(0,0,0,.4);
+}
+.hol-hearth {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 280px;
+  background: radial-gradient(ellipse 70% 100% at 50% 100%, rgba(var(--holiday-warm-rgb), .15), rgba(var(--holiday-warm-rgb), 0) 70%);
+  animation: hol-hearth 7s ease-in-out infinite;
+}
+.hol-icicle {
+  position: absolute;
+  top: 7px;
+  width: var(--w);
+  height: var(--h);
+  left: var(--x);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(rgba(var(--ice-rgb), .6), rgba(var(--ice-rgb), .16));
+}
+.frostc {
+  position: absolute;
+  width: 132px;
+  height: 132px;
+}
+.frostc.tl {
+  left: 0;
+  top: 0;
+}
+.frostc.tr {
+  right: 0;
+  top: 0;
+  transform: scaleX(-1);
+}
+.frostc.bl {
+  left: 0;
+  bottom: 34px;
+  transform: scaleY(-1);
+}
+.frostc.br {
+  right: 0;
+  bottom: 34px;
+  transform: scale(-1, -1);
+}
+.frostc .glaze {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0 0, rgba(var(--ice-rgb), .14), rgba(var(--ice-rgb), 0) 72%);
+}
+.frostc svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: 0 0;
+  animation: hol-frostgrow 24s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+.frostc path {
+  fill: none;
+  stroke: var(--frost);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  opacity: .78;
+}
+.hol-glint {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  background: var(--glint);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  opacity: .2;
+  animation: hol-twinkle 4.4s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.hol-wreath {
+  position: absolute;
+  right: 5px;
+  top: 30px;
+  width: 112px;
+  transform-origin: 50% 0;
+  animation: hol-wreathsway 7s ease-in-out infinite alternate;
+}
+.hol-wreath svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.ypool {
+  position: absolute;
+  bottom: 20px;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--holiday-warm-rgb), .26) 0%, rgba(var(--holiday-warm-rgb), .09) 36%, rgba(var(--holiday-warm-rgb), 0) 68%);
+  animation: hol-pool 4.6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.yc {
+  position: absolute;
+  bottom: 36px;
+  width: var(--w);
+  height: var(--h);
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(90deg, rgba(0,0,0,.28), var(--cw) 30%, var(--cw) 68%, rgba(0,0,0,.34));
+}
+.yc::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  background: #2a1a10;
+}
+.yflame {
+  position: absolute;
+  left: 50%;
+  top: -25px;
+  width: 11px;
+  height: 20px;
+  margin-left: -5.5px;
+  transform-origin: 50% 100%;
+  border-radius: 50% 50% 50% 50% / 66% 66% 34% 34%;
+  background: linear-gradient(to top, rgba(255,150,40,.95), #ffe08a 55%, #fff6d0);
+  box-shadow: 0 0 14px 5px rgba(var(--holiday-warm-rgb), .5);
+  animation: hol-flame 3.1s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes hol-frostgrow {
+  from { transform: scale(.92); opacity: .65; }
+  to { transform: scale(1); opacity: 1; }
+}
+.ypool { animation-name: hol-ypool; }
+
+@keyframes hol-ypool {
+  0%,100% { opacity: .8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+.gflake {
+  position: absolute;
+  top: 0;
+  left: var(--gx);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: var(--flake);
+  opacity: 0;
+  animation: hol-gfall var(--t) linear infinite;
+  animation-delay: var(--d);
+}
+.app-shell[data-holiday="yule"] {
+  --flake: #f2f7ff;
+  --icicle-rgb: 96, 150, 200;
+  --frost-ink: #5f86ab;
+}
+:root[data-house='monochrome'] .app-shell[data-holiday="yule"] {
+  --flake: #ffffff;
+  --icicle-rgb: 120, 120, 120;
+  --frost-ink: #777;
+}
+.picicle {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  width: var(--w);
+  height: var(--h);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(rgba(var(--icicle-rgb), .7), rgba(var(--icicle-rgb), .14));
+}
+.pd-fern {
+  left: -1px;
+  bottom: -1px;
+  width: 66px;
+  height: 66px;
+  -webkit-mask-image: radial-gradient(circle at 0 100%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(circle at 0 100%, #000 30%, transparent 78%);
+}
+.pd-fern svg {
+  transform: scaleY(-1);
+  width: 100%;
+  height: 100%;
+}
+.pd-fern path {
+  fill: none;
+  stroke: var(--frost-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: .72;
+}
+.pd-mwreath {
+  right: 26px;
+  top: -22px;
+  width: 42px;
+  transform-origin: 50% 0;
+  animation: hol-wreathsway 7s ease-in-out infinite alternate;
+}
+.pd-holly {
+  right: 14px;
+  bottom: -9px;
+  width: 78px;
+}
+.yu-foot::before {
+  content: "";
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  bottom: 0;
+  height: 130px;
+  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(var(--holiday-warm-rgb), .16), rgba(var(--holiday-warm-rgb), 0) 72%);
+  animation: hol-hearth 7s ease-in-out infinite;
+}
+.yf-sill {
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  bottom: 0;
+  height: 15px;
+  border-radius: 3px;
+  background: linear-gradient(#3a2819, #23180f);
+  border-top: 2px solid rgba(255,225,180,.16);
+  box-shadow: 0 -8px 20px rgba(0,0,0,.35);
+}
+.yf-c {
+  position: absolute;
+  bottom: 14px;
+  left: var(--x);
+  width: var(--w);
+  height: var(--h);
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(90deg, rgba(0,0,0,.28), var(--cw) 30%, var(--cw) 68%, rgba(0,0,0,.34));
+}
+.yf-c::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  background: #2a1a10;
+}
+.yf-pool {
+  z-index: -1;
+  position: absolute;
+  bottom: 4px;
+  left: var(--x);
+  width: 170px;
+  height: 150px;
+  margin-left: -75px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--holiday-warm-rgb), .26) 0%, rgba(var(--holiday-warm-rgb), .08) 40%, rgba(var(--holiday-warm-rgb), 0) 68%);
+  animation: hol-ypool 4.6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.yf-cone {
+  position: absolute;
+  bottom: 14px;
+  left: var(--x);
+  width: 22px;
+}
