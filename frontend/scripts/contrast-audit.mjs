@@ -45,6 +45,15 @@ for (const m of css.matchAll(/:root(?:\[data-house='([a-z]+)'\])?\s*\{([\s\S]*?)
   );
 }
 const HOUSES = ['gryffindor', 'hufflepuff', 'slytherin', 'ravenclaw', 'monochrome'];
+// A holiday with its own binding (:root[data-holiday='x'], after the houses in tokens.css) is checked like a house: the same pairings, against its
+// own role tokens. While it is on the house does not matter, so the houses are not checked against that holiday's scene, and it is not checked
+// against any house.
+const BOUND = [];
+for (const m of css.matchAll(/:root\[data-holiday='([a-z]+)'\]\s*\{([\s\S]*?)\n\}/g)) {
+  blocks[`holiday:${m[1]}`] = Object.fromEntries([...m[2].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((d) => [d[1], d[2].trim()]));
+  BOUND.push(m[1]);
+}
+const BINDINGS = [...HOUSES, ...BOUND.map((k) => `holiday:${k}`)];
 // The holiday overlays' washes (tokens.css): per scene, and one rebinding of them all to greys for Monochrome.
 const washTokens = (block) =>
   Object.fromEntries([...block.matchAll(/--holiday-(haze|mist|warm)-rgb\s*:\s*([^;]+);/g)].map((d) => [d[1], d[2].split(',').map((n) => Number(n.trim()))]));
@@ -55,7 +64,13 @@ const HOLIDAY_MONO = washTokens((css.match(/:root\[data-house='monochrome'\] \.a
 // The black scrim under the colophon on a holiday: its peak opacity.
 const COLOPHON_SCRIM = 0.5;
 const HOLIDAY_LAYERS = {
-  halloween: { top: [['haze', 0.58]], bottom: [['mist', 0.32], ['mist', 0.34]] }, // .hw-haze; .hw-mist, .hw-foot::before
+  // The ground of a scene with a binding is its own sky, not --page: Halloween's sky runs from #0e0818 at the top to #25132f at the bottom. A layer
+  // is a wash token or a literal rgb, with its alpha at the peak.
+  halloween: {
+    ground: { top: [14, 8, 24], bottom: [37, 19, 47] },
+    top: [[[110, 76, 160], 0.3], ['haze', 0.5]], // .hw-sky's violet corner; .hw-haze
+    bottom: [[[168, 82, 140], 0.4], ['mist', 0.26], ['mist', 0.144]], // .hw-ground::before's horizon glow; .hw-mist, .hw-mist2 (at .8)
+  },
   thanksgiving: { top: [], bottom: [] }, // planks and a vignette: dark only
   yule: { top: [], bottom: [['warm', 0.15], ['warm', 0.16]] }, // .hol-hearth, .yu-foot::before
   newyear: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14]] }, // .sc-haze; .sc-mist, .sc-glow
@@ -146,17 +161,19 @@ function build(house) {
   // change one there and change it here. Layers that overlap are composited in order at their peaks, which no real pixel reaches: it is the
   // worst case, on purpose.
   for (const [scene, layers] of Object.entries(HOLIDAY_LAYERS)) {
+    // A bound holiday is measured under its own binding only; the houses are measured against the holidays that have none.
+    if (house.startsWith('holiday:') ? scene !== house.slice(8) : BOUND.includes(scene)) continue;
     const wash = { ...HOLIDAY_WASHES[scene], ...(house === 'monochrome' ? HOLIDAY_MONO : {}) };
-    const lit = (list, base) => list.reduce((bg, [token, alpha]) => over(wash[token], bg, alpha), base);
+    const lit = (list, base) => list.reduce((bg, [token, alpha]) => over(Array.isArray(token) ? token : wash[token], bg, alpha), base);
     if (layers.top.length) {
-      const haze = lit(layers.top, page);
+      const haze = lit(layers.top, layers.ground?.top ?? page);
       add(`page body text on ${scene} haze`, t('--text-on-bg'), haze, 4.5, `.holiday backdrop behind page copy (${scene})`);
       add(`on-page eyebrow on ${scene} haze`, onbg, haze, 4.5, `backdrop behind .screen-eyebrow (${scene})`);
       add(`nav link on ${scene} haze`, t('--silver-400'), haze, 4.5, `backdrop behind .running-nav button (${scene})`);
       add(`nav active link on ${scene} haze`, t('--silver-200'), haze, 4.5, `backdrop behind .running-nav button.on (${scene})`);
     }
     if (layers.bottom.length) {
-      const foot = lit(layers.bottom, page);
+      const foot = lit(layers.bottom, layers.ground?.bottom ?? page);
       // The colophon is fine print, so on a holiday it gets a dark scrim behind it (holiday-overlay.css, .colophon::before) and its
       // usual 75% opacity is lifted: a wash behind 11px text is the one place a wash costs real legibility.
       add(`colophon text on ${scene} foot wash`, t('--text-muted'), over([0, 0, 0], foot, COLOPHON_SCRIM), 4.5, `.colophon over the foot washes, under its scrim (${scene})`);
@@ -219,14 +236,17 @@ function build(house) {
 
   // fixed per-house colours, shown whatever the viewer's own binding is, so both
   // parchment variants are in play
+  // (Those colours belong to the houses, not to a binding, so a holiday has none of them to check.)
   const hd = HOUSE_DATA[house];
-  for (const [pname, p] of [['parchment', hexrgb('#e6d5ae')], ['mono parchment', hexrgb('#e7e3d8')]]) {
-    add(`house.ink on ${pname}`, hexrgb(hd.ink), p, 4.5, 'HouseCupBoard / ProfileScreen');
-  }
-  add('chip device on cover', hexrgb(hd.accent), hexrgb(hd.cover), 3.0, '.house-swatch-device');
-  // The avatar's glyph and initial sit on the disc's gradient, which runs cover to coverDeep.
-  for (const disc of [hd.cover, hd.coverDeep]) {
-    add('avatar mark on disc', hexrgb(hd.sigil), hexrgb(disc), 3.0, 'Avatar sigil / initial (meaningful)');
+  if (hd) {
+    for (const [pname, p] of [['parchment', hexrgb('#e6d5ae')], ['mono parchment', hexrgb('#e7e3d8')]]) {
+      add(`house.ink on ${pname}`, hexrgb(hd.ink), p, 4.5, 'HouseCupBoard / ProfileScreen');
+    }
+    add('chip device on cover', hexrgb(hd.accent), hexrgb(hd.cover), 3.0, '.house-swatch-device');
+    // The avatar's glyph and initial sit on the disc's gradient, which runs cover to coverDeep.
+    for (const disc of [hd.cover, hd.coverDeep]) {
+      add('avatar mark on disc', hexrgb(hd.sigil), hexrgb(disc), 3.0, 'Avatar sigil / initial (meaningful)');
+    }
   }
   // The fixed avatar colours a player can pick instead of their house (constants/avatarStyle.js):
   // the mark has to read on both ends of the disc's gradient. Listed once, under the house loop's
@@ -250,7 +270,7 @@ function build(house) {
 const fails = [];
 const orn = [];
 let passes = 0;
-for (const house of HOUSES) {
+for (const house of BINDINGS) {
   for (const { label, fg, bg, need, note } of build(house)) {
     const r = ratio(fg, bg);
     if (need === null) orn.push({ house, label, r });

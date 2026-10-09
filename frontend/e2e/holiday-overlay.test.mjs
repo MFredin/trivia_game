@@ -225,6 +225,76 @@ test('a device set to reduce motion gets the still scene whatever the switch say
   assert.equal(await computed(page, '.hw-bat', 'display'), 'none');
 });
 
+// The bats: on Halloween one crosses the page now and then, and catching it unlocks an achievement. The server decides whether it is Halloween
+// from the date, so these ask it to treat Halloween as on, the way GET /holiday does for a developer.
+async function inSeason(page) {
+  await page.route('**/api/holiday/bat', (route) => route.continue({ url: `${route.request().url()}?force=halloween` }));
+}
+const BELFRY = '.achievement-toast-name';
+
+test('a bat crosses the page, and catching it unlocks Something in the Belfry', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const { page } = await openPage(browser, DESKTOP);
+  await register(page);
+  await inSeason(page);
+  await dressed(page);
+
+  const bat = page.locator('.hol-flybat');
+  await bat.waitFor({ state: 'attached', timeout: 20000 });
+  assert.ok((await bat.boundingBox()).height >= 40, 'a fair target for a thumb');
+  assert.equal(await computed(page, '.hol-batlayer', 'pointerEvents'), 'none', 'the layer lets taps through; only the bat answers');
+  // It is moving, so a click that waits for it to hold still would wait for ever: send the click itself.
+  await bat.dispatchEvent('click');
+  await page.locator(BELFRY).waitFor({ timeout: 8000 });
+  assert.equal(await page.locator(BELFRY).textContent(), 'Something in the Belfry');
+  await page.locator('.hol-flybat').waitFor({ state: 'detached', timeout: 3000 });
+});
+
+test('with the animation off a bat hangs from the oak instead, and a keyboard can reach it', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const { page } = await openPage(browser);
+  await register(page);
+  await inSeason(page);
+  await dressed(page);
+  await navigateTo(page, 'Settings');
+  await page.locator('#holiday-motion').uncheck();
+  await navigateTo(page, 'Home');
+  await page.locator('.app-shell[data-holiday-motion="still"]').waitFor({ state: 'attached' });
+
+  const perch = page.locator('.hol-perch-foot');
+  await perch.waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.hol-flybat').count(), 0);
+  // The first bat of an animated page comes within ten seconds, so this is long enough to be sure none flies.
+  await page.waitForTimeout(10500);
+  assert.equal(await page.locator('.hol-flybat').count(), 0, 'nothing flies while the scene is still');
+  await perch.focus();
+  await page.keyboard.press('Enter');
+  await page.locator(BELFRY).waitFor({ timeout: 8000 });
+  assert.equal(await page.locator('.hol-perch').count(), 0, 'the bat is caught and gone');
+});
+
+test('there are no bats during a question, and none for someone who is not signed in', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const { page } = await openPage(browser, DESKTOP);
+  await register(page);
+  await dressed(page);
+  await page.locator('.hol-perch').first().waitFor({ state: 'attached' }).catch(() => {});
+  await beginRun(page);
+  await page.locator('.app-shell[data-holiday-calm="on"]').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('.hol-flybat, .hol-perch').count(), 0, 'nothing to catch while the quiz is on');
+
+  // Signed out there is no account to give the achievement to, so there is no bat: with reduced motion on, where a perch would show at once.
+  const guest = await browser.newPage({ viewport: DESKTOP });
+  await guest.emulateMedia({ reducedMotion: 'reduce' });
+  await guest.route(HOLIDAY_URL, (route) => route.fulfill({ json: { overlay: 'halloween' } }));
+  await guest.goto(page.url().split('#')[0], { waitUntil: 'networkidle' });
+  await guest.locator('.holiday').waitFor({ state: 'attached' });
+  assert.equal(await guest.locator('.hol-flybat, .hol-perch').count(), 0, 'no bat for someone who is not signed in');
+});
+
 test('between holidays there is no overlay, and Settings says so', async (t) => {
   const browser = await launch();
   t.after(() => browser.close());

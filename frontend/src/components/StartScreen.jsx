@@ -1,10 +1,13 @@
 // The home screen and the way to the first question: choose a mode, then category, difficulty and canon source, and
 // start. Also the Daily Challenge, the featured weekly challenge and opening a challenge by code. It is the first thing a
 // player sees after signing in, so it must stay quick: it loads only what it needs (the rest of the app is lazy).
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import Plate from './Plate.jsx';
 import DifficultySlider from './DifficultySlider.jsx';
 import HouseDevice from './HouseDevice.jsx';
+import HolidaySeal from './HolidaySeal.jsx';
+import { HolidayContext } from '../features/holiday/holidayContext.js';
+import { HOLIDAYS } from '../constants/holidays.js';
 import { createChallenge, getFeaturedChallenge, getSeasonChallenge } from '../api/challenges.js';
 import { getProfile } from '../api/profile.js';
 import { copyToClipboard } from '../lib/shareResult.js';
@@ -76,6 +79,9 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
   const [season, setSeason] = useState(null);
 
   const house = HOUSE_BY_ID[currentUser?.theme ?? DEFAULT_HOUSE] ?? HOUSE_BY_ID[DEFAULT_HOUSE];
+  // While a holiday with its own colours is on, the house rests and the card says what the room is dressed for instead.
+  const holiday = useContext(HolidayContext);
+  const boundHoliday = HOLIDAYS[holiday]?.bound ? HOLIDAYS[holiday] : null;
 
   // Asking for it is also what creates it: the server makes this week's row on first
   // request. Failing quietly is right — a missing featured card costs the player nothing,
@@ -150,12 +156,16 @@ export default function StartScreen({ categories, currentUser, onStart, error, t
         secondary={
           <div className="exlibris-card">
             <div className="exlibris-header">
-              <HouseDevice house={house.id} size={40} className="exlibris-house-device" />
+              {boundHoliday ? (
+                <HolidaySeal size={40} className="exlibris-house-device" />
+              ) : (
+                <HouseDevice house={house.id} size={40} className="exlibris-house-device" />
+              )}
               <div>
                 <p className="screen-eyebrow" style={{ fontSize: '0.66rem', margin: 0 }}>
-                  Bound in
+                  {boundHoliday ? 'Dressed for' : 'Bound in'}
                 </p>
-                <p className="exlibris-house">{house.label}</p>
+                <p className="exlibris-house">{boundHoliday ? boundHoliday.label : house.label}</p>
               </div>
             </div>
             <div className="rule-rubric" />

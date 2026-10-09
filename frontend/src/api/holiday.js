@@ -10,3 +10,9 @@ export function getHolidayOverlay() {
 export function saveHolidayPrefs(prefs, token) {
   return request('/account/holiday', { method: 'PATCH', body: JSON.stringify(prefs) }, token);
 }
+
+// A bat has been caught on Halloween. Answers { unlocked: true } the first time, which also sends the achievement toast over the socket, and
+// { unlocked: false } after that; 404 out of season.
+export function catchBat(token) {
+  return request('/holiday/bat', { method: 'POST' }, token);
+}

@@ -225,3 +225,7 @@ export const ACHIEVEMENTS = [
     description: 'Have 5 questions you suggested approved.',
   },
 ];
+
+// Achievements that no stored count can say are earned: they are unlocked by doing a thing once (services/achievements.js, unlockAchievement), so
+// they have no condition in CONDITIONS. Listed here so the catalog test can tell "deliberately unconditional" from "forgot the condition".
+export const UNLOCKED_DIRECTLY = ['halloween_bat'];
