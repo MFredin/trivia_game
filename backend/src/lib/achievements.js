@@ -84,13 +84,25 @@ export const ACHIEVEMENTS = [
     name: 'Feast Guest',
     description: 'Complete a seasonal run.',
   },
-  // Not computed from play: it is unlocked directly, by catching the bat that crosses the page on Halloween (routes/holiday.js). It
-  // returns every year and only the first catch counts, so nothing is lost by missing a year.
+  // Not computed from play: each is unlocked directly, by catching the creature that crosses the page while its holiday is on (routes/holiday.js,
+  // CATCHABLE in lib/holidayOverlay.js). It returns every year and only the first catch counts, so nothing is lost by missing a year.
   {
     id: 'halloween_bat',
     category: 'Seasonal',
     name: 'Something in the Belfry',
     description: 'Catch a bat on Halloween.',
+  },
+  {
+    id: 'thanksgiving_turkey',
+    category: 'Seasonal',
+    name: 'Talking Turkey',
+    description: 'Catch the wild turkey strolling past at Thanksgiving.',
+  },
+  {
+    id: 'yule_owl',
+    category: 'Seasonal',
+    name: 'Special Delivery',
+    description: 'Catch the snowy owl that flies by with a parcel at Yule.',
   },
   {
     id: 'explorer_all_categories',
@@ -228,4 +240,4 @@ export const ACHIEVEMENTS = [
 
 // Achievements that no stored count can say are earned: they are unlocked by doing a thing once (services/achievements.js, unlockAchievement), so
 // they have no condition in CONDITIONS. Listed here so the catalog test can tell "deliberately unconditional" from "forgot the condition".
-export const UNLOCKED_DIRECTLY = ['halloween_bat'];
+export const UNLOCKED_DIRECTLY = ['halloween_bat', 'thanksgiving_turkey', 'yule_owl'];

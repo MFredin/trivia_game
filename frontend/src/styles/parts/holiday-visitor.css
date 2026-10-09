@@ -1,0 +1,153 @@
+/* --- the creature a player can catch while a holiday is on (components/HolidayVisitor.jsx, features/holiday/useHolidayVisitor.js) ---
+   The one thing the overlay draws that takes a tap. The layer is above the page and below menus and dialogs, ignores the pointer everywhere
+   except on the creature's own small box, and a creature is only ever there while nothing is being asked. What is shared lives here: the layer, the
+   crossing, the box a thumb can hit, the catch, the perch. What a creature looks like and how it moves lives with its holiday (holiday-<key>.css),
+   under [data-visitor='<kind>'], along with the colours the holiday sets on .app-shell:
+     --visitor-ink    the creature's colour       --visitor-glow  the rgb of the light around it and of the ring when it is caught
+     --visitor-focus  its keyboard focus ring     --perch-x, --perch-y  where its perch stands, as a fraction of a cluster's width */
+.hol-visitorlayer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hol-flywrap {
+  position: absolute;
+  top: var(--top, auto);
+  bottom: var(--bottom, auto);
+  left: 0;
+  animation: hol-fly var(--dur) linear forwards;
+}
+
+.hol-flywrap.is-ltr {
+  animation-name: hol-fly-r;
+}
+
+@keyframes hol-fly {
+  from { transform: translateX(104vw); }
+  to { transform: translateX(-140px); }
+}
+
+@keyframes hol-fly-r {
+  from { transform: translateX(-140px); }
+  to { transform: translateX(104vw); }
+}
+
+/* The button is the creature plus a margin of padding, so it is a fair target for a thumb (at least 44px tall) while the creature itself stays
+   small. The drawings face left; one crossing the other way is mirrored. */
+.hol-flyer {
+  position: relative;
+  display: block;
+  box-sizing: content-box;
+  width: var(--w);
+  min-height: 20px;
+  margin: -12px -8px;
+  padding: 12px 8px;
+  border: 0;
+  background: none;
+  color: var(--visitor-ink, currentColor);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.is-ltr .hol-flyer {
+  scale: -1 1;
+}
+
+.hol-flyer svg {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 0 3px rgba(var(--visitor-glow, 255, 255, 255), 0.6));
+}
+
+.hol-flyer:focus-visible,
+.hol-perch:focus-visible {
+  outline: 3px solid var(--visitor-focus, #f0a04b);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Caught: it spins away in a ring of light. */
+.hol-flyer.is-caught {
+  pointer-events: none;
+  animation: hol-poof 0.55s ease-out forwards !important;
+}
+
+.hol-flyer.is-caught::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border: 2px solid rgba(var(--visitor-glow, 255, 255, 255), 0.9);
+  border-radius: 50%;
+  animation: hol-ring 0.55s ease-out forwards;
+}
+
+@keyframes hol-poof {
+  from { transform: scale(1) rotate(0deg); opacity: 1; }
+  to { transform: scale(2.2) rotate(170deg); opacity: 0; }
+}
+
+@keyframes hol-ring {
+  from { transform: scale(0.4); opacity: 1; }
+  to { transform: scale(1.6); opacity: 0; }
+}
+
+/* The perch: the same creature standing in the scene, for a player who has the animation off, a device that asks for reduced motion, and a
+   keyboard. While the creature crosses it is there only for a keyboard (hidden until focused). Placed on the scene's left cluster, by the same
+   measure the cluster is drawn with. */
+.hol-footwrap {
+  position: relative;
+  pointer-events: none;
+}
+
+.hol-perch {
+  position: absolute;
+  z-index: 5;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: var(--visitor-ink, currentColor);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.hol-perch svg {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 0 3px rgba(var(--visitor-glow, 255, 255, 255), 0.5));
+}
+
+/* While the creature crosses the perch is for a keyboard only: it keeps its full 44px box (a control is never smaller than that) but is
+   invisible and lets taps through until it is focused. */
+.hol-perch.is-key-only:not(:focus-visible) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hol-perch-foot {
+  --cw: min(38vw, 190px);
+  left: calc(var(--cw) * var(--perch-x, 0.35) - 22px - 1.25rem);
+  bottom: calc(var(--cw) * var(--perch-y, 0.9) - 44px);
+}
+
+.hol-perch-wing {
+  --cw: clamp(150px, calc((100vw - 1040px) / 2), 440px);
+  position: fixed;
+  z-index: 30;
+  left: calc(var(--cw) * var(--perch-x, 0.35) - 22px);
+  bottom: calc(var(--cw) * var(--perch-y, 0.9) - 44px);
+}
+
+@media (max-width: 1279px) {
+  .hol-perch-wing { display: none; }
+}
+
+@media (min-width: 1280px) {
+  .hol-perch-foot { display: none; }
+}
