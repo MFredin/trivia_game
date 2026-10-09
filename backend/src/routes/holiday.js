@@ -1,5 +1,5 @@
 import express from 'express';
-import { activeOverlay, overlayByKey } from '../lib/holidayOverlay.js';
+import { CATCHABLE, activeOverlay, overlayByKey } from '../lib/holidayOverlay.js';
 import { requireAuth } from '../middleware/auth.js';
 import { unlockAchievement } from '../services/achievements.js';
 
@@ -14,13 +14,14 @@ const todaysOverlay = (req) => (process.env.NODE_ENV !== 'production' && overlay
 
 router.get('/', (req, res) => res.json({ overlay: todaysOverlay(req) }));
 
-// A bat flies across the page while Halloween is on, and catching one unlocks an achievement. The page says it caught one; this checks that
-// there was a Halloween to catch it in, using the same date rule (and the same development-only force) as the overlay itself, and unlocks
-// once. Nothing is returned that a player could use: `unlocked` says only whether this catch was the first, and the toast arrives over the
-// socket like every other achievement.
-router.post('/bat', requireAuth, async (req, res) => {
-  if (todaysOverlay(req) !== 'halloween') return res.status(404).json({ error: 'not_in_season' });
-  const unlocked = await unlockAchievement(req.userId, 'halloween_bat');
+// A creature crosses the page while a holiday that has one is on (a bat, a turkey, an owl), and catching it unlocks an achievement. The page says
+// it caught one; this checks that there was such a holiday to catch it in, using the same date rule (and the same development-only force) as the
+// overlay itself, and unlocks once. Nothing is returned that a player could use: `unlocked` says only whether this catch was the first, and the
+// toast arrives over the socket like every other achievement.
+router.post('/catch', requireAuth, async (req, res) => {
+  const achievement = CATCHABLE[todaysOverlay(req)];
+  if (!achievement) return res.status(404).json({ error: 'not_in_season' });
+  const unlocked = await unlockAchievement(req.userId, achievement);
   return res.json({ unlocked });
 });
 

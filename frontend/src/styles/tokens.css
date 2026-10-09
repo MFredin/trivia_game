@@ -296,6 +296,82 @@
   --ember-rgb: 240, 160, 75;
 }
 
+/* Thanksgiving: a chestnut-dark evening, linen paper, cranberry for the accents on paper and harvest gold for the accents on the dark and for the gold-leaf foil. */
+:root[data-holiday='thanksgiving'] {
+  --ink-900: #1d110b;
+  --ink-800: #140a06;
+  --parchment-100: #f0e4cc;
+  --parchment-200: #e0d0b0;
+  --brass-500: #8c2332;
+  --brass-300: #e6b457;
+  --brass-500-rgb: 140, 35, 50;
+  --metal-500: #e6b457;
+  --metal-300: #f3d08a;
+  --text-ink: #2a1a0f;
+  --text-on-bg: #f3e4c9;
+
+  --page: #1c100a;
+  --glow-rgb: 230, 160, 60;
+  --glow2-rgb: 150, 60, 40;
+  --rubric: #8c2332;
+  --rubric-rgb: 140, 35, 50;
+  --onbg: #e8b95a;
+  --onbg-rgb: 232, 185, 90;
+  --cloth: #351a10;
+  --tooling: #e8b95a;
+  --tooling-rgb: 232, 185, 90;
+  --leaf-hi: #f7d68a;
+  --leaf: #e8b95a;
+  --leaf-lo: #c8923a;
+  --leaf-edge: #9a6a1c;
+  --leaf-text: #261408;
+  --leaf-glow-rgb: 232, 185, 90;
+  --gilt: #e8b95a;
+  --gilt-rgb: 232, 185, 90;
+  --gilt-deep: #9a6a1c;
+  --wash-rgb: 232, 185, 90;
+  --ember: #ffcf7a;
+  --ember-rgb: 240, 190, 100;
+}
+
+/* Yule: a midnight-blue night, frosted paper, holly red for the accents on paper, candle gold for the accents on the dark and the gold-leaf foil, and an evergreen cloth. */
+:root[data-holiday='yule'] {
+  --ink-900: #0d1426;
+  --ink-800: #070c1a;
+  --parchment-100: #ebe9e2;
+  --parchment-200: #dad8d0;
+  --brass-500: #9b1f2c;
+  --brass-300: #e3b957;
+  --brass-500-rgb: 155, 31, 44;
+  --metal-500: #e9c46a;
+  --metal-300: #f6dea0;
+  --text-ink: #1a2030;
+  --text-on-bg: #eaeef5;
+
+  --page: #0a1328;
+  --glow-rgb: 240, 190, 100;
+  --glow2-rgb: 60, 120, 200;
+  --rubric: #9b1f2c;
+  --rubric-rgb: 155, 31, 44;
+  --onbg: #f0cd7a;
+  --onbg-rgb: 240, 205, 122;
+  --cloth: #12332a;
+  --tooling: #f0cd7a;
+  --tooling-rgb: 240, 205, 122;
+  --leaf-hi: #f8e3a4;
+  --leaf: #e9c46a;
+  --leaf-lo: #c79a3a;
+  --leaf-edge: #9a7424;
+  --leaf-text: #1d1a10;
+  --leaf-glow-rgb: 233, 196, 106;
+  --gilt: #e9c46a;
+  --gilt-rgb: 233, 196, 106;
+  --gilt-deep: #a07a28;
+  --wash-rgb: 233, 196, 106;
+  --ember: #ffd98a;
+  --ember-rgb: 245, 205, 120;
+}
+
 .app-shell[data-holiday='halloween'] {
   --holiday-haze-rgb: 70, 34, 104;
   --holiday-mist-rgb: 140, 104, 176;
@@ -303,11 +379,15 @@
 }
 
 .app-shell[data-holiday='thanksgiving'] {
+  --holiday-haze-rgb: 110, 48, 30;
+  --holiday-mist-rgb: 220, 150, 100;
   --holiday-warm-rgb: 255, 170, 70;
 }
 
 .app-shell[data-holiday='yule'] {
-  --holiday-warm-rgb: 255, 188, 96;
+  --holiday-haze-rgb: 18, 64, 84;
+  --holiday-mist-rgb: 150, 180, 230;
+  --holiday-warm-rgb: 255, 196, 110;
 }
 
 .app-shell[data-holiday='newyear'] {
@@ -328,7 +408,7 @@
   --holiday-warm-rgb: 255, 190, 90;
 }
 
-:root[data-house='monochrome'] .app-shell[data-holiday]:not([data-holiday='halloween']) {
+:root[data-house='monochrome'] .app-shell[data-holiday]:not([data-holiday='halloween'], [data-holiday='thanksgiving'], [data-holiday='yule']) {
   --holiday-haze-rgb: 64, 64, 64;
   --holiday-mist-rgb: 120, 120, 120;
   --holiday-warm-rgb: 255, 255, 255;

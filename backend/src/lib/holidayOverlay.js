@@ -28,6 +28,14 @@ export const OVERLAYS = [
 
 export const OVERLAY_KEYS = OVERLAYS.map((overlay) => overlay.key);
 
+// The creature a player can catch while a holiday is on, and the achievement that catching it unlocks (routes/holiday.js). A holiday that is not
+// listed has nothing to catch. The art and the movement of each live in the frontend (holidays/<key>.js); only the reward is the server's.
+export const CATCHABLE = {
+  halloween: 'halloween_bat',
+  thanksgiving: 'thanksgiving_turkey',
+  yule: 'yule_owl',
+};
+
 /**
  * Easter Sunday of `year` in the Western (Gregorian) calendar, as a UTC date. The anonymous Gregorian algorithm (Meeus, Jones and
  * Butcher): exact for every year the Gregorian calendar covers. Orthodox Easter, which usually falls a week or more later, is not

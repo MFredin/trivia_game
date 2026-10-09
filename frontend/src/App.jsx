@@ -21,11 +21,11 @@ import { useProfileEditor } from './features/profile/useProfileEditor.js';
 import { useModerationNotices } from './features/moderation/useModerationNotices.js';
 import { useOwlPost } from './features/owlpost/useOwlPost.js';
 import { useHoliday } from './features/holiday/useHoliday.js';
-import { useHolidayBats } from './features/holiday/useHolidayBats.js';
+import { useHolidayVisitor } from './features/holiday/useHolidayVisitor.js';
 import { HolidayContext } from './features/holiday/holidayContext.js';
 import HolidayOverlay from './components/HolidayOverlay.jsx';
 import HolidayFoot from './components/HolidayFoot.jsx';
-import HolidayBats from './components/HolidayBats.jsx';
+import HolidayVisitor from './components/HolidayVisitor.jsx';
 import { restrictionMessage } from './features/moderation/restrictionMessage.js';
 import ModerationNoticeModal from './components/ModerationNoticeModal.jsx';
 import RenameModal from './components/RenameModal.jsx';
@@ -270,9 +270,9 @@ export default function App() {
   });
   const safety = useSafety({ token: auth.token, active: screen === 'settings' });
   const holiday = useHoliday({ token: auth.token, user: auth.user, onUserChanged: auth.updateUser });
-  // Nothing is drawn near a question, so the bats stay away while one is on screen, a guest's preview included.
+  // Nothing is drawn near a question, so the holiday's creature stays away while one is on screen, a guest's preview included.
   const holidayCalm = screen === 'question' || screen === 'preview';
-  const bats = useHolidayBats({
+  const visitor = useHolidayVisitor({
     scene: holiday.scene,
     token: auth.token,
     signedIn: Boolean(auth.user),
@@ -465,7 +465,7 @@ export default function App() {
       <Embers />
       {/* Behind everything, so it is never over a question. It stops moving while one is on screen, a guest's preview included. */}
       <HolidayOverlay scene={dressedScene} />
-      <HolidayBats bats={bats} />
+      <HolidayVisitor visitor={visitor} />
       {screen !== 'auth' && screen !== 'preview' && screen !== 'recovery' && (
         <NavBar
           currentUser={auth.user}
@@ -760,7 +760,7 @@ export default function App() {
           />
         </Suspense>
       )}
-      <HolidayFoot bats={bats} />
+      <HolidayFoot visitor={visitor} />
       <div className="colophon">
         <p>
           An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,

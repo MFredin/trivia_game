@@ -11,8 +11,8 @@ export function saveHolidayPrefs(prefs, token) {
   return request('/account/holiday', { method: 'PATCH', body: JSON.stringify(prefs) }, token);
 }
 
-// A bat has been caught on Halloween. Answers { unlocked: true } the first time, which also sends the achievement toast over the socket, and
-// { unlocked: false } after that; 404 out of season.
-export function catchBat(token) {
-  return request('/holiday/bat', { method: 'POST' }, token);
+// The holiday's creature has been caught (a bat, a turkey, an owl). Answers { unlocked: true } the first time, which also sends the achievement
+// toast over the socket, and { unlocked: false } after that; 404 when the holiday on has nothing to catch.
+export function catchVisitor(token) {
+  return request('/holiday/catch', { method: 'POST' }, token);
 }
