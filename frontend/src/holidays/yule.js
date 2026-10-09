@@ -35,6 +35,9 @@ const DEFS =
   '<radialGradient id="yu-lamp"><stop offset="0" stop-color="#ffd98a" stop-opacity=".78"/><stop offset=".42" stop-color="#ffb85a" stop-opacity=".24"/><stop offset="1" stop-color="#ff9a38" stop-opacity="0"/></radialGradient>' +
   '<radialGradient id="yu-fire"><stop offset="0" stop-color="#ffc060" stop-opacity=".72"/><stop offset=".4" stop-color="#ff8a30" stop-opacity=".26"/><stop offset="1" stop-color="#ff7a20" stop-opacity="0"/></radialGradient>' +
   '<linearGradient id="yu-flame" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e0431c"/><stop offset=".5" stop-color="#ff9a30"/><stop offset="1" stop-color="#ffe08a"/></linearGradient>' +
+  // the ridge the stag stands on fades into the ground where its cluster ends, so no edge shows
+  `<linearGradient id="yu-ridge" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${MID}"/><stop offset=".7" stop-color="${MID}"/><stop offset="1" stop-color="${MID}" stop-opacity="0"/></linearGradient>` +
+  '<linearGradient id="yu-ridgerim" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b0d0ff" stop-opacity=".6"/><stop offset=".7" stop-color="#b0d0ff" stop-opacity=".6"/><stop offset="1" stop-color="#b0d0ff" stop-opacity="0"/></linearGradient>' +
   // a five-pointed star on a 100 x 100 box
   '<symbol id="yu-starsym" viewBox="0 0 100 100"><path fill="currentColor" d="M50 4 L61 37 L96 37 L68 58 L79 92 L50 71 L21 92 L32 58 L4 37 L39 37Z"/></symbol>' +
   // a holly leaf, coloured by whoever uses it
@@ -124,7 +127,7 @@ function pineCluster() {
     `<path d="M0 330V298Q60 282 120 296T260 300V330Z" fill="${NEAR}"/>` +
     `<path d="M0 298Q60 282 120 296T260 300" stroke="${COLD}" stroke-width="1.3" fill="none" opacity=".7"/>` +
     // the ridge the stag stands on
-    `<path d="M120 300Q160 262 214 268T260 318V330H120Z" fill="${MID}"/><path d="M120 300Q160 262 214 268T260 318" stroke="${COLD}" stroke-width="1.2" fill="none" opacity=".6"/>` +
+    `<path d="M120 300Q160 262 214 268T260 318V330H120Z" fill="url(#yu-ridge)"/><path d="M120 300Q160 262 214 268T260 318" stroke="url(#yu-ridgerim)" stroke-width="1.2" fill="none"/>` +
     stag(150, 188, 0.92) +
     fir(52, 304, 250, 98, 6) +
     fir(18, 310, 130, 60, 4) +

@@ -32,6 +32,8 @@ const DEFS =
   '<radialGradient id="th-lamp"><stop offset="0" stop-color="#ffd27a" stop-opacity=".7"/><stop offset=".5" stop-color="#ffb04a" stop-opacity=".2"/><stop offset="1" stop-color="#ff9a30" stop-opacity="0"/></radialGradient>' +
   '<linearGradient id="th-pkg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9b24f"/><stop offset=".5" stop-color="#e5741c"/><stop offset="1" stop-color="#9c3e0b"/></linearGradient>' +
   '<linearGradient id="th-gourdg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9c75a"/><stop offset=".55" stop-color="#bf9a2a"/><stop offset="1" stop-color="#7a5e14"/></linearGradient>' +
+  // the rise the farmhouse stands on starts from nothing at the cluster's inner edge, so no edge shows against the ground beside it
+  '<linearGradient id="th-rise" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="' + FAR + '" stop-opacity="0"/><stop offset=".3" stop-color="' + FAR + '"/></linearGradient>' +
   // a maple leaf, five pointed lobes on a 100 x 100 box: coloured by whoever uses it
   '<symbol id="th-maple" viewBox="0 0 100 100"><path fill="currentColor" d="M50 3 L58 22 L69 15 L66 37 L87 29 L78 47 L97 53 L73 65 L77 80 L56 73 L54 97 L46 97 L44 73 L23 80 L27 65 L3 53 L22 47 L13 29 L34 37 L31 15 L42 22Z"/><path d="M50 12 V96 M50 48 L30 30 M50 48 L70 30 M50 60 L22 56 M50 60 L78 56" stroke="rgba(0,0,0,.28)" stroke-width="2.4" fill="none" stroke-linecap="round"/></symbol>' +
   // a pumpkin: three lobes, creases, a stem and a tendril, on a 100 x 88 box
@@ -147,7 +149,7 @@ function farmstead() {
     // the sun, low, with its halo, and the hill it is going down behind
     '<circle class="th-halo" cx="150" cy="200" r="170" fill="url(#th-halo)"/>' +
     '<circle class="th-sun" cx="150" cy="200" r="46" fill="url(#th-sun)"/>' +
-    `<path d="M0 330V304Q36 300 76 272Q116 244 152 252T260 246V330Z" fill="${FAR}"/>` +
+    `<path d="M0 330V304Q36 300 76 272Q116 244 152 252T260 246V330Z" fill="url(#th-rise)"/>` +
     // the house, black against the sun, its roof rimmed with it
     `<g fill="${NEAR}"><rect x="116" y="228" width="78" height="38"/><path d="M106 231 L155 197 L204 231Z"/><rect x="193" y="240" width="32" height="26"/><path d="M190 242 L209 228 L229 242Z"/><rect x="172" y="203" width="10" height="24"/></g>` +
     `<path d="M106 231 L155 197 L204 231" stroke="${RIM}" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M172 203 V226" stroke="${RIM}" stroke-width="1.2"/>` +

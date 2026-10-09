@@ -18,6 +18,11 @@
   --perch-drop: 0px;
 }
 
+/* On a wide screen the cluster is large, and a turkey the size of a thumb would be lost among its pumpkins. */
+.app-shell[data-holiday='thanksgiving'] .hol-perch-wing {
+  --perch-size: max(44px, calc(var(--cw) * 0.26));
+}
+
 /* ---- the sky ---- */
 .th-sky {
   position: absolute;

@@ -202,6 +202,26 @@ test('a holiday adds nothing to the layout: every box sits where it does without
   }
 });
 
+// Halloween, Thanksgiving and Yule each have their own colours: while one is on, the house colours rest, the room says what it is dressed for, and a
+// seal of that holiday stands where the house's device does.
+for (const [holiday, label] of [['halloween', 'Halloween'], ['thanksgiving', 'Thanksgiving'], ['yule', 'Yule']]) {
+  test(`${label} binds the page: the house rests, the card says what it is dressed for, and its seal stands in the device's place`, async (t) => {
+    const browser = await launch();
+    t.after(() => browser.close());
+    const { page } = await openPage(browser, DESKTOP);
+    await register(page);
+    await dressed(page, holiday);
+    await page.locator('.holiday').waitFor({ state: 'attached' });
+    assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-holiday')), holiday);
+    assert.match(await page.locator('.exlibris-house').textContent(), new RegExp(label));
+    assert.equal(await page.locator('.exlibris-house-device.holiday-seal').count(), 1, "the holiday's seal stands where the device does");
+    assert.equal(await page.locator('.exlibris-house-device:not(.holiday-seal)').count(), 0, "the house's device rests while the holiday is on");
+    // A binding that no one can read is no binding: the page's own text must be a different colour from its ground.
+    const [text, ground] = await page.evaluate(() => [getComputedStyle(document.querySelector('.screen-title')).color, getComputedStyle(document.body).backgroundColor]);
+    assert.notEqual(text, ground);
+  });
+}
+
 test('while a question is on screen everything stops and the props go', async (t) => {
   const browser = await launch();
   t.after(() => browser.close());

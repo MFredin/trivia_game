@@ -5,7 +5,9 @@
    under [data-visitor='<kind>'], along with the colours the holiday sets on .app-shell:
      --visitor-ink    the creature's colour       --visitor-glow  the rgb of the light around it and of the ring when it is caught
      --visitor-focus  its keyboard focus ring     --perch-x, --perch-y  where its perch stands, as a fraction of a cluster's width
-     --perch-drop     how far below --perch-y the perch's box hangs: 44px (its own height) for a creature that hangs from the point, 0 for one that stands on it */
+     --perch-drop     how far below --perch-y the perch's box hangs: its own height for a creature that hangs from the point (the default), 0 for one that
+                      stands on it
+     --perch-size     the perch's box, 44px at least (a control is never smaller): a holiday may make it larger beside a large cluster, on a wide screen */
 .hol-visitorlayer {
   position: fixed;
   inset: 0;
@@ -108,8 +110,8 @@
   position: absolute;
   z-index: 5;
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
+  width: var(--perch-size, 44px);
+  height: var(--perch-size, 44px);
   padding: 6px;
   border: 0;
   background: none;
@@ -133,16 +135,16 @@
 
 .hol-perch-foot {
   --cw: min(38vw, 190px);
-  left: calc(var(--cw) * var(--perch-x, 0.35) - 22px - 1.25rem);
-  bottom: calc(var(--cw) * var(--perch-y, 0.9) - var(--perch-drop, 44px));
+  left: calc(var(--cw) * var(--perch-x, 0.35) - var(--perch-size, 44px) / 2 - 1.25rem);
+  bottom: calc(var(--cw) * var(--perch-y, 0.9) - var(--perch-drop, var(--perch-size, 44px)));
 }
 
 .hol-perch-wing {
   --cw: clamp(150px, calc((100vw - 1040px) / 2), 440px);
   position: fixed;
   z-index: 30;
-  left: calc(var(--cw) * var(--perch-x, 0.35) - 22px);
-  bottom: calc(var(--cw) * var(--perch-y, 0.9) - var(--perch-drop, 44px));
+  left: calc(var(--cw) * var(--perch-x, 0.35) - var(--perch-size, 44px) / 2);
+  bottom: calc(var(--cw) * var(--perch-y, 0.9) - var(--perch-drop, var(--perch-size, 44px)));
 }
 
 @media (max-width: 1279px) {
