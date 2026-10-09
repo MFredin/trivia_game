@@ -116,6 +116,14 @@
   inset: 0;
 }
 
+/* The glow of the horizon: the one place the sky is lit from below, so the hills read as hills and the far lane has a ridge to stand on. */
+.hw-ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 62% at 50% 78%, rgba(168, 82, 140, 0.4), rgba(168, 82, 140, 0) 72%);
+}
+
 .hw-hill {
   position: absolute;
   left: 0;

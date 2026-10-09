@@ -16,7 +16,7 @@
 import { rng } from './shared.js';
 
 const NEAR = '#090510';
-const MID = '#120a1e';
+const MID = '#0c0614';
 
 // Cobweb: spokes from a corner and sagging rings between them, from a fixed seed so every web is the same web.
 const WEB = (function () {
@@ -136,7 +136,7 @@ function ground() {
     .join('');
   return (
     '<div class="hw-ground">' +
-    `<svg class="hw-hill hw-hill-far" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0 200V96Q90 62 190 88T380 74T580 94T780 70T1000 90V200Z" fill="#1c1030"/></svg>` +
+    `<svg class="hw-hill hw-hill-far" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0 200V96Q90 62 190 88T380 74T580 94T780 70T1000 90V200Z" fill="#0f0719"/></svg>` +
     lane +
     `<svg class="hw-hill hw-hill-mid" viewBox="0 0 1000 200" preserveAspectRatio="none"><path d="M0 200V120Q120 96 260 118T520 108T760 122T1000 104V200Z" fill="${MID}"/></svg>` +
     '<i class="hw-mist"></i><i class="hw-mist hw-mist2"></i>' +
