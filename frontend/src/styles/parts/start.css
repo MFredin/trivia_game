@@ -82,19 +82,31 @@
   white-space: nowrap;
 }
 
+/* On a phone the spines are narrower and shorter, and the two long titles ("Classic Quiz", "Daily Challenge") used to overrun the
+   bands that frame them, so the five volumes stopped looking like a set. The spine is tall enough for the longest title between two
+   slim bands, and the title is a step smaller, so every volume has the same bands at the same distance from its ends. */
 @media (max-width: 720px) {
   .spine-shelf {
-    height: 150px;
+    height: 184px;
     gap: 0.4rem;
   }
 
   .mode-spine {
     width: 46px;
-    height: 126px;
+    height: 160px;
   }
 
   .mode-spine.is-active {
-    height: 144px;
+    height: 176px;
+  }
+
+  .mode-spine-band {
+    height: 8px;
+    margin: 8px 0;
+  }
+
+  .mode-spine-title {
+    font-size: 0.8rem;
   }
 }
 
