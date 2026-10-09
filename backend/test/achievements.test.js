@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ACHIEVEMENTS } from '../src/lib/achievements.js';
+import { ACHIEVEMENTS, UNLOCKED_DIRECTLY } from '../src/lib/achievements.js';
 import { CONDITIONS } from '../src/services/achievements.js';
 
 const baseStats = {
@@ -28,13 +28,18 @@ const baseStats = {
   seasonalRuns: 0,
 };
 
-test('every achievement in the catalog has a matching condition and a unique id', () => {
+test('every achievement in the catalog has a unique id, and either a condition or a named direct unlock', () => {
   const ids = new Set();
   for (const def of ACHIEVEMENTS) {
     assert.equal(ids.has(def.id), false, `duplicate achievement id: ${def.id}`);
     ids.add(def.id);
-    assert.equal(typeof CONDITIONS[def.id], 'function', `missing condition for ${def.id}`);
+    if (UNLOCKED_DIRECTLY.includes(def.id)) {
+      assert.equal(CONDITIONS[def.id], undefined, `${def.id} is unlocked directly, so a condition would unlock it a second way`);
+    } else {
+      assert.equal(typeof CONDITIONS[def.id], 'function', `missing condition for ${def.id}`);
+    }
   }
+  for (const id of UNLOCKED_DIRECTLY) assert.ok(ids.has(id), `${id} is listed as a direct unlock but is not in the catalog`);
 });
 
 test('milestone conditions gate on total completed runs', () => {

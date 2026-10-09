@@ -51,6 +51,55 @@ production, so it can never switch a holiday on for players.
 - It is a preview tool. It is on the account, so it follows an admin to another device; set it back to Automatic to follow the
   calendar.
 
+## Colour: a holiday is a temporary binding
+
+A house colours the app through one set of role tokens (`--page`, `--parchment-100`, `--rubric`, `--cloth`, `--gilt`, the gold-leaf `--leaf-*`,
+the glows). A holiday with its own colours fills in the same set, in `styles/tokens.css` after the house blocks, as `:root[data-holiday='<key>']`.
+While it is on, `<html>` carries `data-holiday` (set by `features/holiday/useHoliday.js`) and that block outranks the player's house: **the house
+colours rest, and every account sees the same holiday.** The semantic colours (a right answer's green, a wrong one's red) are not in the block, so
+they never change.
+
+- The paper is a neutral bone with a faint tint toward the season, so reading stays comfortable and contrast is easy to prove.
+- The room's labels follow: where the Ex Libris card says "Bound in Gryffindor" it says **"Dressed for Halloween"**, with a small seal in the
+  device's place (`components/HolidaySeal.jsx`, the same size, so nothing moves). Another player's profile still shows *their* house.
+- `HOLIDAYS[key].bound` in `constants/holidays.js` says a holiday has a binding. **Only Halloween has one so far**; the other five still take
+  the house colours and the older art, and move over one at a time.
+
+## Halloween: lantern night
+
+One composition, cropped two ways. Only two lights exist, the warm lanterns and the cold moon, and everything else is a silhouette lit along the
+edge a light touches. It is a graveyard on Halloween night. Two clusters stand either side of the page, pinned to its edges:
+
+- **the oak:** leaning gravestones and a cross, a bare oak with an owl in it, two lanterns at its foot;
+- **the gate:** the moon, a wrought-iron gate between stone pillars with a black cat on one and a turnip lantern on the other, a hooked
+  lantern pole whose pumpkin swings, a heap of pumpkins.
+
+Between them, on the far hills: a crypt with a lit door, headstones, a cross, an obelisk, a lane of small lanterns, a ghost gliding through, and
+cold lights bobbing over the graves. Over everything, a sky of stars, thin cloud and a stream of bats.
+
+**Phone and PC are one picture.** On a wide screen (1280px and up) the clusters stand in the empty margins either side of the 1040px page, each as
+wide as its margin (`.hw-wings`). Everywhere else they stand in the corners of the scene at the end of the page (`.hw-foot`), with the same ground
+between them. Same pieces, same art; only where they stand differs.
+
+**Motion** is lively on purpose, and all of it is transform or opacity. The lantern lane lights one lantern after another when the page opens,
+then every flame flickers at its own pace; the lantern on the pole swings, the cat's tail swishes, the owl turns its head and blinks, the cat
+blinks, bats cross the sky, a ghost glides, cold lights bob. In a question none of it moves; with the switch off or reduced motion, every
+lantern is simply lit and nothing moves.
+
+## The bats you can catch
+
+A bat flies across the page now and then while Halloween is on (the first a few seconds after the page opens, then about every quarter minute),
+and **tapping one unlocks the achievement "Something in the Belfry"** (`halloween_bat`, category Seasonal). It is the one thing the overlay draws
+that takes a tap, on purpose, so it lives outside the fixed layer that takes none (`components/HolidayBats.jsx`, `features/holiday/useHolidayBats.js`).
+
+- It is above the page and below menus and dialogs (z-index 30, under the popovers' 40 and the modals' 50). Its layer ignores the pointer
+  everywhere except the bat's own box, which is at least 44px tall.
+- It never flies during a question or the guest preview, and only for a signed-in player (the achievement needs an account).
+- **The perch.** A player who turned the animation off, a device that asks for reduced motion, and a keyboard get a bat hanging from the oak
+  instead, which is a real focusable button. While bats fly it is hidden until focused. Catching it is the same catch.
+- The server decides whether it is Halloween: `POST /api/holiday/bat` answers 404 `not_in_season` otherwise, by the same date rule as the overlay
+  (and the same development-only `?force=`). It unlocks once; `{ unlocked: true }` is the first catch, and the toast arrives over the socket.
+
 ## How it is built
 
 | Layer | File |
@@ -90,7 +139,8 @@ Every holiday has the same four tiers, so a phone keeps the detail:
 ## The rules every scene follows
 
 1. **Behind or beside, never over.** Nothing is drawn over a question, an answer, a button or the timer; the backdrop ignores the
-   pointer; all of it is `display: none` in print.
+   pointer; all of it is `display: none` in print. The one exception is the bats you can catch, above, which only ever fly while nothing is
+   being asked.
 2. **The quiz comes first.** While a question is on screen (`screen === 'question'`, or the guest preview) the shell carries
    `data-holiday-calm="on"`, which stops every holiday animation and removes the extras. The quiz is the only thing that moves.
 3. **Reduced motion is honoured.** `prefers-reduced-motion` is treated exactly as "Animated background: off"
@@ -107,7 +157,8 @@ Every holiday has the same four tiers, so a phone keeps the detail:
 
 ## What the audits check, and what they cannot
 
-`npm run audit:contrast` includes the lightest ground each overlay can put behind page-level text: the haze at the top (behind
+`npm run audit:contrast` checks a holiday that has a binding like a house: every pairing the app renders, against that holiday's own role
+tokens (Halloween adds 41), with its own sky as the ground. It also includes the lightest ground each overlay can put behind page-level text: the haze at the top (behind
 the nav and first heading) and the mist and glow stack at the bottom (behind the page's closing text and the colophon, which has a
 50% black scrim under it), for every scene in every house. The peak alphas per scene live in `HOLIDAY_LAYERS` in
 `scripts/contrast-audit.mjs`; **change an alpha in a stylesheet and the matching entry there too.** It cannot measure a pale shape
@@ -125,8 +176,9 @@ for a non-admin, gone after demotion). The existing layout, overflow and accessi
 2. Add `{ label }` to `frontend/src/constants/holidays.js`.
 3. Add `holidays/<key>.js` with `{ defs, backdrop, dressing, foot }`, register it in `LOADERS` in `holidays/index.js`, add
    `styles/parts/holiday-<key>.css` and its `@import` in `styles/index.css`. Use the `hol-` generic class names for the four tiers.
-4. Add wash tokens under `.app-shell[data-holiday='<key>']` in `tokens.css`, and a `HOLIDAY_LAYERS` entry in the contrast audit.
-   Re-run `npm run audit:contrast`.
+4. Add wash tokens under `.app-shell[data-holiday='<key>']` in `tokens.css`, and a `HOLIDAY_LAYERS` entry in the contrast audit. To give the
+   holiday its own colours, add `:root[data-holiday='<key>']` after the house blocks, set `bound: true` in `constants/holidays.js`, and the
+   audit picks the binding up on its own. Re-run `npm run audit:contrast`.
 5. Add the holiday to the e2e list.
 
 ## Known limits

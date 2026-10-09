@@ -54,13 +54,23 @@ export function useHoliday({ token, user, onUserChanged }) {
 
   const isAdmin = Boolean(user?.is_admin);
   const override = isAdmin && HOLIDAYS[user.holiday_override] ? user.holiday_override : null;
+  const overlayOn = user ? user.holiday_overlay !== false : true;
+
+  // While a holiday is dressing the page, <html> says which: its colour binding (styles/tokens.css) outranks the player's house, which rests.
+  const dressed = overlayOn ? (override ?? calendar) : null;
+  useEffect(() => {
+    const root = document.documentElement;
+    if (dressed) root.setAttribute('data-holiday', dressed);
+    else root.removeAttribute('data-holiday');
+    return () => root.removeAttribute('data-holiday');
+  }, [dressed]);
 
   return {
     scene: override ?? calendar,
     calendar,
     override,
     isAdmin,
-    overlayOn: user ? user.holiday_overlay !== false : true,
+    overlayOn,
     animated: user ? user.holiday_motion !== false : true,
     save,
     error,

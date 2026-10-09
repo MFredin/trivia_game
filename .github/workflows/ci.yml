@@ -27,7 +27,9 @@ jobs:
     # pure unit tests could not cover, and what has actually broken in front of players.
     services:
       postgres:
-        image: postgres:16
+        # The official image from AWS's public mirror: Docker Hub refuses anonymous pulls from the shared runners when its rate limit is hit, which
+        # failed the backend and e2e jobs before any code ran.
+        image: public.ecr.aws/docker/library/postgres:16
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: trivia_game
@@ -98,7 +100,9 @@ jobs:
     # services and a database, exactly as a player would have.
     services:
       postgres:
-        image: postgres:16
+        # The official image from AWS's public mirror: Docker Hub refuses anonymous pulls from the shared runners when its rate limit is hit, which
+        # failed the backend and e2e jobs before any code ran.
+        image: public.ecr.aws/docker/library/postgres:16
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: trivia_game

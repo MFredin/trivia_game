@@ -58,7 +58,7 @@ test('a holiday dresses the page, and the two switches in Settings take it off',
     await page.locator('#holiday-motion').uncheck();
     await page.locator('.app-shell[data-holiday-motion="still"]').waitFor({ state: 'attached' });
     assert.equal(await computed(page, '.hw-mist', 'animationName'), 'none');
-    assert.ok((await page.locator('.hw-pk').count()) > 0, 'the scene is still there');
+    assert.ok((await page.locator('.hw-cl').count()) > 0, 'the scene is still there (the oak and the gate)');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('.app-shell[data-holiday-motion="still"]').waitFor({ state: 'attached' });
@@ -176,15 +176,22 @@ test('a holiday adds nothing to the layout: every box sits where it does without
   for (const [width, height] of WIDTHS) {
     const { page } = await openPage(browser, { width, height });
     await register(page);
-    await page.unroute(HOLIDAY_URL).catch(() => {});
-    await page.route(HOLIDAY_URL, (route) => route.fulfill({ json: { overlay: null } }));
-    await page.reload({ waitUntil: 'networkidle' });
-    const plain = await boxes(page);
-    assert.ok(plain.length > 2, 'the home screen has plates to compare');
+    // The page's own height can settle a few pixels after load on a slow machine, so each holiday is compared with a plain page measured just
+    // before it, not with one measured at the start.
+    const plainBoxes = async () => {
+      await dressed(page, null);
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(300);
+      return boxes(page);
+    };
+    assert.ok((await plainBoxes()).length > 2, 'the home screen has plates to compare');
     for (const holiday of HOLIDAYS) {
       await t.test(`${holiday} at ${width}px`, async () => {
+        const plain = await plainBoxes();
         await dressed(page, holiday);
         await page.locator('.holiday').waitFor({ state: 'attached' });
+        await page.evaluate(() => document.fonts.ready);
+        await page.waitForTimeout(300);
         const dressedBoxes = await boxes(page);
         // The colophon moves down by the height of the foot scene, which is the one thing a holiday may add, so only its x and width are compared.
         const trim = (list) => list.map((b) => (b.startsWith('colophon') ? b.replace(/ y\d+/, '') : b));
@@ -207,7 +214,7 @@ test('while a question is on screen everything stops and the props go', async (t
   await beginRun(page);
   await page.locator('.app-shell[data-holiday-calm="on"]').waitFor({ state: 'attached' });
   assert.equal(await computed(page, '.hw-mist', 'animationName'), 'none');
-  assert.equal(await computed(page, '.hw-witch', 'display'), 'none', 'the travellers are not drawn');
+  assert.equal(await computed(page, '.hw-bat', 'display'), 'none', 'the travellers are not drawn');
   assert.equal(await computed(page, '.hol-pd.hol-prop', 'display'), 'none', 'the props on the plate are gone');
   assert.ok((await page.locator('.hol-pd.hol-line').count()) > 0, 'the thin line art stays, still');
 });
@@ -222,7 +229,77 @@ test('a device set to reduce motion gets the still scene whatever the switch say
   await page.locator('.holiday').waitFor({ state: 'attached' });
   assert.equal(await page.locator('.app-shell').getAttribute('data-holiday-motion'), 'full', 'the switch is on');
   assert.equal(await computed(page, '.hw-mist', 'animationName'), 'none');
-  assert.equal(await computed(page, '.hw-witch', 'display'), 'none');
+  assert.equal(await computed(page, '.hw-bat', 'display'), 'none');
+});
+
+// The bats: on Halloween one crosses the page now and then, and catching it unlocks an achievement. The server decides whether it is Halloween
+// from the date, so these ask it to treat Halloween as on, the way GET /holiday does for a developer.
+async function inSeason(page) {
+  await page.route('**/api/holiday/bat', (route) => route.continue({ url: `${route.request().url()}?force=halloween` }));
+}
+const BELFRY = '.achievement-toast-name';
+
+test('a bat crosses the page, and catching it unlocks Something in the Belfry', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const { page } = await openPage(browser, DESKTOP);
+  await register(page);
+  await inSeason(page);
+  await dressed(page);
+
+  const bat = page.locator('.hol-flybat');
+  await bat.waitFor({ state: 'attached', timeout: 20000 });
+  assert.ok((await bat.boundingBox()).height >= 40, 'a fair target for a thumb');
+  assert.equal(await computed(page, '.hol-batlayer', 'pointerEvents'), 'none', 'the layer lets taps through; only the bat answers');
+  // It is moving, so a click that waits for it to hold still would wait for ever: send the click itself.
+  await bat.dispatchEvent('click');
+  await page.locator(BELFRY).waitFor({ timeout: 8000 });
+  assert.equal(await page.locator(BELFRY).textContent(), 'Something in the Belfry');
+  await page.locator('.hol-flybat').waitFor({ state: 'detached', timeout: 3000 });
+});
+
+test('with the animation off a bat hangs from the oak instead, and a keyboard can reach it', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const { page } = await openPage(browser);
+  await register(page);
+  await inSeason(page);
+  await dressed(page);
+  await navigateTo(page, 'Settings');
+  await page.locator('#holiday-motion').uncheck();
+  await navigateTo(page, 'Home');
+  await page.locator('.app-shell[data-holiday-motion="still"]').waitFor({ state: 'attached' });
+
+  const perch = page.locator('.hol-perch-foot');
+  await perch.waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.hol-flybat').count(), 0);
+  // The first bat of an animated page comes within ten seconds, so this is long enough to be sure none flies.
+  await page.waitForTimeout(10500);
+  assert.equal(await page.locator('.hol-flybat').count(), 0, 'nothing flies while the scene is still');
+  await perch.focus();
+  await page.keyboard.press('Enter');
+  await page.locator(BELFRY).waitFor({ timeout: 8000 });
+  assert.equal(await page.locator('.hol-perch').count(), 0, 'the bat is caught and gone');
+});
+
+test('there are no bats during a question, and none for someone who is not signed in', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  const { page } = await openPage(browser, DESKTOP);
+  await register(page);
+  await dressed(page);
+  await page.locator('.hol-perch').first().waitFor({ state: 'attached' }).catch(() => {});
+  await beginRun(page);
+  await page.locator('.app-shell[data-holiday-calm="on"]').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('.hol-flybat, .hol-perch').count(), 0, 'nothing to catch while the quiz is on');
+
+  // Signed out there is no account to give the achievement to, so there is no bat: with reduced motion on, where a perch would show at once.
+  const guest = await browser.newPage({ viewport: DESKTOP });
+  await guest.emulateMedia({ reducedMotion: 'reduce' });
+  await guest.route(HOLIDAY_URL, (route) => route.fulfill({ json: { overlay: 'halloween' } }));
+  await guest.goto(page.url().split('#')[0], { waitUntil: 'networkidle' });
+  await guest.locator('.holiday').waitFor({ state: 'attached' });
+  assert.equal(await guest.locator('.hol-flybat, .hol-perch').count(), 0, 'no bat for someone who is not signed in');
 });
 
 test('between holidays there is no overlay, and Settings says so', async (t) => {

@@ -285,3 +285,9 @@
     display: none;
   }
 }
+
+/* The seal that stands where the house device does while a holiday is bound (components/HolidaySeal.jsx). */
+.holiday-seal {
+  display: block;
+  flex: none;
+}
