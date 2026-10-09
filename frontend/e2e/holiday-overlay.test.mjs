@@ -156,6 +156,45 @@ test('every holiday draws on a phone and on a wide screen without a complaint or
   assert.deepEqual(problems, [], 'the browser complained');
 });
 
+// A holiday must add nothing to the layout. Its dressing once sat inside the home screen's two-column spread as a block child and became its
+// first column, so the form dropped below the Ex Libris card on a PC. That never showed on a phone, where the page is one column, so this
+// compares the boxes of the page's own pieces with the holiday on and off, on a phone, a laptop and a wide screen.
+const WIDTHS = [[390, 844], [1100, 800], [1440, 900]];
+const boxes = (page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll('.book-spread-leaf, .plate, .screen-head, .colophon')]
+      .filter((el) => !el.closest('.holiday'))
+      .map((el) => {
+        const b = el.getBoundingClientRect();
+        return `${el.className.toString().split(' ')[0]} x${Math.round(b.left)} y${Math.round(b.top + window.scrollY)} w${Math.round(b.width)}`;
+      }),
+  );
+
+test('a holiday adds nothing to the layout: every box sits where it does without it', async (t) => {
+  const browser = await launch();
+  t.after(() => browser.close());
+  for (const [width, height] of WIDTHS) {
+    const { page } = await openPage(browser, { width, height });
+    await register(page);
+    await page.unroute(HOLIDAY_URL).catch(() => {});
+    await page.route(HOLIDAY_URL, (route) => route.fulfill({ json: { overlay: null } }));
+    await page.reload({ waitUntil: 'networkidle' });
+    const plain = await boxes(page);
+    assert.ok(plain.length > 2, 'the home screen has plates to compare');
+    for (const holiday of HOLIDAYS) {
+      await t.test(`${holiday} at ${width}px`, async () => {
+        await dressed(page, holiday);
+        await page.locator('.holiday').waitFor({ state: 'attached' });
+        const dressedBoxes = await boxes(page);
+        // The colophon moves down by the height of the foot scene, which is the one thing a holiday may add, so only its x and width are compared.
+        const trim = (list) => list.map((b) => (b.startsWith('colophon') ? b.replace(/ y\d+/, '') : b));
+        assert.deepEqual(trim(dressedBoxes), trim(plain), `${holiday} moved something at ${width}px`);
+      });
+    }
+    await page.close();
+  }
+});
+
 test('while a question is on screen everything stops and the props go', async (t) => {
   const browser = await launch();
   t.after(() => browser.close());
