@@ -4,7 +4,8 @@
    crossing, the box a thumb can hit, the catch, the perch. What a creature looks like and how it moves lives with its holiday (holiday-<key>.css),
    under [data-visitor='<kind>'], along with the colours the holiday sets on .app-shell:
      --visitor-ink    the creature's colour       --visitor-glow  the rgb of the light around it and of the ring when it is caught
-     --visitor-focus  its keyboard focus ring     --perch-x, --perch-y  where its perch stands, as a fraction of a cluster's width */
+     --visitor-focus  its keyboard focus ring     --perch-x, --perch-y  where its perch stands, as a fraction of a cluster's width
+     --perch-drop     how far below --perch-y the perch's box hangs: 44px (its own height) for a creature that hangs from the point, 0 for one that stands on it */
 .hol-visitorlayer {
   position: fixed;
   inset: 0;
@@ -133,7 +134,7 @@
 .hol-perch-foot {
   --cw: min(38vw, 190px);
   left: calc(var(--cw) * var(--perch-x, 0.35) - 22px - 1.25rem);
-  bottom: calc(var(--cw) * var(--perch-y, 0.9) - 44px);
+  bottom: calc(var(--cw) * var(--perch-y, 0.9) - var(--perch-drop, 44px));
 }
 
 .hol-perch-wing {
@@ -141,7 +142,7 @@
   position: fixed;
   z-index: 30;
   left: calc(var(--cw) * var(--perch-x, 0.35) - 22px);
-  bottom: calc(var(--cw) * var(--perch-y, 0.9) - 44px);
+  bottom: calc(var(--cw) * var(--perch-y, 0.9) - var(--perch-drop, 44px));
 }
 
 @media (max-width: 1279px) {

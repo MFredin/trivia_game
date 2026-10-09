@@ -71,8 +71,19 @@ const HOLIDAY_LAYERS = {
     top: [[[110, 76, 160], 0.3], ['haze', 0.5]], // .hw-sky's violet corner; .hw-haze
     bottom: [[[168, 82, 140], 0.4], ['mist', 0.26], ['mist', 0.144]], // .hw-ground::before's horizon glow; .hw-mist, .hw-mist2 (at .8)
   },
-  thanksgiving: { top: [], bottom: [] }, // planks and a vignette: dark only
-  yule: { top: [], bottom: [['warm', 0.15], ['warm', 0.16]] }, // .hol-hearth, .yu-foot::before
+  // Thanksgiving's sky runs from #150b0f to #3d1d13. The sun's own glow is drawn inside the farmstead cluster, which stands in the margin (or the
+  // foot band), so it is not measured: only the ambient washes that can reach the page are.
+  thanksgiving: {
+    ground: { top: [21, 11, 15], bottom: [61, 29, 19] },
+    top: [[[120, 52, 36], 0.34], ['haze', 0.5]], // .th-sky's corner; .th-haze
+    bottom: [[[150, 56, 30], 0.45], ['mist', 0.2]], // .th-ground::before's low glow; .th-mist
+  },
+  // Yule's sky runs from #050b1c to #132a52. Its aurora stands only in the margins, so it is not measured.
+  yule: {
+    ground: { top: [5, 11, 28], bottom: [19, 42, 82] },
+    top: [[[40, 90, 140], 0.24], ['haze', 0.5]], // .yu-sky's corner; .yu-haze
+    bottom: [[[76, 130, 220], 0.26], [[255, 150, 60], 0.16], ['mist', 0.14]], // .yu-ground::before's cold glow and the fire's; .yu-mist
+  },
   newyear: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14]] }, // .sc-haze; .sc-mist, .sc-glow
   easter: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14], ['mist', 0.2]] }, // .sc-haze; .sc-mist, .sc-glow, .ea-foot::before
   midsummer: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14], ['warm', 0.14]] }, // .sc-haze; .sc-mist, .sc-glow, .ms-foot::before

@@ -16,8 +16,8 @@ export function VisitorPerch({ place, visitor }) {
       aria-label={config.perch}
       onClick={visitor.catchPerch}
     >
-      <svg viewBox={config.viewBox} aria-hidden="true" focusable="false">
-        <use href={`#${config.symbol}`} />
+      <svg viewBox={config.perchViewBox ?? config.viewBox} aria-hidden="true" focusable="false">
+        <use href={`#${config.perchSymbol ?? config.symbol}`} />
       </svg>
     </button>
   );

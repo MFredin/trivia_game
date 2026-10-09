@@ -1,245 +1,284 @@
-/* --- Thanksgiving (holidays/thanksgiving.js) ---
-   The page is a table seen from above. On every screen width: wood planks behind everything with a warm vignette, a leaf garland swaying
-   along the very top edge, leaves drifting down the gutters, a leaf-and-berry vine, a falling leaf and gourds on every plate, and a laid
-   table at the end of each page. From 1280px up the margins add tea lights, a place setting, cranberries, a harvest basket and a pie. */
+/* --- Thanksgiving: the golden-hour harvest (holidays/thanksgiving.js) ---
+   One composition, cropped two ways. One light, the low amber sun; everything else is a silhouette rimmed with it. The sky is a fixed layer behind
+   the page (.th-sky): a dusky brown that stays dark behind the page's own text, a few motes, and geese. The horizon (.hol-band, in holiday-overlay.css)
+   is the same scene in two places: fixed along the bottom of the screen where a margin exists (from 1280px) and in the page flow just above the
+   footer everywhere else. In both, the maple stands on the left edge and the farmstead on the right, with the same ground between them, so a
+   wide screen and a phone show one picture, not two. The warm sky of the sunset is drawn only in the band, where no text can be.
+   Colour is the holiday binding in tokens.css (the house colours rest); only light and silhouette colours live here.
+   A light is drawn before the thing it lights, so a glow never covers a window. Every animation is transform or opacity. */
 
-.app-shell[data-holiday="thanksgiving"] {
-  --wood-rgb: 255, 190, 110;
-  --steam-rgb: 255, 240, 220;
-  --linen: #ead9b8;
-  --linen2: #cdb487;
-  --brass: #b88a3e;
-  --napkin: #a8442a;
-  --wicker: #8f5d2c;
-  --wicker2: #5a3718;
-  --pit: #24140a;
-  --pumpkin: #e07b24;
-  --pumpkin2: #a8520f;
-  --apple: #b3261e;
-  --grape: #5b2a6e;
-  --wheat: #d9b95c;
-  --berry: #c2282a;
-  --stem: #6d6a2e;
-  --gourd2: #e2c25a;
-  --gourd2-d: #a8862a;
-  --pumpkin2: #a8520f;
-  --leaf1: #c2501c;
-  --leaf2: #e29a2b;
-  --leaf3: #d8b43c;
-  --leaf4: #93301b;
-  --vine: #4a3a1c;
-  --crust: #c98a3a;
-  --crust2: #8f5d22;
-  --filling: #7a3319;
-  --china: #e8e0cf;
-  --candle: #ffe9b0;
+.app-shell[data-holiday='thanksgiving'] {
+  --th-warm: 255, 178, 78;
+  --visitor-ink: #6b3a1c;
+  --visitor-glow: var(--th-warm);
+  --visitor-focus: #f6b93c;
+  /* The turkey stands among the pumpkins at the foot of the maple cluster. */
+  --perch-x: 0.46;
+  --perch-y: 0.115;
+  --perch-drop: 0px;
 }
-:root[data-house='monochrome'] .app-shell[data-holiday="thanksgiving"] {
-  --wood-rgb: 255, 255, 255;
-  --steam-rgb: 245, 245, 245;
-  --linen: #e6e6e6;
-  --linen2: #b8b8b8;
-  --brass: #a8a8a8;
-  --napkin: #6a6a6a;
-  --wicker: #7a7a7a;
-  --wicker2: #484848;
-  --pit: #1a1a1a;
-  --pumpkin: #c4c4c4;
-  --pumpkin2: #8a8a8a;
-  --apple: #8c8c8c;
-  --grape: #5c5c5c;
-  --wheat: #d0d0d0;
-  --berry: #9a9a9a;
-  --stem: #7a7a7a;
-  --gourd2: #d6d6d6;
-  --gourd2-d: #8a8a8a;
-  --leaf1: #9a9a9a;
-  --leaf2: #c4c4c4;
-  --leaf3: #dedede;
-  --leaf4: #6e6e6e;
-  --vine: #4a4a4a;
-  --crust: #bcbcbc;
-  --crust2: #888;
-  --filling: #5a5a5a;
-  --china: #e6e6e6;
-  --candle: #ffffff;
-}
-.hol-planks {
+
+/* ---- the sky ---- */
+.th-sky {
   position: absolute;
   inset: 0;
   background:
-    repeating-linear-gradient(90deg, rgba(0,0,0,.42) 0 2px, rgba(255,255,255,.03) 2px 3px, transparent 3px 168px),
-    repeating-linear-gradient(90deg, rgba(var(--wood-rgb), .04) 0 168px, rgba(0,0,0,.07) 168px 336px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 1px, transparent 1px 13px),
-    repeating-linear-gradient(0deg, rgba(var(--wood-rgb), .03) 0 1px, transparent 1px 9px);
+    radial-gradient(110% 40% at 18% -4%, rgba(120, 52, 36, 0.34), rgba(120, 52, 36, 0) 62%),
+    linear-gradient(#150b0f 0%, #26120f 46%, #3d1d13 100%);
 }
-.warm-vig {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 42%, rgba(var(--holiday-warm-rgb), .05) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,.62) 100%);
-  animation: hol-breathe 11s ease-in-out infinite;
-}
-.hol-vine {
+
+.th-haze {
   position: absolute;
   left: 0;
   right: 0;
-  top: 6px;
+  top: 0;
+  height: 230px;
+  background: linear-gradient(rgba(var(--holiday-haze-rgb), 0.5), rgba(var(--holiday-haze-rgb), 0));
+  animation: hol-breathe 12s ease-in-out infinite;
+}
+
+.th-mote {
+  position: absolute;
+  width: 2px;
   height: 2px;
-  background: var(--vine);
-}
-.hol-gl {
-  position: absolute;
-  top: 4px;
-  width: 22px;
-  transform-origin: 50% 0;
-  animation: hol-leafsway 5.5s ease-in-out infinite alternate;
+  border-radius: 50%;
+  background: #ffe2b0;
+  opacity: 0.2;
+  animation: hol-twinkle 5s ease-in-out infinite;
   animation-delay: var(--d);
 }
-.hol-gl svg {
+
+/* A V of geese crosses the sky, slowly. The drift is the element and the wingbeat is each goose, so they never fight over transform. */
+.th-vee {
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 0;
+  color: #7a4a2e;
+  scale: var(--k);
+  animation: th-cross var(--dur) linear infinite;
+  animation-delay: var(--d);
+}
+
+.th-goose {
+  position: absolute;
+  width: 26px;
+  transform-origin: 50% 80%;
+  animation: th-flap var(--f, 0.6s) ease-in-out infinite alternate;
+}
+
+@keyframes th-cross {
+  from { transform: translateX(110vw); }
+  to { transform: translateX(-30vw); }
+}
+
+@keyframes th-flap {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.45); }
+}
+
+/* ---- the horizon ---- */
+/* The low glow of the evening along the ground, so the hills read as hills. The sun's own light is the halo drawn with it in the farmstead. */
+.th-ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 100% 52% at 50% 100%, rgba(150, 56, 30, 0.45), rgba(150, 56, 30, 0) 76%);
+}
+
+/* Long clouds of sunset, lit from below, drifting a little. */
+.th-cloud {
+  position: absolute;
+  height: 5%;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(255, 150, 70, 0), rgba(255, 168, 84, 0.5), rgba(255, 150, 70, 0));
+  animation: th-clouddrift 60s ease-in-out infinite alternate;
+}
+
+.th-cloud2 {
+  height: 4%;
+  animation-duration: 80s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes th-clouddrift {
+  from { transform: translateX(-6%); }
+  to { transform: translateX(6%); }
+}
+
+/* Mist lying in the low ground. */
+.th-mist {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8%;
+  height: 22%;
+  background: radial-gradient(ellipse 70% 100% at 40% 100%, rgba(var(--holiday-mist-rgb), 0.2), rgba(var(--holiday-mist-rgb), 0) 72%);
+  animation: hol-breathe 10s ease-in-out infinite;
+}
+
+
+/* ---- the sun, the windows, the smoke ---- */
+.th-halo {
+  transform-origin: 150px 200px;
+  animation: hol-breathe 7s ease-in-out infinite;
+}
+
+.th-lamp {
+  animation: hol-hearth 5s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+.th-win {
+  animation: hol-hearth 5s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+.th-smoke {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: th-smoke 10s ease-out infinite;
+  animation-delay: var(--d);
+  opacity: 0;
+}
+
+@keyframes th-smoke {
+  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+  15% { opacity: 0.7; }
+  100% { transform: translate(30px, -56px) scale(2); opacity: 0; }
+}
+
+.th-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: hol-sprigsway 3.2s ease-in-out infinite alternate;
+}
+
+/* ---- the maple: leaves coming down ---- */
+.th-fall {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: th-fall var(--t) ease-in infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes th-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  35% { transform: translate(calc(var(--x) * 0.5), 46px) rotate(140deg); }
+  65% { transform: translate(calc(var(--x) * -0.2), 100px) rotate(250deg); }
+  92% { opacity: 1; }
+  100% { transform: translate(var(--x), 150px) rotate(380deg); opacity: 0; }
+}
+
+/* ---- the long table, under its string of lights ---- */
+.th-table {
+  position: absolute;
+  left: 41%;
+  bottom: 31%;
+  width: 18%;
+}
+
+.th-table svg {
   display: block;
   width: 100%;
   overflow: visible;
-  color: var(--c);
 }
-.hol-gberry {
-  position: absolute;
-  top: 5px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--berry);
-}
-.hol-item { position: absolute; }
-.hol-item svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.tealight {
-  position: absolute;
-  width: 34px;
-  height: 34px;
-}
-.tealight svg {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.tl-pool {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 190px;
-  aspect-ratio: 1;
-  transform: translate(-50%,-50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--holiday-warm-rgb), .3) 0%, rgba(var(--holiday-warm-rgb), .1) 36%, rgba(var(--holiday-warm-rgb), 0) 66%);
-  animation: hol-pool 3.4s ease-in-out infinite;
-  animation-delay: var(--d);
-}
-.tl-flame {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 9px;
-  height: 9px;
-  margin: -4.5px 0 0 -4.5px;
-  border-radius: 50%;
-  background: #fff6d6;
-  box-shadow: 0 0 10px 4px rgba(var(--holiday-warm-rgb), .85);
+
+.th-cflame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
   animation: hol-flame 2.6s ease-in-out infinite;
   animation-delay: var(--d);
 }
-.hol-steam {
+
+.th-wire {
   position: absolute;
-  width: 18px;
-  height: 40px;
-  opacity: 0;
-  animation: hol-steam 6.5s ease-out infinite;
-  animation-delay: var(--d);
-}
-.hol-steam svg {
+  left: 0;
+  bottom: 32%;
   width: 100%;
-  height: 100%;
-  display: block;
+  height: 30%;
+  overflow: visible;
 }
 
-@keyframes hol-steam {
-  0% { transform: translateY(0) scaleX(.8); opacity: 0; }
-  25% { opacity: .55; }
-  100% { transform: translateY(-46px) scaleX(1.5); opacity: 0; }
+/* The bulbs come on one after another when the page opens, then each breathes at its own pace. */
+.th-bulb {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: 0 0 0 -2.5px;
+  border-radius: 50%;
+  background: #ffe2a0;
+  box-shadow: 0 0 6px 2px rgba(255, 196, 96, 0.8);
+  opacity: 0;
+  animation: th-bulbon 0.5s ease-out forwards, hol-hearth 4s ease-in-out 1s infinite;
+  animation-delay: var(--d), calc(var(--d) + 1s);
 }
-.gleaf {
+
+@keyframes th-bulbon {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ---- the gutters ---- */
+.th-gleaf {
   position: absolute;
   top: 0;
-  width: 13px;
+  width: 12px;
   color: var(--c);
-  opacity: 0;
   animation: hol-gfall var(--t) linear infinite;
   animation-delay: var(--d);
 }
-.gleaf svg {
+
+.th-gleaf svg {
   display: block;
   width: 100%;
-  overflow: visible;
 }
-.pd-sprig {
-  top: -13px;
-  right: 8px;
-  width: 100px;
+
+/* ---- the plates ---- */
+.app-shell[data-holiday='thanksgiving'] {
+  --wheat-parch: rgba(92, 60, 24, 0.5);
+}
+
+.pd-wheat {
+  left: -8px;
+  bottom: -6px;
+  width: 78px;
+  color: var(--wheat-parch);
+  opacity: 0.55;
+}
+
+.pd-vine {
+  right: 10px;
+  top: -20px;
+  width: 112px;
   transform-origin: 100% 0;
   animation: hol-sprigsway 6s ease-in-out infinite alternate;
 }
-.pd-gourds {
-  right: 22px;
-  bottom: -15px;
-  width: 104px;
+
+.pd-harvest {
+  right: 14px;
+  bottom: -16px;
+  width: 118px;
 }
-.pd-leaf {
-  left: 12px;
-  top: -11px;
-  width: 26px;
-  transform-origin: 50% 0;
-  animation: hol-leafsway 5s ease-in-out infinite alternate;
+
+/* ---- the turkey you can catch (the shared parts are in holiday-visitor.css) ----
+   A tom strutting with his tail fanned: he waddles as he crosses, rocking from foot to foot. Standing in the scene he is still. */
+.hol-flyer[data-visitor='turkey'] {
+  animation: th-waddle 0.7s ease-in-out infinite alternate;
 }
-.th-foot .th-runner {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 6px;
-  bottom: 0;
-  border-radius: 6px;
-  background: linear-gradient(#4b2f1a, #3a2413);
-  border: 1px solid rgba(255,210,150,.18);
-  box-shadow: inset 0 0 0 4px rgba(0,0,0,.18), inset 0 0 0 5px rgba(255,210,150,.16);
+
+.hol-flyer[data-visitor='turkey'] svg {
+  transform-origin: 50% 100%;
+  animation: th-rock 0.7s ease-in-out infinite alternate;
 }
-.th-fplate {
-  position: absolute;
-  top: 14px;
-  width: 58px;
+
+@keyframes th-waddle {
+  from { transform: translateY(0); }
+  to { transform: translateY(-3px); }
 }
-.th-fplate svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.th-ftl {
-  position: absolute;
-  top: 38px;
-  width: 24px;
-  height: 24px;
-  margin-left: -12px;
-}
-.th-ftl svg {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.th-ftl .tl-pool { width: 120px; }
-.th-ftl .tl-flame {
-  width: 7px;
-  height: 7px;
-  margin: -3.5px 0 0 -3.5px;
+
+@keyframes th-rock {
+  from { transform: rotate(-3deg); }
+  to { transform: rotate(3deg); }
 }

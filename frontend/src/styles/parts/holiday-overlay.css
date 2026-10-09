@@ -271,6 +271,59 @@
   overflow-x: clip;
 }
 
+/* The horizon the newer holidays share (Thanksgiving, Yule): one scene, cropped two ways. A band is as tall as its two clusters, which are each
+   `--cw` wide: from 1280px the band stands along the bottom of the screen and each cluster in the margin beside the page (as wide as the margin
+   is), and everywhere else it is in the page flow above the footer, the clusters in its corners. Halloween draws the same structure with its own
+   hw- names. Between the clusters is the ground: hills in three ranges, and whatever the holiday stands on them. */
+.hol-band {
+  --cw: min(38vw, 190px);
+  position: relative;
+  width: 100%;
+  height: calc(var(--cw) * 1.27);
+  pointer-events: none;
+}
+
+.hol-wings {
+  --cw: clamp(150px, calc((100vw - 1040px) / 2), 440px);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.hol-footband {
+  height: auto;
+  margin-top: 22px;
+}
+
+.hol-cl {
+  position: absolute;
+  bottom: 0;
+  width: var(--cw);
+  aspect-ratio: 260 / 330;
+  height: auto;
+  overflow: visible;
+}
+
+.hol-cl-l { left: 0; }
+.hol-cl-r { right: 0; }
+
+.hol-ground {
+  position: absolute;
+  inset: 0;
+}
+
+.hol-hill {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  display: block;
+}
+
+.hol-hill-far { bottom: 18%; height: 56%; }
+.hol-hill-mid { bottom: 8%; height: 46%; }
+.hol-hill-near { bottom: 0; height: 36%; }
+
 /* A wide screen has the margin scene and its own ground, so the in-flow foot would be a second one. */
 @media (min-width: 1280px) {
   .hol-foot {
