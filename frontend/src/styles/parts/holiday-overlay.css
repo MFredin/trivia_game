@@ -95,6 +95,12 @@
 .hol-foot {
   pointer-events: none;
 }
+/* The wrapper that carries a holiday's art into a plate or the page has no box of its own. As a block it became a child of whatever it was put
+   in, and inside the home screen's two-column spread it took the first column and pushed both leaves along. Its children are positioned
+   (props) or the foot band, so they do not need it. e2e checks every box with a holiday on and off. */
+.hol-wrap {
+  display: contents;
+}
 .hol-pd {
   position: absolute;
   pointer-events: none;
@@ -278,4 +284,10 @@
   .hol-foot {
     display: none;
   }
+}
+
+/* The seal that stands where the house device does while a holiday is bound (components/HolidaySeal.jsx). */
+.holiday-seal {
+  display: block;
+  flex: none;
 }

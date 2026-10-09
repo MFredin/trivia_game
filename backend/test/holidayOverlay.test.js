@@ -248,4 +248,64 @@ test('holiday overlay routes', { skip: skip && 'DATABASE_URL not set' }, async (
     assert.equal((await me(admin)).holiday_override, null, 'hidden from the client');
     assert.equal((await save(admin, { override: 'yule' })).status, 403);
   });
+  // A bat that flies across the page on Halloween can be caught, once, for an achievement. The same force as GET /holiday stands in for the
+  // date, so these do not depend on today being near the end of October.
+  const catchBat = (as, query = '?force=halloween') => call(`/holiday/bat${query}`, { method: 'POST', token: as?.token });
+  const unlocked = async (as) => (await call('/achievements', { token: as.token })).body.achievements.find((a) => a.id === 'halloween_bat');
+
+  await t.test('catching a bat needs an account', async () => {
+    assert.equal((await catchBat(null)).status, 401);
+  });
+
+  await t.test('there are no bats to catch outside Halloween', async () => {
+    const a = await newPlayer();
+    const res = await catchBat(a, '?force=yule');
+    assert.equal(res.status, 404);
+    assert.equal(res.body.error, 'not_in_season');
+    assert.equal((await unlocked(a)).unlocked, false);
+  });
+
+  await t.test('production ignores the force here too, so a bat cannot be caught out of season', async () => {
+    const a = await newPlayer();
+    const before = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const res = await catchBat(a, '?force=halloween');
+      // In production only the calendar decides, so this answers for today's date, whatever it is.
+      assert.equal(res.status, activeOverlay() === 'halloween' ? 200 : 404);
+    } finally {
+      process.env.NODE_ENV = before;
+    }
+  });
+
+  await t.test('the first bat unlocks Something in the Belfry, and a second one changes nothing', async () => {
+    const a = await newPlayer();
+    assert.equal((await unlocked(a)).unlocked, false);
+    const first = await catchBat(a);
+    assert.equal(first.status, 200);
+    assert.equal(first.body.unlocked, true);
+    const row = await unlocked(a);
+    assert.equal(row.unlocked, true);
+    assert.equal(row.name, 'Something in the Belfry');
+    const second = await catchBat(a);
+    assert.equal(second.status, 200);
+    assert.equal(second.body.unlocked, false, 'already caught');
+    const { rows } = await pool.query(`SELECT count(*)::int AS n FROM user_achievements WHERE user_id = $1 AND achievement_id = 'halloween_bat'`, [a.id]);
+    assert.equal(rows[0].n, 1);
+  });
+
+  await t.test('one player catching a bat unlocks nothing for another', async () => {
+    const a = await newPlayer();
+    const b = await newPlayer();
+    await catchBat(a);
+    assert.equal((await unlocked(b)).unlocked, false);
+  });
+
+  await t.test('the achievement shows up in the activity feed once', async () => {
+    const a = await newPlayer();
+    await catchBat(a);
+    await catchBat(a);
+    const { rows } = await pool.query(`SELECT count(*)::int AS n FROM activity_events WHERE user_id = $1 AND type = 'achievement_unlocked'`, [a.id]);
+    assert.equal(rows[0].n, 1);
+  });
 });

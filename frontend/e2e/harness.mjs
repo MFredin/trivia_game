@@ -27,9 +27,14 @@ export async function launch() {
 /**
  * A page that records everything the browser complained about, so a test can assert on a
  * clean console rather than only on what it thought to look for.
+ *
+ * `noHoliday` answers the holiday question with "none" for this page.
  */
-export async function openPage(browser, viewport = PHONE) {
+export async function openPage(browser, viewport = PHONE, { noHoliday = false } = {}) {
   const page = await browser.newPage({ viewport });
+  // Which holiday is on is the server's call from the date, so a test about something else (the house's own look, how long a page is) can say
+  // there is none, rather than pass or fail with the calendar. A test about the overlay routes its own answer over this one.
+  if (noHoliday) await page.route('**/api/holiday', (route) => route.fulfill({ json: { overlay: null } }));
   const problems = [];
   page.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {

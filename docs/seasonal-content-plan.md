@@ -134,7 +134,7 @@ auto-tagger, because the scan is keyword-based and will include false positives 
 **Step 2: author the gap.** For each season, the gap is the difference between 60 and the confirmed retro-tags. Draft
 the rest in the same pipeline the bank has always used: drafted in batches, flagged `needs_factcheck: true` wherever
 the drafter was not certain, validated by `question-bank-audit.mjs` (schema, duplicates, answer in its own distractors),
-then a human pass for factual correctness (see [`question-bank-audit-2026-10.md`](question-bank-audit-2026-10.md)).
+then a human pass for factual correctness (see [`question-bank-audit-2026-10.md`](audits/question-bank-audit-2026-10.md)).
 Seasonal questions must not be **excluded** from the normal bank: they enter it like any other, with a tag. Out of
 season they simply appear in ordinary runs as before.
 
@@ -142,7 +142,7 @@ season they simply appear in ordinary runs as before.
 questions, or fewer than 10 in any obscurity tier that the run could draw. A season cannot be listed in `SEASONS`
 until it can field a run. This is the same reasoning as the MIN_POOL guard in `featuredChallengeSpec`.
 
-**IP discipline** ([`ip-risk-notes.md`](ip-risk-notes.md)). Seasonal questions are where the temptation to quote is
+**IP discipline** (CONTRIBUTING.md, "Content and artwork"). Seasonal questions are where the temptation to quote is
 highest (a feast menu, a famous line). The standing rule applies unchanged: describe events in original language and
 never reproduce prose beyond an unavoidable short phrase. Real-world anniversary questions (publication dates, premieres)
 state facts, which are not protectable, but each needs a `source_ref`.

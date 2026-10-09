@@ -217,20 +217,33 @@ export async function evaluateAchievements(userId) {
 
   const newlyUnlocked = [];
   for (const def of candidates) {
-    // Two calls for the same user can race (e.g. two tabs finishing a session moments apart)
-    // and both read "not yet unlocked" before either INSERT lands. RETURNING id — rather than
-    // just checking rowCount — is what lets us tell "I was the one that actually inserted this
-    // row" apart from "someone else's concurrent call already did," so only the former toasts
-    // and feeds the activity log; the DB row itself was already conflict-safe either way.
-    const { rows } = await pool.query(
-      `INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING user_id`,
-      [userId, def.id],
-    );
-    if (rows.length === 0) continue;
-    newlyUnlocked.push(def);
-    sendToUser(userId, { type: 'achievement:unlocked', achievement: def });
-    await recordActivity(userId, 'achievement_unlocked', { achievement_id: def.id, name: def.name });
+    if (await unlock(userId, def)) newlyUnlocked.push(def);
   }
 
   return newlyUnlocked;
+}
+
+// Two calls for the same user can race (e.g. two tabs finishing a session moments apart)
+// and both read "not yet unlocked" before either INSERT lands. RETURNING id — rather than
+// just checking rowCount — is what lets us tell "I was the one that actually inserted this
+// row" apart from "someone else's concurrent call already did," so only the former toasts
+// and feeds the activity log; the DB row itself was already conflict-safe either way.
+async function unlock(userId, def) {
+  const { rows } = await pool.query(
+    `INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING user_id`,
+    [userId, def.id],
+  );
+  if (rows.length === 0) return false;
+  sendToUser(userId, { type: 'achievement:unlocked', achievement: def });
+  await recordActivity(userId, 'achievement_unlocked', { achievement_id: def.id, name: def.name });
+  return true;
+}
+
+/**
+ * Unlock one achievement that no stored count can say is earned, because it is earned by doing a thing once (a bat caught).
+ * True if this call unlocked it, false if it was already unlocked or there is no such achievement.
+ */
+export async function unlockAchievement(userId, id) {
+  const def = ACHIEVEMENTS.find((a) => a.id === id);
+  return def ? unlock(userId, def) : false;
 }

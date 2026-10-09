@@ -21,9 +21,11 @@ import { useProfileEditor } from './features/profile/useProfileEditor.js';
 import { useModerationNotices } from './features/moderation/useModerationNotices.js';
 import { useOwlPost } from './features/owlpost/useOwlPost.js';
 import { useHoliday } from './features/holiday/useHoliday.js';
+import { useHolidayBats } from './features/holiday/useHolidayBats.js';
 import { HolidayContext } from './features/holiday/holidayContext.js';
 import HolidayOverlay from './components/HolidayOverlay.jsx';
 import HolidayFoot from './components/HolidayFoot.jsx';
+import HolidayBats from './components/HolidayBats.jsx';
 import { restrictionMessage } from './features/moderation/restrictionMessage.js';
 import ModerationNoticeModal from './components/ModerationNoticeModal.jsx';
 import RenameModal from './components/RenameModal.jsx';
@@ -268,6 +270,16 @@ export default function App() {
   });
   const safety = useSafety({ token: auth.token, active: screen === 'settings' });
   const holiday = useHoliday({ token: auth.token, user: auth.user, onUserChanged: auth.updateUser });
+  // Nothing is drawn near a question, so the bats stay away while one is on screen, a guest's preview included.
+  const holidayCalm = screen === 'question' || screen === 'preview';
+  const bats = useHolidayBats({
+    scene: holiday.scene,
+    token: auth.token,
+    signedIn: Boolean(auth.user),
+    overlayOn: holiday.overlayOn,
+    animated: holiday.animated,
+    calm: holidayCalm,
+  });
   const profileView = useProfile({ username: screen === 'profile' ? viewingProfile : null, token: auth.token });
 
   const leaderboard = useLeaderboard({ authToken: auth.token });
@@ -442,7 +454,7 @@ export default function App() {
   const holidayAttributes = dressedScene
     ? {
         'data-holiday': dressedScene,
-        'data-holiday-calm': screen === 'question' || screen === 'preview' ? 'on' : 'off',
+        'data-holiday-calm': holidayCalm ? 'on' : 'off',
         'data-holiday-motion': holiday.animated ? 'full' : 'still',
       }
     : {};
@@ -453,6 +465,7 @@ export default function App() {
       <Embers />
       {/* Behind everything, so it is never over a question. It stops moving while one is on screen, a guest's preview included. */}
       <HolidayOverlay scene={dressedScene} />
+      <HolidayBats bats={bats} />
       {screen !== 'auth' && screen !== 'preview' && screen !== 'recovery' && (
         <NavBar
           currentUser={auth.user}
@@ -747,7 +760,7 @@ export default function App() {
           />
         </Suspense>
       )}
-      <HolidayFoot />
+      <HolidayFoot bats={bats} />
       <div className="colophon">
         <p>
           An unofficial fan project. Not affiliated with, endorsed, or sponsored by Warner Bros.,

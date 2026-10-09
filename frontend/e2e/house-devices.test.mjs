@@ -8,7 +8,8 @@ import { launch, navigateTo, openPage, register } from './harness.mjs';
 test('house devices use the small cut at chip size, the full cut on the Ex Libris card, and are all distinct', async (t) => {
   const browser = await launch();
   t.after(() => browser.close());
-  const { page } = await openPage(browser);
+  // The Ex Libris card says "Dressed for Halloween" while a holiday has its own colours, so this is about the house with none on.
+  const { page } = await openPage(browser, undefined, { noHoliday: true });
   await register(page);
 
   // Home: the Ex Libris card draws its device at 40px, which is the full cut.

@@ -181,8 +181,9 @@ test('owl post: a long conversation scrolls inside itself, with the composer in 
   });
 
   // A phone is where it hurts most; the same rule holds on a desktop screen (checked at the end).
-  const a = (await openPage(browser, { width: 390, height: 844 })).page;
-  const b = (await openPage(browser)).page;
+  // How far the page grows is measured against the footer alone, so no holiday: its foot scene would add height of its own.
+  const a = (await openPage(browser, { width: 390, height: 844 }, { noHoliday: true })).page;
+  const b = (await openPage(browser, undefined, { noHoliday: true })).page;
   const nameA = await register(a);
   const nameB = await register(b);
   assert.equal(await asPlayer(a, '/friends', 'POST', { username: nameB }), 201);
