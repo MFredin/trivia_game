@@ -84,6 +84,14 @@ export const ACHIEVEMENTS = [
     name: 'Feast Guest',
     description: 'Complete a seasonal run.',
   },
+  // Not computed from play: it is unlocked directly, by catching the bat that crosses the page on Halloween (routes/holiday.js). It
+  // returns every year and only the first catch counts, so nothing is lost by missing a year.
+  {
+    id: 'halloween_bat',
+    category: 'Seasonal',
+    name: 'Something in the Belfry',
+    description: 'Catch a bat on Halloween.',
+  },
   {
     id: 'explorer_all_categories',
     category: 'Explorer',
