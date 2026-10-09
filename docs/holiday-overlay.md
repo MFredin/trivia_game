@@ -179,7 +179,7 @@ Every holiday has the same four tiers, so a phone keeps the detail:
 ## The rules every scene follows
 
 1. **Behind or beside, never over.** Nothing is drawn over a question, an answer, a button or the timer; the backdrop ignores the
-   pointer; all of it is `display: none` in print. The one exception is the bats you can catch, above, which only ever fly while nothing is
+   pointer; all of it is `display: none` in print. The one exception is the creature you can catch, above, which only ever fly while nothing is
    being asked.
 2. **The quiz comes first.** While a question is on screen (`screen === 'question'`, or the guest preview) the shell carries
    `data-holiday-calm="on"`, which stops every holiday animation and removes the extras. The quiz is the only thing that moves.
