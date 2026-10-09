@@ -611,12 +611,11 @@
   border-radius: 6px;
 }
 
+/* While bats fly the perch is for a keyboard only: it keeps its full 44px box (a control is never smaller than that) but is invisible and lets taps
+   through until it is focused. */
 .hol-perch.is-key-only:not(:focus-visible) {
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .hol-perch-foot {
