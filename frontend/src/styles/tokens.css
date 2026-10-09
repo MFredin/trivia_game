@@ -255,6 +255,47 @@
    A scene that has no top haze or no mist (Thanksgiving, Yule) simply does not define it. The rest of a scene's colour (the pumpkins, the eggs,
    the balloons) is drawn only where no text can be, so it lives with the scene in styles/parts/holiday-*.css. Monochrome rebinds the washes
    to greys, because that binding is colourless everywhere. */
+/* A holiday is a temporary binding. While one is on, <html> carries data-holiday (features/holiday/useHoliday.js) and this block fills in the same
+   role tokens a house does, after the house blocks and at the same specificity, so it wins: the house colours rest and every account sees the
+   same holiday. The semantic colours (--success-ink, --danger and the rest) are not here, so a right answer is still green and a wrong one red.
+   Halloween: a violet-black night, paper of a faintly candle-warm bone, pumpkin orange for every accent and for the gold-leaf foil. */
+:root[data-holiday='halloween'] {
+  --ink-900: #1a1022;
+  --ink-800: #0f0818;
+  --parchment-100: #eadfce;
+  --parchment-200: #dacdb6;
+  --brass-500: #a63f06;
+  --brass-300: #e07a2c;
+  --brass-500-rgb: 166, 63, 6;
+  --metal-500: #e8892f;
+  --metal-300: #f6b062;
+  --text-ink: #211a16;
+  --text-on-bg: #efe3cf;
+
+  --page: #140c1f;
+  --glow-rgb: 232, 137, 47;
+  --glow2-rgb: 106, 74, 154;
+  --rubric: #a63f06;
+  --rubric-rgb: 166, 63, 6;
+  --onbg: #f0a04b;
+  --onbg-rgb: 240, 160, 75;
+  --cloth: #2a1740;
+  --tooling: #f0a04b;
+  --tooling-rgb: 240, 160, 75;
+  --leaf-hi: #f6b062;
+  --leaf: #e8892f;
+  --leaf-lo: #c96d18;
+  --leaf-edge: #a8520f;
+  --leaf-text: #1d1020;
+  --leaf-glow-rgb: 240, 160, 75;
+  --gilt: #e8892f;
+  --gilt-rgb: 232, 137, 47;
+  --gilt-deep: #a8520f;
+  --wash-rgb: 232, 137, 47;
+  --ember: #ffb15c;
+  --ember-rgb: 240, 160, 75;
+}
+
 .app-shell[data-holiday='halloween'] {
   --holiday-haze-rgb: 70, 34, 104;
   --holiday-mist-rgb: 140, 104, 176;
@@ -287,7 +328,7 @@
   --holiday-warm-rgb: 255, 190, 90;
 }
 
-:root[data-house='monochrome'] .app-shell[data-holiday] {
+:root[data-house='monochrome'] .app-shell[data-holiday]:not([data-holiday='halloween']) {
   --holiday-haze-rgb: 64, 64, 64;
   --holiday-mist-rgb: 120, 120, 120;
   --holiday-warm-rgb: 255, 255, 255;

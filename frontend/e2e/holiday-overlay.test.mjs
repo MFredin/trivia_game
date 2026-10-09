@@ -58,7 +58,7 @@ test('a holiday dresses the page, and the two switches in Settings take it off',
     await page.locator('#holiday-motion').uncheck();
     await page.locator('.app-shell[data-holiday-motion="still"]').waitFor({ state: 'attached' });
     assert.equal(await computed(page, '.hw-mist', 'animationName'), 'none');
-    assert.ok((await page.locator('.hw-pk').count()) > 0, 'the scene is still there');
+    assert.ok((await page.locator('.hw-cl').count()) > 0, 'the scene is still there (the oak and the gate)');
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('.app-shell[data-holiday-motion="still"]').waitFor({ state: 'attached' });
@@ -207,7 +207,7 @@ test('while a question is on screen everything stops and the props go', async (t
   await beginRun(page);
   await page.locator('.app-shell[data-holiday-calm="on"]').waitFor({ state: 'attached' });
   assert.equal(await computed(page, '.hw-mist', 'animationName'), 'none');
-  assert.equal(await computed(page, '.hw-witch', 'display'), 'none', 'the travellers are not drawn');
+  assert.equal(await computed(page, '.hw-bat', 'display'), 'none', 'the travellers are not drawn');
   assert.equal(await computed(page, '.hol-pd.hol-prop', 'display'), 'none', 'the props on the plate are gone');
   assert.ok((await page.locator('.hol-pd.hol-line').count()) > 0, 'the thin line art stays, still');
 });
@@ -222,7 +222,7 @@ test('a device set to reduce motion gets the still scene whatever the switch say
   await page.locator('.holiday').waitFor({ state: 'attached' });
   assert.equal(await page.locator('.app-shell').getAttribute('data-holiday-motion'), 'full', 'the switch is on');
   assert.equal(await computed(page, '.hw-mist', 'animationName'), 'none');
-  assert.equal(await computed(page, '.hw-witch', 'display'), 'none');
+  assert.equal(await computed(page, '.hw-bat', 'display'), 'none');
 });
 
 test('between holidays there is no overlay, and Settings says so', async (t) => {
