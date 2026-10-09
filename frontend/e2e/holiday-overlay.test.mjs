@@ -176,15 +176,22 @@ test('a holiday adds nothing to the layout: every box sits where it does without
   for (const [width, height] of WIDTHS) {
     const { page } = await openPage(browser, { width, height });
     await register(page);
-    await page.unroute(HOLIDAY_URL).catch(() => {});
-    await page.route(HOLIDAY_URL, (route) => route.fulfill({ json: { overlay: null } }));
-    await page.reload({ waitUntil: 'networkidle' });
-    const plain = await boxes(page);
-    assert.ok(plain.length > 2, 'the home screen has plates to compare');
+    // The page's own height can settle a few pixels after load on a slow machine, so each holiday is compared with a plain page measured just
+    // before it, not with one measured at the start.
+    const plainBoxes = async () => {
+      await dressed(page, null);
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(300);
+      return boxes(page);
+    };
+    assert.ok((await plainBoxes()).length > 2, 'the home screen has plates to compare');
     for (const holiday of HOLIDAYS) {
       await t.test(`${holiday} at ${width}px`, async () => {
+        const plain = await plainBoxes();
         await dressed(page, holiday);
         await page.locator('.holiday').waitFor({ state: 'attached' });
+        await page.evaluate(() => document.fonts.ready);
+        await page.waitForTimeout(300);
         const dressedBoxes = await boxes(page);
         // The colophon moves down by the height of the foot scene, which is the one thing a holiday may add, so only its x and width are compared.
         const trim = (list) => list.map((b) => (b.startsWith('colophon') ? b.replace(/ y\d+/, '') : b));
