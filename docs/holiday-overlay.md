@@ -245,7 +245,7 @@ Every holiday has the same four tiers, so a phone keeps the detail:
 `npm run audit:contrast` checks a holiday that has a binding like a house: every pairing the app renders, against that holiday's own role
 tokens (each adds 41), with its own sky as the ground. It also includes the lightest ground each overlay can put behind page-level text: the haze at the top (behind
 the nav and first heading) and the mist and glow stack at the bottom (behind the page's closing text and the colophon, which has a
-50% black scrim under it), for every scene in every house. The peak alphas per scene live in `HOLIDAY_LAYERS` in
+50% black scrim under it), for every scene, under its own binding. The peak alphas per scene live in `HOLIDAY_LAYERS` in
 `scripts/contrast-audit.mjs`; **change an alpha in a stylesheet and the matching entry there too.** It cannot measure a pale shape
 such as a moon, which is why rule 7 exists as a layout rule and the e2e tests assert it.
 
