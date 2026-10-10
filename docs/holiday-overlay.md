@@ -62,8 +62,8 @@ they never change.
 - The paper is a neutral bone with a faint tint toward the season, so reading stays comfortable and contrast is easy to prove.
 - The room's labels follow: where the Ex Libris card says "Bound in Gryffindor" it says **"Dressed for Halloween"**, with a small seal in the
   device's place (`components/HolidaySeal.jsx`, the same size, so nothing moves). Another player's profile still shows *their* house.
-- `HOLIDAYS[key].bound` in `constants/holidays.js` says a holiday has a binding. **Halloween, Thanksgiving and Yule have one**; the other three still
-  take the house colours and the older art, and move over one at a time.
+- `HOLIDAYS[key].bound` in `constants/holidays.js` says a holiday has a binding. **All six have one**, and each is drawn as its own scene. Because a
+  binding replaces the house's colours outright, there is nothing left for Monochrome (a house) to grey out, and no rule for it.
 
 ## Halloween: lantern night
 
@@ -113,15 +113,60 @@ Between them: **the Yule fire** in a ring of stones with sparks going up, a line
 and snow coming down, and **in the margins of a wide screen a curtain of aurora** either side of the page (a pale piece, so it stands only where there is
 a margin and is not in the contrast audit). Plates carry frost growing in a corner, a sprig of holly, a hanging star and a lit candle.
 
+## New Year's: midnight over the rooftops
+
+The light is the fireworks. It is a few minutes before midnight in a city on a river, and each burst throws its colour over the rooftops and the water. The
+binding is midnight indigo, champagne-ivory paper, **royal indigo** for accents on paper, **silver-lavender** for accents on the dark and gold for the foil.
+Two clusters:
+
+- **the tower:** a clock tower whose clock stands a minute before twelve (its second hand sweeps, in sixty real seconds), and a terrace on the roofs below
+  it with a string of lights and a champagne bottle on the parapet;
+- **the rooftops:** a block of flats with its windows lit, and an aerial with a **crystal ball that slides slowly down its pole** (the countdown, forty
+  seconds a time).
+
+Between them the river with the far skyline and a long reflection of each burst. Rockets climb and burst in gold, rose, cyan and white (two rings of sparks,
+each a streak along its line, and the burst droops and goes out). **Fireworks are the brightest things on the page, so they are drawn only where no text
+can be:** in the margins of a wide screen (`.ny-mbox`, each burst sized by the margin) and in the foot band of a phone, never in the fixed sky. Confetti
+comes down the gutters. Plates carry rays behind the text, a rosette of firework, two flutes that touch, and a hanging streamer.
+
+## Easter: dawn in the meadow
+
+The light is the dawn: the sun just coming up behind a hill, everything in front of it a dark green silhouette edged with pink and gold, except the things
+meant to be found, which are the colour of sweets: **painted eggs** (stripes, zigzags, dots). The binding is a deep dusk-violet, warm eggshell paper,
+**orchid** for accents on paper, **pale lilac** for accents on the dark, daffodil for the foil and a moss-green cloth. Two clusters:
+
+- **the blossom:** a tree in full blossom with its petals coming down, a woven basket of painted eggs, eggs in the grass, tulips, and the rabbit;
+- **the egg tree:** the sun coming up behind a tree hung with painted eggs on threads (as in Germany and Austria; they swing), daffodils at its foot.
+
+Between them a meadow of rolling hills with flowers in the grass and **eggs hidden in it**, and butterflies drifting over. Petals drift down the gutters.
+Plates carry a sprig of pussy willow with an egg on it, tulips with a chick, an egg on a ribbon, and a vine behind the text.
+
+## Midsummer: the midnight sun over the lake
+
+It is Midsummer Eve in the north, where the night never gets dark: the sun has dipped to the edge of the lake and hangs there, gold and rose, with
+everything in front of it a deep teal silhouette. The binding is that teal, cream paper, **rose** for accents on paper, **buttercup straw** for accents on
+the dark and the foil, and a teal cloth. Two clusters:
+
+- **the birches:** white birches in new leaf (their leaves sway), and a meadow of wildflowers in front: daisies, cornflowers, buttercups, clover, with the
+  firefly resting on the tallest daisy;
+- **the maypole:** the sun going down behind a maypole hung with wreaths, a garland and ribbons that stream, a red cottage with white corners and lit
+  windows, and a path of sunlight glittering on the lake.
+
+Between them the lake with a rowing boat drifting on it with a lantern, and the far shore of forest; swallows cross the sky. Seed fluff drifts up the
+gutters. Plates carry a crown of flowers, maypole ribbons, a chain of daisies and cornflowers, and a sprig of meadow behind the text.
+
 ## The creature you can catch
 
-Each of the three bound holidays has a creature that crosses the page now and then, and **tapping one unlocks an achievement** (category Seasonal):
+Every holiday has a creature that crosses the page now and then, and **tapping one unlocks an achievement** (category Seasonal):
 
 | Holiday | Creature | How it moves | Achievement |
 |---|---|---|---|
 | Halloween | a bat | flutters across the sky, beating its wings | Something in the Belfry (`halloween_bat`) |
 | Thanksgiving | a wild turkey, tail fanned | strolls along the ground, waddling | Talking Turkey (`thanksgiving_turkey`) |
 | Yule | a snowy owl with a parcel | glides across the sky | Special Delivery (`yule_owl`) |
+| New Year's | a champagne cork with its fizz | pops across the sky, tumbling | Pop the Cork (`newyear_cork`) |
+| Easter | a rabbit with a painted egg | hops across the grass | Hop to It (`easter_rabbit`) |
+| Midsummer | a firefly, its tail alight | drifts across the meadow, glowing | Fairy Light (`midsummer_firefly`) |
 
 It is the one thing the overlay draws that takes a tap, on purpose, so it lives outside the fixed layer that takes none (`components/HolidayVisitor.jsx`,
 `features/holiday/useHolidayVisitor.js`, shared styles in `holiday-visitor.css`; what each looks like and how it moves is in its holiday's stylesheet).
@@ -130,7 +175,7 @@ It is the one thing the overlay draws that takes a tap, on purpose, so it lives 
   under the popovers' 40 and the modals' 50). Its layer ignores the pointer everywhere except the creature's own box, which is at least 44px tall.
 - It never appears during a question or the guest preview, and only for a signed-in player (the achievement needs an account).
 - **The perch.** A player who turned the animation off, a device that asks for reduced motion, and a keyboard get the same creature standing in the scene
-  instead (the bat on the oak, the turkey among the pumpkins, the owl on the lantern post), which is a real focusable button. While the creature crosses
+  instead (the bat on the oak, the turkey among the pumpkins, the owl on the lantern post, the bottle on the terrace, the rabbit by the basket, the firefly on a daisy), which is a real focusable button. While the creature crosses
   it is hidden until focused. Catching it is the same catch.
 - The server decides: `POST /api/holiday/catch` answers 404 `not_in_season` unless the holiday on has a creature (`CATCHABLE` in
   `backend/src/lib/holidayOverlay.js` maps each to its achievement), by the same date rule as the overlay (and the same development-only `?force=`). It
@@ -154,7 +199,7 @@ It is the one thing the overlay draws that takes a tap, on purpose, so it lives 
 | Art, one module per holiday, loaded on demand | `frontend/src/holidays/<key>.js`, `holidays/index.js` |
 | Backdrop layer | `components/HolidayOverlay.jsx` |
 | Plate dressing, foot scene | `components/HolidayDressing.jsx`, `components/HolidayFoot.jsx` |
-| Rules every scene shares, and the horizon (band, clusters, hills) Thanksgiving and Yule use | `styles/parts/holiday-overlay.css` |
+| Rules every scene shares, and the horizon (band, clusters, hills) the five newer scenes use (Halloween draws the same structure with its own names) | `styles/parts/holiday-overlay.css` |
 | One stylesheet per holiday | `styles/parts/holiday-<key>.css` |
 | Settings section | `components/HolidaySettings.jsx`, `Switch.jsx` |
 | Colours | `--holiday-*-rgb` wash tokens in `styles/tokens.css`, per scene |
@@ -193,14 +238,14 @@ Every holiday has the same four tiers, so a phone keeps the detail:
    the page. `clip` is used because `clip-path` does not stop it.
 7. **Pale floating pieces live in the margins only**, which exist at 1280px and up. Below that, light things are part of a plate or
    the foot, never behind the nav or text.
-8. **Follows the binding.** The washes take a tint per scene, and Monochrome rebinds them to grey so that binding stays colourless.
+8. **Follows the binding.** The washes take a tint per scene, set with the binding in `tokens.css`.
 
 ## What the audits check, and what they cannot
 
 `npm run audit:contrast` checks a holiday that has a binding like a house: every pairing the app renders, against that holiday's own role
 tokens (each adds 41), with its own sky as the ground. It also includes the lightest ground each overlay can put behind page-level text: the haze at the top (behind
 the nav and first heading) and the mist and glow stack at the bottom (behind the page's closing text and the colophon, which has a
-50% black scrim under it), for every scene in every house. The peak alphas per scene live in `HOLIDAY_LAYERS` in
+50% black scrim under it), for every scene, under its own binding. The peak alphas per scene live in `HOLIDAY_LAYERS` in
 `scripts/contrast-audit.mjs`; **change an alpha in a stylesheet and the matching entry there too.** It cannot measure a pale shape
 such as a moon, which is why rule 7 exists as a layout rule and the e2e tests assert it.
 

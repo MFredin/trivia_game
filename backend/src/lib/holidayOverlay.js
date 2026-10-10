@@ -34,6 +34,9 @@ export const CATCHABLE = {
   halloween: 'halloween_bat',
   thanksgiving: 'thanksgiving_turkey',
   yule: 'yule_owl',
+  newyear: 'newyear_cork',
+  easter: 'easter_rabbit',
+  midsummer: 'midsummer_firefly',
 };
 
 /**

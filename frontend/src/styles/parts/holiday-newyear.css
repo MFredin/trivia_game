@@ -1,120 +1,359 @@
-/* --- New Year's (holidays/newyear.js) ---
-   Midnight. On every screen width: an indigo haze with gold dust, confetti down the gutters, a clock a few minutes before twelve, streamers and a
-   party hat on every plate, and three bunches of balloons over a floor of confetti at the end of each page. From 1280px up, fireworks burst
-   in the margins. */
+/* --- New Year's: midnight over the rooftops (holidays/newyear.js) ---
+   One composition, cropped two ways. A few minutes before midnight, in a city on a river; the light that matters is the fireworks, each burst throwing
+   its colour over the rooftops and the water. The sky is a fixed layer behind the page (.ny-sky): a deep indigo, stars, a haze along the top. The
+   horizon (.hol-band, in holiday-overlay.css) is the same scene in two places: fixed along the bottom of the screen where a margin exists (from 1280px)
+   and in the page flow just above the footer everywhere else. In both, the clock tower stands on the left edge and the rooftops on the right, with the
+   same river between them.
+   Fireworks are the brightest things on the page, so they are drawn only where no text can be: in the margins of a wide screen (.ny-mbox) and in the foot
+   band of a phone, never in the fixed sky. Colour is the holiday binding in tokens.css (the house colours rest); the colours of a burst live here.
+   A light is drawn before the thing it lights. Every animation is transform or opacity. */
 
-.app-shell[data-holiday="newyear"] {
-  --gold: #e8c35a;
-  --gold2: #b8902f;
-  --silver: #d5dbe8;
-  --coral: #ee6f5f;
-  --teal: #4fc9bd;
-  --navy: #14204f;
-  --ink: #0d1433;
-  --dust: #ffe9a8;
+.app-shell[data-holiday='newyear'] {
+  --ny-warm: 255, 214, 120;
+  --rays-parch: rgba(70, 56, 130, 0.5);
+  --visitor-ink: #fff4d0;
+  --visitor-glow: 255, 224, 150;
+  --visitor-focus: #f0d58a;
+  /* The bottle stands on the terrace's parapet in the tower cluster. */
+  --perch-x: 0.238;
+  --perch-y: 0.377;
+  --perch-drop: 0px;
 }
-:root[data-house='monochrome'] .app-shell[data-holiday="newyear"] {
-  --gold: #e0e0e0;
-  --gold2: #9a9a9a;
-  --silver: #f0f0f0;
-  --coral: #b0b0b0;
-  --teal: #8a8a8a;
-  --navy: #4a4a4a;
-  --ink: #1a1a1a;
-  --dust: #ffffff;
+
+/* On a wide screen the cluster is large, and a bottle the size of a thumb would be lost on the roofs. */
+.app-shell[data-holiday='newyear'] .hol-perch-wing {
+  --perch-size: max(44px, calc(var(--cw) * 0.22));
 }
-.gconf {
+
+/* ---- the sky ---- */
+.ny-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(110% 40% at 18% -4%, rgba(60, 50, 150, 0.3), rgba(60, 50, 150, 0) 62%),
+    linear-gradient(#05061a 0%, #0d0e2c 55%, #181a48 100%);
+}
+
+.ny-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 230px;
+  background: linear-gradient(rgba(var(--holiday-haze-rgb), 0.5), rgba(var(--holiday-haze-rgb), 0));
+  animation: hol-breathe 12s ease-in-out infinite;
+}
+
+.ny-star-dot {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #f0eaff;
+  opacity: 0.2;
+  animation: hol-twinkle 4.2s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+/* ---- the fireworks ---- */
+/* A firework is a point. A rocket climbs to it, and then a burst: two rings of sparks (an outer one and a smaller inner one) fly out from it, and the
+   whole burst droops and goes out. One cycle is --dur long; the rocket, the sparks and the droop all share it, so they stay together, and --d starts
+   each firework part way through its own. */
+.ny-fw {
+  --R: 46px;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.ny-mbox .ny-fw {
+  --R: clamp(40px, calc((100vw - 1040px) * 0.21), 96px);
+}
+
+.ny-rocket {
+  position: absolute;
+  left: -1px;
+  top: -2px;
+  width: 2px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(rgba(255, 233, 176, 0), #ffe9b0);
+  opacity: 0;
+  animation: ny-rise var(--dur) ease-out infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes ny-rise {
+  0% { transform: translateY(96px); opacity: 0; }
+  3% { opacity: 1; }
+  16% { transform: translateY(0); opacity: 1; }
+  17%, 100% { transform: translateY(0); opacity: 0; }
+}
+
+.ny-burst {
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: ny-droop var(--dur) ease-in infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes ny-droop {
+  0%, 17% { transform: translateY(0); }
+  100% { transform: translateY(calc(34px * var(--k))); }
+}
+
+/* A spark is a short streak lying along the line it flies, bright at the head: it is rotated to its angle and moved out along it. */
+.ny-p {
+  --rk: 1;
+  position: absolute;
+  left: -5px;
+  top: -1px;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), var(--c));
+  box-shadow: 0 0 5px 1px var(--c);
+  opacity: 0;
+  animation: ny-ray var(--dur) cubic-bezier(0.1, 0.7, 0.3, 1) infinite;
+  animation-delay: var(--d);
+}
+
+.ny-p2 {
+  --rk: 0.55;
+  left: -3px;
+  width: 6px;
+}
+
+@keyframes ny-ray {
+  0%, 15% { transform: rotate(var(--a)) translateX(0) scale(0.2); opacity: 0; }
+  17% { transform: rotate(var(--a)) translateX(calc(var(--R) * var(--k) * var(--rk) * 0.12)) scale(1.5); opacity: 1; }
+  55% { transform: rotate(var(--a)) translateX(calc(var(--R) * var(--k) * var(--rk))) scale(1); opacity: 1; }
+  100% { transform: rotate(var(--a)) translateX(calc(var(--R) * var(--k) * var(--rk) * 1.18)) scale(0.4); opacity: 0; }
+}
+
+/* The margins: a box as wide as each margin, for the bursts of a wide screen. */
+.ny-margins {
+  position: absolute;
+  inset: 0;
+}
+
+.ny-mbox {
   position: absolute;
   top: 0;
-  left: var(--gx);
-  width: 5px;
-  height: 8px;
-  background: var(--c);
-  opacity: 0;
-  animation: hol-gfall var(--t) linear infinite;
-  animation-delay: var(--d);
-}
-.pd-clock {
-  top: -16px;
-  right: 18px;
-  width: 48px;
-  transform-origin: 50% 0;
-  animation: hol-wreathsway 6s ease-in-out infinite alternate;
-}
-.pd-clock .sweep {
-  transform-origin: 50px 62px;
-  animation: hol-spin 60s linear infinite;
-}
-.pd-streamer {
-  top: -3px;
-  right: 86px;
-  width: 52px;
-  transform-origin: 50% 0;
-  animation: hol-sprigsway 5s ease-in-out infinite alternate;
-}
-.pd-hat {
-  right: 22px;
-  bottom: -13px;
-  width: 78px;
-}
-.ny-ground {
-  position: absolute;
-  left: -10px;
-  right: -10px;
-  bottom: -6px;
-  height: 22px;
-  background: linear-gradient(rgba(20,32,79,0), #0b1230);
-  border-top: 1px solid rgba(232,195,90,.35);
-}
-.ny-bunch {
-  position: absolute;
-  bottom: 8px;
-  width: 92px;
-  left: var(--x);
-  transform-origin: 50% 100%;
-  animation: hol-bunchbob 5s ease-in-out infinite;
-  animation-delay: var(--d);
-}
-.ny-bunch svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.ny-conf {
-  position: absolute;
-  bottom: 2px;
-  width: 5px;
-  height: 3px;
-  background: var(--c);
-  transform: rotate(var(--r));
-}
-.hol-fw {
-  position: absolute;
-  width: 124px;
-  height: 124px;
-  opacity: 0;
-  transform-origin: 50% 50%;
-  animation: hol-burst 6s ease-out infinite;
-  animation-delay: var(--d);
-}
-.hol-fw svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
+  bottom: 0;
+  width: calc((100vw - 1040px) / 2);
 }
 
-@keyframes hol-spin {
+.ny-mbox-l { left: 0; }
+.ny-mbox-r { right: 0; }
+
+/* ---- the horizon ---- */
+/* The violet glow of the city along the river, so the skyline reads as a skyline. */
+.ny-ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 56% at 50% 86%, rgba(120, 90, 220, 0.3), rgba(120, 90, 220, 0) 72%);
+}
+
+.ny-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 13%;
+  height: 30%;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  background-size: auto 100%;
+}
+
+.ny-water {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 15%;
+  background: linear-gradient(#171a4a, #0c0d2a);
+}
+
+.ny-bank {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: rgba(255, 224, 150, 0.25);
+}
+
+/* The reflection of a burst in the water: a long streak of its colour that shimmers. */
+.ny-refl {
+  position: absolute;
+  top: 8%;
+  width: 12px;
+  height: 88%;
+  margin-left: -6px;
+  background: linear-gradient(var(--c), rgba(0, 0, 0, 0));
+  opacity: 0.1;
+  animation: ny-shimmer 3.4s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes ny-shimmer {
+  0%, 100% { opacity: 0.08; transform: scaleX(0.8); }
+  50% { opacity: 0.34; transform: scaleX(1.25); }
+}
+
+/* ---- the clock, the windows, the ball ---- */
+.ny-halo {
+  animation: hol-breathe 6s ease-in-out infinite;
+}
+
+.ny-sweep {
+  transform-origin: 178px 134px;
+  animation: ny-sweep 60s linear infinite;
+}
+
+@keyframes ny-sweep {
   to { transform: rotate(360deg); }
 }
 
-@keyframes hol-bunchbob {
-  0%,100% { transform: translateY(0) rotate(-1.6deg); }
-  50% { transform: translateY(-5px) rotate(1.8deg); }
+.ny-star {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: ny-pulse 3.4s ease-in-out infinite;
 }
 
-@keyframes hol-burst {
-  0% { transform: scale(.12); opacity: 0; }
-  8% { opacity: 1; }
-  55% { transform: scale(1); opacity: .95; }
-  100% { transform: scale(1.12) translateY(6px); opacity: 0; }
+@keyframes ny-pulse {
+  0%, 100% { transform: scale(0.85); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+.ny-win {
+  animation: hol-hearth 6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+.ny-bulb {
+  animation: hol-hearth 3.4s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+.ny-lamp {
+  animation: hol-breathe 2.4s ease-in-out infinite;
+}
+
+/* The countdown: the crystal ball slides slowly down its pole over forty seconds, and then it begins again from the top. */
+.ny-ball {
+  animation: ny-drop 40s ease-in-out infinite;
+}
+
+@keyframes ny-drop {
+  0% { transform: translateY(0); opacity: 1; }
+  90%, 95% { transform: translateY(26px); opacity: 1; }
+  97% { transform: translateY(26px); opacity: 0; }
+  98% { transform: translateY(0); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ---- the gutters: confetti ---- */
+.ny-gconf {
+  position: absolute;
+  top: 0;
+  width: 5px;
+  height: 8px;
+  background: var(--c);
+  animation: ny-gfall var(--t) linear infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes ny-gfall {
+  from { transform: translate(0, -12px) rotate(0deg); opacity: 0.9; }
+  to { transform: translate(6px, calc(100vh + 12px)) rotate(720deg); opacity: 0.9; }
+}
+
+/* ---- the plates ---- */
+.pd-rays {
+  left: 0;
+  top: 0;
+  width: 96px;
+  color: var(--rays-parch);
+  opacity: 0.55;
+}
+
+.pd-rosette {
+  right: 12px;
+  top: -22px;
+  width: 54px;
+}
+
+.ny-rosette {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: ny-rosette 5s ease-in-out infinite alternate;
+}
+
+@keyframes ny-rosette {
+  from { transform: scale(0.94) rotate(-6deg); }
+  to { transform: scale(1.06) rotate(6deg); }
+}
+
+.pd-flutes {
+  left: 14px;
+  bottom: -22px;
+  width: 56px;
+}
+
+.ny-fl {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.ny-fl-l { animation: ny-clink-l 3.6s ease-in-out infinite; }
+.ny-fl-r { animation: ny-clink-r 3.6s ease-in-out infinite; }
+
+@keyframes ny-clink-l {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  80% { transform: rotate(5deg); }
+}
+
+@keyframes ny-clink-r {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  80% { transform: rotate(-5deg); }
+}
+
+.ny-clinkspark {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  opacity: 0;
+  animation: ny-clinkspark 3.6s ease-in-out infinite;
+}
+
+@keyframes ny-clinkspark {
+  0%, 74%, 100% { opacity: 0; transform: scale(0.3); }
+  80% { opacity: 1; transform: scale(1.2); }
+  90% { opacity: 0; transform: scale(1.5); }
+}
+
+.pd-streamer {
+  left: 24px;
+  top: -4px;
+  width: 30px;
+  transform-origin: 50% 0;
+  animation: hol-sprigsway 5s ease-in-out infinite alternate;
+}
+
+/* ---- the cork you can catch (the shared parts are in holiday-visitor.css) ----
+   It pops across the page, tumbling, with its fizz behind it. On the parapet it is a bottle about to go. */
+.hol-flyer[data-visitor='cork'] {
+  animation: ny-tumble 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes ny-tumble {
+  from { transform: translateY(-12px) rotate(-8deg); }
+  to { transform: translateY(12px) rotate(8deg); }
+}
+
+.hol-perch[data-visitor='cork'] svg {
+  height: 100%;
 }

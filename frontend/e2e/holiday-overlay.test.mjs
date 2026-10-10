@@ -202,9 +202,9 @@ test('a holiday adds nothing to the layout: every box sits where it does without
   }
 });
 
-// Halloween, Thanksgiving and Yule each have their own colours: while one is on, the house colours rest, the room says what it is dressed for, and a
+// Every holiday has its own colours: while one is on, the house colours rest, the room says what it is dressed for, and a
 // seal of that holiday stands where the house's device does.
-for (const [holiday, label] of [['halloween', 'Halloween'], ['thanksgiving', 'Thanksgiving'], ['yule', 'Yule']]) {
+for (const [holiday, label] of [['halloween', 'Halloween'], ['thanksgiving', 'Thanksgiving'], ['yule', 'Yule'], ['newyear', "New Year's"], ['easter', 'Easter'], ['midsummer', 'Midsummer']]) {
   test(`${label} binds the page: the house rests, the card says what it is dressed for, and its seal stands in the device's place`, async (t) => {
     const browser = await launch();
     t.after(() => browser.close());
@@ -252,13 +252,16 @@ test('a device set to reduce motion gets the still scene whatever the switch say
   assert.equal(await computed(page, '.hw-bat', 'display'), 'none');
 });
 
-// The creature: while Halloween, Thanksgiving or Yule is on one crosses the page now and then (a bat, a turkey, an owl), and catching it unlocks an
+// The creature: while a holiday is on one crosses the page now and then (a bat, a turkey, an owl, a cork, a rabbit, a firefly), and catching it unlocks an
 // achievement. The server decides whether a holiday is on from the date, so these ask it to treat the holiday as on, the way GET /holiday does for
 // a developer.
 const CATCHES = [
   ['halloween', 'bat', 'Something in the Belfry'],
   ['thanksgiving', 'turkey', 'Talking Turkey'],
   ['yule', 'owl', 'Special Delivery'],
+  ['newyear', 'cork', 'Pop the Cork'],
+  ['easter', 'rabbit', 'Hop to It'],
+  ['midsummer', 'firefly', 'Fairy Light'],
 ];
 async function inSeason(page, holiday) {
   await page.route('**/api/holiday/catch', (route) => route.continue({ url: `${route.request().url()}?force=${holiday}` }));
