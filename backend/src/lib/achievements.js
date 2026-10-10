@@ -105,6 +105,24 @@ export const ACHIEVEMENTS = [
     description: 'Catch the snowy owl that flies by with a parcel at Yule.',
   },
   {
+    id: 'newyear_cork',
+    category: 'Seasonal',
+    name: 'Pop the Cork',
+    description: 'Catch the champagne cork that pops across the page at New Year.',
+  },
+  {
+    id: 'easter_rabbit',
+    category: 'Seasonal',
+    name: 'Hop to It',
+    description: 'Catch the rabbit that hops past with an egg at Easter.',
+  },
+  {
+    id: 'midsummer_firefly',
+    category: 'Seasonal',
+    name: 'Fairy Light',
+    description: 'Catch the firefly that drifts over the meadow on Midsummer night.',
+  },
+  {
     id: 'explorer_all_categories',
     category: 'Explorer',
     name: 'Well-Rounded',
@@ -240,4 +258,4 @@ export const ACHIEVEMENTS = [
 
 // Achievements that no stored count can say are earned: they are unlocked by doing a thing once (services/achievements.js, unlockAchievement), so
 // they have no condition in CONDITIONS. Listed here so the catalog test can tell "deliberately unconditional" from "forgot the condition".
-export const UNLOCKED_DIRECTLY = ['halloween_bat', 'thanksgiving_turkey', 'yule_owl'];
+export const UNLOCKED_DIRECTLY = ['halloween_bat', 'thanksgiving_turkey', 'yule_owl', 'newyear_cork', 'easter_rabbit', 'midsummer_firefly'];

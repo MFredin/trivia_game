@@ -257,14 +257,19 @@ test('holiday overlay routes', { skip: skip && 'DATABASE_URL not set' }, async (
     assert.equal((await catchOne(null)).status, 401);
   });
 
-  await t.test('there is nothing to catch between holidays, or on a holiday with no creature', async () => {
+  await t.test('there is nothing to catch on a key that is not a holiday', async () => {
     const a = await newPlayer();
-    for (const query of ['?force=newyear', '?force=easter', '?force=midsummer']) {
-      const res = await catchOne(a, query);
-      assert.equal(res.status, 404, query);
+    const res = await catchOne(a, '?force=nothing');
+    // An unknown key is ignored, so the calendar decides, and today may well be a day with a creature to catch.
+    if (res.status !== 200) {
+      assert.equal(res.status, 404);
       assert.equal(res.body.error, 'not_in_season');
     }
-    assert.equal((await unlocked(a)).unlocked, false);
+  });
+
+  await t.test('every holiday has a creature, and each one is a different achievement', async () => {
+    assert.deepEqual(Object.keys(CATCHABLE).sort(), [...OVERLAY_KEYS].sort());
+    assert.equal(new Set(Object.values(CATCHABLE)).size, OVERLAY_KEYS.length);
   });
 
   await t.test('production ignores the force here too, so nothing can be caught out of season', async () => {
@@ -280,7 +285,7 @@ test('holiday overlay routes', { skip: skip && 'DATABASE_URL not set' }, async (
     }
   });
 
-  for (const [holiday, id, name] of [['halloween', 'halloween_bat', 'Something in the Belfry'], ['thanksgiving', 'thanksgiving_turkey', 'Talking Turkey'], ['yule', 'yule_owl', 'Special Delivery']]) {
+  for (const [holiday, id, name] of [['halloween', 'halloween_bat', 'Something in the Belfry'], ['thanksgiving', 'thanksgiving_turkey', 'Talking Turkey'], ['yule', 'yule_owl', 'Special Delivery'], ['newyear', 'newyear_cork', 'Pop the Cork'], ['easter', 'easter_rabbit', 'Hop to It'], ['midsummer', 'midsummer_firefly', 'Fairy Light']]) {
     await t.test(`the first catch at ${holiday} unlocks ${name}, and a second one changes nothing`, async () => {
       const a = await newPlayer();
       assert.equal((await unlocked(a, id)).unlocked, false);
@@ -304,6 +309,7 @@ test('holiday overlay routes', { skip: skip && 'DATABASE_URL not set' }, async (
     assert.equal((await unlocked(a, 'yule_owl')).unlocked, true);
     assert.equal((await unlocked(a, 'halloween_bat')).unlocked, false);
     assert.equal((await unlocked(a, 'thanksgiving_turkey')).unlocked, false);
+    assert.equal((await unlocked(a, 'newyear_cork')).unlocked, false);
   });
 
   await t.test('one player catching unlocks nothing for another', async () => {

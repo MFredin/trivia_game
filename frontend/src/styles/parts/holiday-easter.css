@@ -1,170 +1,252 @@
-/* --- Easter (holidays/easter.js) ---
-   Pastel spring. On every screen width: a lavender haze and a green mist, blossom petals and a butterfly down the gutters, painted eggs hanging
-   from every plate, a blossom branch, a chick and tulips on every plate, and a meadow with a rabbit at the end of each page. From 1280px up
-   the margins add an egg tree, a rainbow, a big basket and a bed of tulips. */
+/* --- Easter: dawn in the meadow (holidays/easter.js) ---
+   One composition, cropped two ways. The light is the dawn: the sun is just coming up behind a hill, and everything in front of it is a dark green
+   silhouette edged with pink and gold, except the things meant to be found, which are the colour of sweets. The sky is a fixed layer behind the
+   page (.ea-sky): a deep violet that stays dark behind the page's own text, a haze along the top, a few stars still out. The horizon (.hol-band, in
+   holiday-overlay.css) is the same scene in two places: fixed along the bottom of the screen where a margin exists (from 1280px) and in the page flow
+   just above the footer everywhere else. In both, the blossom stands on the left edge and the egg tree on the right, with the same meadow between
+   them. The warm sky of the sunrise is drawn only in the band, where no text can be.
+   Colour is the holiday binding in tokens.css (the house colours rest); only light, silhouette and egg colours live here.
+   A light is drawn before the thing it lights. Every animation is transform or opacity. */
 
-.app-shell[data-holiday="easter"] {
-  --pink: #f2a7c3;
-  --pink2: #d77aa0;
-  --lav: #b9a6e6;
-  --mint: #9bd8b4;
-  --yel: #f6e07a;
-  --sky: #8fc8ee;
-  --peach: #f6b98e;
-  --grass: #3f8f4c;
-  --grass2: #1f4f2c;
-  --twig: #6a4a30;
-  --blossom: #f8cadb;
-  --chick: #f7d84a;
-  --beak: #f08a2a;
-  --bunny: #efe6ef;
-  --dust: #fff4c2;
+.app-shell[data-holiday='easter'] {
+  --ea-warm: 255, 180, 160;
+  --vine-parch: rgba(70, 120, 80, 0.55);
+  --visitor-ink: #efe6da;
+  --visitor-glow: 255, 196, 176;
+  --visitor-focus: #f2d36a;
+  /* The rabbit sits on the grass beside the basket in the blossom cluster. */
+  --perch-x: 0.36;
+  --perch-y: 0.12;
+  --perch-drop: 0px;
 }
-:root[data-house='monochrome'] .app-shell[data-holiday="easter"] {
-  --pink: #cfcfcf;
-  --pink2: #9a9a9a;
-  --lav: #bdbdbd;
-  --mint: #d6d6d6;
-  --yel: #e6e6e6;
-  --sky: #b8b8b8;
-  --peach: #c4c4c4;
-  --grass: #7a7a7a;
-  --grass2: #2a2a2a;
-  --twig: #6a6a6a;
-  --blossom: #e6e6e6;
-  --chick: #e6e6e6;
-  --beak: #9a9a9a;
-  --bunny: #ececec;
-  --dust: #ffffff;
+
+/* On a wide screen the cluster is large, and a rabbit the size of a thumb would be lost beside its basket. */
+.app-shell[data-holiday='easter'] .hol-perch-wing {
+  --perch-size: max(44px, calc(var(--cw) * 0.26));
 }
-.gpetal {
+
+/* ---- the sky ---- */
+.ea-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(110% 40% at 84% -4%, rgba(110, 60, 150, 0.28), rgba(110, 60, 150, 0) 62%),
+    linear-gradient(#0d0a20 0%, #1a1236 52%, #2e1c4a 100%);
+}
+
+.ea-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 230px;
+  background: linear-gradient(rgba(var(--holiday-haze-rgb), 0.5), rgba(var(--holiday-haze-rgb), 0));
+  animation: hol-breathe 12s ease-in-out infinite;
+}
+
+.ea-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #f4ecff;
+  opacity: 0.2;
+  animation: hol-twinkle 5s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+/* ---- the horizon ---- */
+/* The pink of the sunrise along the ground, so the hills read as hills. The sun's own light is the halo drawn with it in the egg tree's cluster. */
+.ea-ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 56% at 70% 86%, rgba(255, 160, 150, 0.36), rgba(255, 160, 150, 0) 72%);
+}
+
+/* Long clouds of the dawn, lit from below, drifting a little. */
+.ea-cloud {
+  position: absolute;
+  height: 5%;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(255, 170, 160, 0), rgba(255, 176, 170, 0.45), rgba(255, 170, 160, 0));
+  animation: ea-clouddrift 70s ease-in-out infinite alternate;
+}
+
+.ea-cloud2 {
+  height: 4%;
+  animation-duration: 90s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes ea-clouddrift {
+  from { transform: translateX(-6%); }
+  to { transform: translateX(6%); }
+}
+
+/* Mist lying in the low meadow. */
+.ea-mist {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8%;
+  height: 22%;
+  background: radial-gradient(ellipse 70% 100% at 40% 100%, rgba(var(--holiday-mist-rgb), 0.2), rgba(var(--holiday-mist-rgb), 0) 72%);
+  animation: hol-breathe 10s ease-in-out infinite;
+}
+
+/* Grass and wildflowers tiled along the foot of the near hill, and the eggs hidden in it. */
+.ea-meadow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2%;
+  height: 22%;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  background-size: auto 100%;
+}
+
+.ea-hid {
+  position: absolute;
+  width: 15px;
+  height: 20px;
+  overflow: visible;
+}
+
+/* ---- the sun, the eggs, the petals, the flowers ---- */
+.ea-halo {
+  animation: hol-breathe 8s ease-in-out infinite;
+}
+
+.ea-egg {
+  animation: ea-swing 5s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+
+@keyframes ea-swing {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(4deg); }
+}
+
+.ea-sway {
+  animation: hol-sprigsway 4s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+
+.ea-fall {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: ea-fall var(--t) ease-in infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes ea-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  40% { transform: translate(calc(var(--x) * 0.5), 46px) rotate(120deg); }
+  70% { transform: translate(calc(var(--x) * -0.2), 100px) rotate(220deg); }
+  92% { opacity: 1; }
+  100% { transform: translate(var(--x), 150px) rotate(330deg); opacity: 0; }
+}
+
+/* A butterfly drifts over the meadow on a slow loop and beats its wings; the drift is the element and the wingbeat is each wing, so they never fight. */
+.ea-bf {
+  position: absolute;
+  width: 20px;
+  color: var(--c);
+  animation: ea-drift 13s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+
+.ea-bf svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.ea-wing {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+  animation: ea-flap 0.32s ease-in-out infinite alternate;
+}
+
+.ea-wing-r {
+  transform-origin: 0% 50%;
+}
+
+@keyframes ea-flap {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0.3); }
+}
+
+@keyframes ea-drift {
+  0% { transform: translate(0, 0); }
+  35% { transform: translate(22px, -12px); }
+  70% { transform: translate(8px, -4px); }
+  100% { transform: translate(34px, -18px); }
+}
+
+/* ---- the gutters ---- */
+.ea-gpetal {
   position: absolute;
   top: 0;
-  left: var(--gx);
-  width: 9px;
-  height: 6px;
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  background: var(--blossom);
-  opacity: 0;
+  width: 7px;
+  height: 5px;
+  border-radius: 60% 40% 60% 40%;
+  background: var(--c);
   animation: hol-gfall var(--t) linear infinite;
   animation-delay: var(--d);
 }
-.gfly {
-  position: absolute;
-  width: 15px;
-  right: 1px;
-  bottom: -20px;
-  animation: hol-gflut 22s linear infinite;
-  animation-delay: var(--d);
+
+/* ---- the plates ---- */
+.pd-vine {
+  left: 2px;
+  top: 2px;
+  width: 84px;
+  color: var(--vine-parch);
+  opacity: 0.6;
 }
-.gfly svg {
-  display: block;
-  width: 100%;
-  animation: hol-wingflap .32s ease-in-out infinite alternate;
-}
-.pd-blossom {
-  top: -14px;
-  right: 6px;
-  width: 116px;
+
+.pd-willow {
+  right: 10px;
+  top: -18px;
+  width: 104px;
   transform-origin: 100% 0;
   animation: hol-sprigsway 6s ease-in-out infinite alternate;
 }
-.pd-eggline {
-  left: 16%;
-  right: 34%;
-  top: -9px;
-  height: 40px;
-}
-.hol-egghang {
-  position: absolute;
-  top: 0;
-  left: var(--x);
-  width: 15px;
-  transform-origin: 50% 0;
-  animation: hol-sway 5s ease-in-out infinite;
-  animation-delay: var(--d);
-}
-.hol-egghang svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.pd-chick {
-  right: 14px;
-  bottom: -13px;
+
+.pd-spring {
+  right: 12px;
+  bottom: -14px;
   width: 104px;
 }
-.pd-tulips {
-  left: 10px;
-  bottom: -12px;
-  width: 74px;
+
+.pd-egghang {
+  left: 56px;
+  top: -3px;
+  width: 24px;
+  transform-origin: 50% 0;
+  animation: hol-wreathsway 5s ease-in-out infinite alternate;
 }
-.ea-hill {
-  position: absolute;
-  left: -20px;
-  right: -20px;
-  bottom: -4px;
-  height: 60px;
-  width: calc(100% + 40px);
-  fill: var(--grass2);
-}
-.ea-bunny {
-  position: absolute;
-  left: 66%;
-  bottom: 14px;
-  width: 40px;
-}
-.ea-bunny svg {
+
+.pd-egghang .hol-thread {
   display: block;
-  width: 100%;
-  overflow: visible;
-}
-.ea-bunny .ear {
-  transform-origin: 50% 90%;
-  transform-box: fill-box;
-  animation: hol-eartwitch 7s ease-in-out infinite;
-}
-.app-shell[data-holiday="easter"] .hol-foot::before {
-  content: "";
-  position: absolute;
-  left: -6%;
-  right: -6%;
-  bottom: 0;
-  height: 130px;
-  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(var(--holiday-mist-rgb), .2), rgba(var(--holiday-mist-rgb), 0) 72%);
-}
-.ea-rainbow {
-  position: absolute;
-  right: -60px;
-  top: 20px;
-  width: 200px;
-  height: 200px;
-  opacity: .85;
-}
-.ea-eggtree {
-  position: absolute;
-  left: 2px;
-  top: 150px;
-  width: 112px;
-  height: 300px;
-}
-.ea-eggtree .hol-egghang { width: 17px; }
-
-@keyframes hol-gflut {
-  0% { transform: translate(0,0); }
-  25% { transform: translate(-3px, calc(100vh * -.25)); }
-  50% { transform: translate(2px, calc(100vh * -.5)); }
-  75% { transform: translate(-3px, calc(100vh * -.75)); }
-  100% { transform: translate(1px, calc(100vh * -1 - 40px)); }
+  width: 1px;
+  height: 9px;
+  margin: 0 auto;
+  background: rgba(200, 180, 150, 0.85);
 }
 
-@keyframes hol-wingflap {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(.35); }
+/* ---- the rabbit you can catch (the shared parts are in holiday-visitor.css) ----
+   It hops across the grass with an egg in its paws: up, over, down, a squash on landing. Sitting by the basket it is still. */
+.hol-flyer[data-visitor='rabbit'] {
+  transform-origin: 50% 100%;
+  animation: ea-hop 0.85s ease-in-out infinite;
 }
 
-@keyframes hol-eartwitch {
-  0%,86%,100% { transform: rotate(0deg); }
-  90% { transform: rotate(-9deg); }
-  94% { transform: rotate(6deg); }
+@keyframes ea-hop {
+  0%, 100% { transform: translateY(0) scaleY(0.92); }
+  45% { transform: translateY(-26px) scaleY(1.04); }
+  80% { transform: translateY(0) scaleY(1); }
 }

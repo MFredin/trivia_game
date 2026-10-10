@@ -21,9 +21,21 @@ export const HOLIDAYS = {
     bound: true,
     visitor: { kind: 'owl', symbol: 'yu-owl', viewBox: '0 0 90 60', perchSymbol: 'yu-owl-sit', perchViewBox: '0 0 40 56', lane: 'sky', top: [14, 36], dur: [11, 4], width: [78, 14], label: 'A snowy owl is flying past with a parcel. Catch it.', perch: 'A snowy owl is sitting on the lantern post. Catch it.' },
   },
-  newyear: { label: "New Year's" },
-  easter: { label: 'Easter' },
-  midsummer: { label: 'Midsummer' },
+  newyear: {
+    label: "New Year's",
+    bound: true,
+    visitor: { kind: 'cork', symbol: 'ny-cork', viewBox: '0 0 80 40', perchSymbol: 'ny-bottle', perchViewBox: '0 0 30 70', lane: 'sky', top: [18, 34], dur: [8, 3], width: [54, 10], label: 'A champagne cork is flying past. Catch it.', perch: 'A champagne bottle is about to pop on the terrace. Catch the cork.' },
+  },
+  easter: {
+    label: 'Easter',
+    bound: true,
+    visitor: { kind: 'rabbit', symbol: 'ea-rabbit', viewBox: '0 0 80 64', lane: 'ground', bottom: [1, 3], dur: [16, 5], width: [60, 10], label: 'A rabbit is hopping past with an egg. Catch it.', perch: 'A rabbit is sitting by the basket with an egg. Catch it.' },
+  },
+  midsummer: {
+    label: 'Midsummer',
+    bound: true,
+    visitor: { kind: 'firefly', symbol: 'ms-firefly', viewBox: '0 0 50 40', lane: 'sky', top: [28, 34], dur: [12, 5], width: [44, 10], label: 'A firefly is drifting past. Catch it.', perch: 'A firefly is resting on a flower. Catch it.' },
+  },
 };
 
 export const HOLIDAY_KEYS = Object.keys(HOLIDAYS);

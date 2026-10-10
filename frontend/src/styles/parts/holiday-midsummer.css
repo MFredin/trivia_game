@@ -1,206 +1,241 @@
-/* --- Midsummer (holidays/midsummer.js) ---
-   The sun that does not set. On every screen width: a dusky haze with a golden glow along the horizon, fireflies drifting up the gutters, a
-   flower festoon, a bee, a posy and daisies on every plate, and a maypole, a bonfire, birches and wildflowers at the end of each page. From
-   1280px up the margins add a low golden sun and a tall birch. */
+/* --- Midsummer: the midnight sun over the lake (holidays/midsummer.js) ---
+   One composition, cropped two ways. It is Midsummer Eve in the north, where the night never gets dark: the sun has dipped to the edge of the lake and
+   hangs there, gold and rose, and everything in front of it is a deep teal silhouette edged with its light, except the flowers. The sky is a fixed layer
+   behind the page (.ms-sky): a deep teal that stays dark behind the page's own text, a haze along the top, a few motes of pollen. The horizon (.hol-band,
+   in holiday-overlay.css) is the same scene in two places: fixed along the bottom of the screen where a margin exists (from 1280px) and in the page flow
+   just above the footer everywhere else. In both, the birches stand on the left edge and the maypole on the right, with the same lake between them.
+   The warm sky of the sun is drawn only in the band, where no text can be.
+   Colour is the holiday binding in tokens.css (the house colours rest); only light, silhouette and flower colours live here.
+   A light is drawn before the thing it lights. Every animation is transform or opacity. */
 
-.app-shell[data-holiday="midsummer"] {
-  --gold: #f2c14e;
-  --rose: #e58f9a;
-  --corn: #5a86e0;
-  --daisy: #f6f1e0;
-  --poppy: #dc4630;
-  --leaf: #5a9a4a;
-  --leaf2: #2f6b3a;
-  --birch: #e9e4d6;
-  --fire: #ff9a3c;
-  --sun: #ffd76a;
-  --meadow: #1c3a1c;
-  --dust: #fff2a8;
+.app-shell[data-holiday='midsummer'] {
+  --ms-warm: 255, 190, 130;
+  --meadow-parch: rgba(60, 120, 80, 0.55);
+  --visitor-ink: #eaff7a;
+  --visitor-glow: 220, 255, 100;
+  --visitor-focus: #e6dc8a;
+  /* The firefly rests on the head of the tallest daisy in the birch cluster. */
+  --perch-x: 0.53;
+  --perch-y: 0.31;
 }
-:root[data-house='monochrome'] .app-shell[data-holiday="midsummer"] {
-  --gold: #e6e6e6;
-  --rose: #bdbdbd;
-  --corn: #9a9a9a;
-  --daisy: #f2f2f2;
-  --poppy: #8c8c8c;
-  --leaf: #8a8a8a;
-  --leaf2: #4a4a4a;
-  --birch: #e6e6e6;
-  --fire: #f0f0f0;
-  --sun: #f0f0f0;
-  --meadow: #202020;
-  --dust: #ffffff;
+
+/* The firefly is drawn above the bottom of its box, so the box hangs a little lower than the head of the daisy for the firefly to sit on it. */
+.hol-perch[data-visitor='firefly'] {
+  --perch-drop: calc(var(--perch-size, 44px) * 0.2 + 3.6px);
 }
-.gfire {
+
+/* On a wide screen the cluster is large, and a firefly the size of a thumb would be lost on its daisy. */
+.app-shell[data-holiday='midsummer'] .hol-perch-wing {
+  --perch-size: max(44px, calc(var(--cw) * 0.24));
+}
+
+/* ---- the sky ---- */
+.ms-sky {
   position: absolute;
-  left: var(--gx);
-  top: 100%;
-  width: 5px;
-  height: 5px;
+  inset: 0;
+  background:
+    radial-gradient(110% 40% at 84% -4%, rgba(40, 110, 120, 0.2), rgba(40, 110, 120, 0) 62%),
+    linear-gradient(#08151d 0%, #0f2a35 52%, #16404a 100%);
+}
+
+.ms-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 230px;
+  background: linear-gradient(rgba(var(--holiday-haze-rgb), 0.5), rgba(var(--holiday-haze-rgb), 0));
+  animation: hol-breathe 12s ease-in-out infinite;
+}
+
+.ms-mote {
+  position: absolute;
+  width: 2px;
+  height: 2px;
   border-radius: 50%;
-  background: var(--dust);
-  box-shadow: 0 0 9px 4px rgba(255,236,140,.5);
-  opacity: 0;
-  animation: hol-glowfly var(--t) ease-in-out infinite;
+  background: #f4f0d8;
+  opacity: 0.2;
+  animation: hol-twinkle 5.4s ease-in-out infinite;
   animation-delay: var(--d);
 }
-.pd-festoon {
-  top: -14px;
-  right: 4px;
-  width: 134px;
-  transform-origin: 100% 0;
-  animation: hol-sprigsway 7s ease-in-out infinite alternate;
+
+/* ---- the horizon ---- */
+/* The rose and gold of the low sun along the water, so the far shore reads as a shore. The sun's own light is the halo drawn with it in the maypole's cluster. */
+.ms-ground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 56% at 76% 70%, rgba(255, 170, 120, 0.26), rgba(255, 170, 120, 0) 72%);
 }
-.pd-bee {
-  left: 54px;
-  top: -22px;
+
+/* The lake: it fills the space between the far shore and the near bank, and the boat drifts on it. */
+.ms-lake {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8%;
+  height: 42%;
+  background: linear-gradient(#1b4650, #0f2a32);
+}
+
+.ms-boat {
+  position: absolute;
+  left: 40%;
+  bottom: 34%;
+  width: 34px;
+  animation: ms-row 26s ease-in-out infinite alternate;
+}
+
+.ms-boat svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+@keyframes ms-row {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(18px, 2px); }
+  100% { transform: translate(36px, 0); }
+}
+
+/* Swallows cross the sky over the lake, each beating its wings. */
+.ms-swallow {
+  position: absolute;
   width: 22px;
-  animation: hol-beepath 11s ease-in-out infinite;
-}
-.pd-bee svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.pd-bee .wing {
-  animation: hol-wingbuzz .09s linear infinite alternate;
-  transform-origin: 50% 100%;
-  transform-box: fill-box;
-}
-.pd-posy {
-  right: 22px;
-  bottom: -14px;
-  width: 58px;
-}
-.pd-daisies {
-  left: 12px;
-  bottom: -11px;
-  width: 62px;
-}
-.ms-hill {
-  position: absolute;
-  left: -20px;
-  right: -20px;
-  bottom: -4px;
-  height: 54px;
-  width: calc(100% + 40px);
-  fill: var(--meadow);
-}
-.app-shell[data-holiday="midsummer"] .hol-foot::before {
-  content: "";
-  position: absolute;
-  left: -6%;
-  right: -6%;
-  bottom: 0;
-  height: 140px;
-  background: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(var(--holiday-warm-rgb), .14), rgba(var(--holiday-warm-rgb), 0) 72%);
-  animation: hol-hearth 8s ease-in-out infinite;
-}
-.ms-pole {
-  position: absolute;
-  left: 58%;
-  bottom: 8px;
-  width: 72px;
-  transform-origin: 50% 100%;
-}
-.ms-pole svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.ms-pole .rib {
-  transform-origin: 0 0;
-  animation: hol-ribbonwave 4.5s ease-in-out infinite alternate;
-  transform-box: fill-box;
-}
-.ms-fire {
-  position: absolute;
-  left: 16%;
-  bottom: 8px;
-  width: 44px;
-}
-.ms-fire svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.ms-fire .fl {
-  transform-origin: 50% 100%;
-  transform-box: fill-box;
-  animation: hol-flame 2.3s ease-in-out infinite;
-}
-.ms-fire .sp { animation: hol-spark 3.2s ease-out infinite; }
-.ms-birch {
-  position: absolute;
-  bottom: 8px;
-  width: 26px;
-}
-.ms-birch svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-.ms-sun {
-  position: absolute;
-  right: -70px;
-  bottom: 140px;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,226,140,.9) 0%, rgba(255,200,90,.5) 24%, rgba(255,170,70,.14) 52%, rgba(255,170,70,0) 70%);
-  animation: hol-breathe 9s ease-in-out infinite;
-}
-.ms-tree {
-  position: absolute;
-  left: 4px;
-  top: 110px;
-  width: 118px;
-  height: 380px;
-}
-.ms-tree .lv {
-  transform-origin: 50% 0;
-  transform-box: fill-box;
-  animation: hol-leafsway 4.5s ease-in-out infinite alternate;
+  color: #0b2a30;
+  animation: ms-fly var(--dur) linear infinite;
+  animation-delay: var(--d);
 }
 
-@keyframes hol-glowfly {
-  0% { transform: translate(0,0); opacity: 0; }
-  12% { opacity: .95; }
-  25% { opacity: .2; }
-  40% { opacity: 1; }
-  55% { opacity: .3; }
-  70% { opacity: .95; }
-  100% { transform: translate(var(--wx, 4px), calc(100vh * -.55)); opacity: 0; }
+.ms-swallow svg {
+  display: block;
+  width: 100%;
+  transform-origin: 50% 80%;
+  animation: ms-flap 0.5s ease-in-out infinite alternate;
 }
 
-@keyframes hol-beepath {
-  0% { transform: translate(0,0); }
-  20% { transform: translate(46px,-6px); }
-  40% { transform: translate(78px,10px); }
-  55% { transform: translate(40px,2px); }
-  75% { transform: translate(-8px,-2px); }
-  100% { transform: translate(0,0); }
+@keyframes ms-fly {
+  from { transform: translate(-30px, 0); }
+  to { transform: translate(140px, -28px); }
 }
 
-@keyframes hol-wingbuzz {
+@keyframes ms-flap {
   from { transform: scaleY(1); }
-  to { transform: scaleY(.3); }
+  to { transform: scaleY(0.5); }
 }
 
-@keyframes hol-ribbonwave {
-  from { transform: skewX(-6deg) rotate(-2deg); }
-  to { transform: skewX(6deg) rotate(2deg); }
+/* ---- the sun, the glitter, the windows, the flowers ---- */
+.ms-halo {
+  animation: hol-breathe 8s ease-in-out infinite;
 }
 
-@keyframes hol-spark {
-  0% { transform: translate(0,0); opacity: 0; }
-  15% { opacity: 1; }
-  100% { transform: translate(var(--sx, 4px), -34px); opacity: 0; }
+.ms-gl {
+  opacity: 0.2;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: ms-glint 3.2s ease-in-out infinite;
+  animation-delay: var(--d);
 }
-.ms-fl {
+
+@keyframes ms-glint {
+  0%, 100% { opacity: 0.18; transform: scaleX(0.7); }
+  50% { opacity: 0.9; transform: scaleX(1.15); }
+}
+
+.ms-win {
+  animation: hol-hearth 6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+
+.ms-sway {
+  animation: hol-sprigsway 4.2s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+
+.ms-leaves {
+  animation: hol-sprigsway 6s ease-in-out infinite alternate;
+}
+
+.ms-ribbon {
+  animation: ms-ribbon 3.4s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+
+@keyframes ms-ribbon {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(6deg); }
+}
+
+/* ---- the gutters: seed fluff drifting up ---- */
+.ms-gseed {
   position: absolute;
+  bottom: 0;
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--c);
+  background: #f6f2dc;
+  box-shadow: 0 0 5px 1px rgba(246, 242, 220, 0.6);
+  opacity: 0;
+  animation: ms-seed var(--t) linear infinite;
+  animation-delay: var(--d);
+}
+
+@keyframes ms-seed {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.85; }
+  50% { transform: translate(6px, -46vh); }
+  90% { opacity: 0.8; }
+  100% { transform: translate(-2px, -96vh); opacity: 0; }
+}
+
+/* ---- the plates ---- */
+.pd-meadow {
+  left: 4px;
+  bottom: 4px;
+  width: 70px;
+  color: var(--meadow-parch);
+  opacity: 0.6;
+}
+
+.pd-crown {
+  left: 46px;
+  top: -22px;
+  width: 44px;
+  transform-origin: 50% 0;
+  animation: hol-wreathsway 6s ease-in-out infinite alternate;
+}
+
+.pd-ribbons {
+  right: 14px;
+  top: -6px;
+  width: 30px;
+  transform-origin: 50% 0;
+  animation: hol-sprigsway 5s ease-in-out infinite alternate;
+}
+
+.pd-chain {
+  right: 12px;
+  bottom: -10px;
+  width: 104px;
+}
+
+/* ---- the firefly you can catch (the shared parts are in holiday-visitor.css) ----
+   It drifts across the meadow, up and down on the warm air, and its tail glows and fades. Resting on a daisy it still glows, slowly. */
+.hol-flyer[data-visitor='firefly'] {
+  animation: ms-bob 2.2s ease-in-out infinite alternate;
+}
+
+.hol-flyer[data-visitor='firefly'] svg,
+.hol-perch[data-visitor='firefly'] svg {
+  animation: ms-pulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes ms-bob {
+  from { transform: translateY(-14px) rotate(-4deg); }
+  to { transform: translateY(14px) rotate(4deg); }
+}
+
+@keyframes ms-pulse {
+  from { opacity: 0.68; }
+  to { opacity: 1; }
 }

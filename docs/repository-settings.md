@@ -9,12 +9,16 @@ record to check them against, and the place to look when something about merging
 `main`** and **what has to be true first**.
 
 - Nobody pushes to `main`, the maintainer included. Every change is a pull request.
-- A pull request needs the three CI jobs green (`backend`, `frontend`, `e2e`) and one approving review. CODEOWNERS makes
-  that review the maintainer's.
+- A pull request needs the three CI jobs green (`backend`, `frontend`, `e2e`) and its conversations resolved. It does **not** need an approving
+  review: this is a one-person project whose pull requests are opened from the maintainer's own account, and GitHub never lets an author approve their
+  own pull request, so a required approval could only be met by bypassing the rules, which the GitHub mobile app cannot do. With none required, the
+  maintainer can read the diff and merge from a phone once the checks are green. CODEOWNERS still asks the maintainer for a review on every change, so
+  the request and the reading happen; they just do not gate the merge. Raise the count to 1 (and turn on code-owner review) the day a second person can
+  merge.
 - Outside contributors fork the repository. They have no write access, so they cannot merge anything; their pull request
   needs the maintainer's review like any other.
-- The maintainer (repository admin) can merge their own pull request without a second reviewer, **through a pull request
-  only**. Nothing can bypass the rule against pushing straight to `main`.
+- The maintainer (repository admin) merges their own pull request, **through a pull request only**. Nothing can bypass the rule against pushing
+  straight to `main`.
 - Railway only deploys a commit once its checks pass (see "Railway" below), so a bypassed red merge still does not ship.
 
 ## GitHub
@@ -28,7 +32,7 @@ check it says *Active*. It enforces:
 |---|---|
 | Restrict deletions, block force pushes | `main` history is what Railway deploys and what a rollback points at |
 | Require linear history, squash merge only | One commit per change, easy to revert and to read |
-| Pull request required, 1 approval, CODEOWNERS review, stale approvals dismissed on push, conversations resolved | No unreviewed change reaches production |
+| Pull request required, no approval count, conversations resolved, stale approvals dismissed on push | Nothing reaches production except through a pull request with green checks, and it can be merged from a phone |
 | Required checks: `backend`, `frontend`, `e2e` | The names are the job ids in `.github/workflows/ci.yml`; rename one and the ruleset must follow |
 | Bypass: repository Admin role, **pull requests only** | A one-person project can still merge its own work |
 

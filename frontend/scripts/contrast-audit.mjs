@@ -54,12 +54,11 @@ for (const m of css.matchAll(/:root\[data-holiday='([a-z]+)'\]\s*\{([\s\S]*?)\n\
   BOUND.push(m[1]);
 }
 const BINDINGS = [...HOUSES, ...BOUND.map((k) => `holiday:${k}`)];
-// The holiday overlays' washes (tokens.css): per scene, and one rebinding of them all to greys for Monochrome.
+// The holiday overlays' washes (tokens.css): per scene.
 const washTokens = (block) =>
   Object.fromEntries([...block.matchAll(/--holiday-(haze|mist|warm)-rgb\s*:\s*([^;]+);/g)].map((d) => [d[1], d[2].split(',').map((n) => Number(n.trim()))]));
 const HOLIDAY_WASHES = {};
 for (const m of css.matchAll(/\.app-shell\[data-holiday='([a-z]+)'\]\s*\{([\s\S]*?)\n\}/g)) HOLIDAY_WASHES[m[1]] = washTokens(m[2]);
-const HOLIDAY_MONO = washTokens((css.match(/:root\[data-house='monochrome'\] \.app-shell\[data-holiday\]\s*\{([\s\S]*?)\n\}/) ?? [])[1] ?? '');
 // Which washes each scene draws behind text, and how opaque each is at its peak: [token, alpha].
 // The black scrim under the colophon on a holiday: its peak opacity.
 const COLOPHON_SCRIM = 0.5;
@@ -84,9 +83,24 @@ const HOLIDAY_LAYERS = {
     top: [[[40, 90, 140], 0.24], ['haze', 0.5]], // .yu-sky's corner; .yu-haze
     bottom: [[[76, 130, 220], 0.26], [[255, 150, 60], 0.16], ['mist', 0.14]], // .yu-ground::before's cold glow and the fire's; .yu-mist
   },
-  newyear: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14]] }, // .sc-haze; .sc-mist, .sc-glow
-  easter: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14], ['mist', 0.2]] }, // .sc-haze; .sc-mist, .sc-glow, .ea-foot::before
-  midsummer: { top: [['haze', 0.4]], bottom: [['mist', 0.21], ['warm', 0.14], ['warm', 0.14]] }, // .sc-haze; .sc-mist, .sc-glow, .ms-foot::before
+  // New Year's sky runs from #05061a to #181a48. Its fireworks are in the margins and the foot band only, never behind text, so they are not measured.
+  newyear: {
+    ground: { top: [5, 6, 26], bottom: [24, 26, 72] },
+    top: [[[60, 50, 150], 0.3], ['haze', 0.5]], // .ny-sky's corner; .ny-haze
+    bottom: [[[120, 90, 220], 0.3]], // .ny-ground::before's glow of the city
+  },
+  // Easter's sky runs from #0d0a20 to #2e1c4a. The sun's own glow is drawn inside the egg tree's cluster, which stands in the margin (or the foot band).
+  easter: {
+    ground: { top: [13, 10, 32], bottom: [46, 28, 74] },
+    top: [[[110, 60, 150], 0.28], ['haze', 0.5]], // .ea-sky's corner; .ea-haze
+    bottom: [[[255, 160, 150], 0.36], ['mist', 0.2]], // .ea-ground::before's sunrise along the ground; .ea-mist
+  },
+  // Midsummer's sky runs from #08151d to #16404a. The sun's own glow is drawn inside the maypole's cluster.
+  midsummer: {
+    ground: { top: [8, 21, 29], bottom: [22, 64, 74] },
+    top: [[[40, 110, 120], 0.2], ['haze', 0.5]], // .ms-sky's corner; .ms-haze
+    bottom: [[[255, 170, 120], 0.26]], // .ms-ground::before's glow along the water
+  },
 };
 
 
@@ -174,7 +188,7 @@ function build(house) {
   for (const [scene, layers] of Object.entries(HOLIDAY_LAYERS)) {
     // A bound holiday is measured under its own binding only; the houses are measured against the holidays that have none.
     if (house.startsWith('holiday:') ? scene !== house.slice(8) : BOUND.includes(scene)) continue;
-    const wash = { ...HOLIDAY_WASHES[scene], ...(house === 'monochrome' ? HOLIDAY_MONO : {}) };
+    const wash = HOLIDAY_WASHES[scene];
     const lit = (list, base) => list.reduce((bg, [token, alpha]) => over(Array.isArray(token) ? token : wash[token], bg, alpha), base);
     if (layers.top.length) {
       const haze = lit(layers.top, layers.ground?.top ?? page);

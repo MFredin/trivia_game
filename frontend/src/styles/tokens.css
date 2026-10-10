@@ -252,9 +252,9 @@
      --holiday-haze-rgb   the wash along the top edge, behind the nav and the first heading (up to about 55% opaque at the very edge)
      --holiday-mist-rgb   the mist along the foot, behind the footer (up to about 34%)
      --holiday-warm-rgb   warm light: the glow on the horizon and the pools candles, lanterns and fires throw
-   A scene that has no top haze or no mist (Thanksgiving, Yule) simply does not define it. The rest of a scene's colour (the pumpkins, the eggs,
-   the balloons) is drawn only where no text can be, so it lives with the scene in styles/parts/holiday-*.css. Monochrome rebinds the washes
-   to greys, because that binding is colourless everywhere. */
+   The rest of a scene's colour (the pumpkins, the eggs, the fireworks) is drawn only where no text can be, so it lives with the scene in
+   styles/parts/holiday-*.css. Every holiday has a binding of its own, which replaces the house's colours outright, so Monochrome (a house)
+   has nothing of a holiday to grey out. */
 /* A holiday is a temporary binding. While one is on, <html> carries data-holiday (features/holiday/useHoliday.js) and this block fills in the same
    role tokens a house does, after the house blocks and at the same specificity, so it wins: the house colours rest and every account sees the
    same holiday. The semantic colours (--success-ink, --danger and the rest) are not here, so a right answer is still green and a wrong one red.
@@ -372,6 +372,120 @@
   --ember-rgb: 245, 205, 120;
 }
 
+/* New Year's: a midnight-indigo night, champagne-ivory paper, royal indigo for the accents on paper, silver-lavender for the accents on the dark, gold for the foil and the spines' tooling. */
+:root[data-holiday='newyear'] {
+  --ink-900: #0d0f24;
+  --ink-800: #070818;
+  --parchment-100: #f1ebdc;
+  --parchment-200: #e0d8c4;
+  --brass-500: #3b2a7a;
+  --brass-300: #cfc4f4;
+  --brass-500-rgb: 59, 42, 122;
+  --metal-500: #e8d28a;
+  --metal-300: #f6e8b4;
+  --text-ink: #181630;
+  --text-on-bg: #efeaf8;
+
+  --page: #0a0b20;
+  --glow-rgb: 240, 210, 140;
+  --glow2-rgb: 120, 90, 220;
+  --rubric: #3b2a7a;
+  --rubric-rgb: 59, 42, 122;
+  --onbg: #d9d0f4;
+  --onbg-rgb: 217, 208, 244;
+  --cloth: #1b1a46;
+  --tooling: #e6d089;
+  --tooling-rgb: 230, 208, 137;
+  --leaf-hi: #f8eab8;
+  --leaf: #e8d28a;
+  --leaf-lo: #c9a94a;
+  --leaf-edge: #9a7e2a;
+  --leaf-text: #1a1530;
+  --leaf-glow-rgb: 232, 210, 138;
+  --gilt: #e8d28a;
+  --gilt-rgb: 232, 210, 138;
+  --gilt-deep: #a08630;
+  --wash-rgb: 232, 210, 138;
+  --ember: #ffe08a;
+  --ember-rgb: 245, 215, 130;
+}
+
+/* Easter: a deep dusk-violet before the sunrise, warm eggshell paper, orchid for the accents on paper, pale lilac for the accents on the dark, daffodil for the foil, and a moss-green cloth. */
+:root[data-holiday='easter'] {
+  --ink-900: #1a1230;
+  --ink-800: #100a22;
+  --parchment-100: #f5efe2;
+  --parchment-200: #e6dccb;
+  --brass-500: #7a2e72;
+  --brass-300: #e2c1f0;
+  --brass-500-rgb: 122, 46, 114;
+  --metal-500: #f2d36a;
+  --metal-300: #f9e8a2;
+  --text-ink: #251a2c;
+  --text-on-bg: #f3ecf6;
+
+  --page: #170f2a;
+  --glow-rgb: 244, 170, 200;
+  --glow2-rgb: 150, 110, 230;
+  --rubric: #7a2e72;
+  --rubric-rgb: 122, 46, 114;
+  --onbg: #dcc8f6;
+  --onbg-rgb: 220, 200, 246;
+  --cloth: #213d2f;
+  --tooling: #f2d36a;
+  --tooling-rgb: 242, 211, 106;
+  --leaf-hi: #fbe9a0;
+  --leaf: #f2d36a;
+  --leaf-lo: #d2ac3c;
+  --leaf-edge: #a8861e;
+  --leaf-text: #20180a;
+  --leaf-glow-rgb: 242, 211, 106;
+  --gilt: #f2d36a;
+  --gilt-rgb: 242, 211, 106;
+  --gilt-deep: #a8861e;
+  --wash-rgb: 242, 211, 106;
+  --ember: #ffe08a;
+  --ember-rgb: 245, 220, 130;
+}
+
+/* Midsummer: the deep teal of a night that never gets dark, cream paper, rose for the accents on paper, buttercup straw for the accents on the dark and the foil, and a teal cloth. */
+:root[data-holiday='midsummer'] {
+  --ink-900: #0e2029;
+  --ink-800: #08141b;
+  --parchment-100: #f4f0e0;
+  --parchment-200: #e4ddc6;
+  --brass-500: #a02c4a;
+  --brass-300: #e6dc8a;
+  --brass-500-rgb: 160, 44, 74;
+  --metal-500: #e6cf6a;
+  --metal-300: #f4e6a0;
+  --text-ink: #1a2420;
+  --text-on-bg: #eef0e2;
+
+  --page: #0e2128;
+  --glow-rgb: 240, 190, 110;
+  --glow2-rgb: 70, 160, 170;
+  --rubric: #a02c4a;
+  --rubric-rgb: 160, 44, 74;
+  --onbg: #e6dc8a;
+  --onbg-rgb: 230, 220, 138;
+  --cloth: #173a40;
+  --tooling: #e6dc8a;
+  --tooling-rgb: 230, 220, 138;
+  --leaf-hi: #f6ecb0;
+  --leaf: #e6cf6a;
+  --leaf-lo: #c4a840;
+  --leaf-edge: #988326;
+  --leaf-text: #1a1c0e;
+  --leaf-glow-rgb: 230, 207, 106;
+  --gilt: #e6cf6a;
+  --gilt-rgb: 230, 207, 106;
+  --gilt-deep: #9a8426;
+  --wash-rgb: 230, 207, 106;
+  --ember: #ffe08a;
+  --ember-rgb: 245, 220, 130;
+}
+
 .app-shell[data-holiday='halloween'] {
   --holiday-haze-rgb: 70, 34, 104;
   --holiday-mist-rgb: 140, 104, 176;
@@ -391,25 +505,19 @@
 }
 
 .app-shell[data-holiday='newyear'] {
-  --holiday-haze-rgb: 40, 56, 132;
-  --holiday-mist-rgb: 120, 100, 170;
+  --holiday-haze-rgb: 40, 34, 110;
+  --holiday-mist-rgb: 140, 120, 210;
   --holiday-warm-rgb: 255, 214, 120;
 }
 
 .app-shell[data-holiday='easter'] {
-  --holiday-haze-rgb: 112, 72, 140;
-  --holiday-mist-rgb: 80, 150, 110;
-  --holiday-warm-rgb: 255, 226, 150;
+  --holiday-haze-rgb: 90, 50, 120;
+  --holiday-mist-rgb: 120, 170, 140;
+  --holiday-warm-rgb: 255, 200, 150;
 }
 
 .app-shell[data-holiday='midsummer'] {
-  --holiday-haze-rgb: 118, 66, 104;
-  --holiday-mist-rgb: 130, 150, 80;
-  --holiday-warm-rgb: 255, 190, 90;
-}
-
-:root[data-house='monochrome'] .app-shell[data-holiday]:not([data-holiday='halloween'], [data-holiday='thanksgiving'], [data-holiday='yule']) {
-  --holiday-haze-rgb: 64, 64, 64;
-  --holiday-mist-rgb: 120, 120, 120;
-  --holiday-warm-rgb: 255, 255, 255;
+  --holiday-haze-rgb: 20, 62, 74;
+  --holiday-mist-rgb: 160, 200, 190;
+  --holiday-warm-rgb: 255, 190, 110;
 }
