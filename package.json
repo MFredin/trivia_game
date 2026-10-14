@@ -4,7 +4,7 @@
   "private": true,
   "description": "Root-level tooling only: authoring and type-checking .railway/railway.ts. The deployed app's own dependencies stay in backend/package.json and frontend/package.json.",
   "devDependencies": {
-    "railway": "^3.12.0",
-    "typescript": "^5.6.0"
+    "railway": "^3.13.1",
+    "typescript": "^7.0.2"
   }
 }
