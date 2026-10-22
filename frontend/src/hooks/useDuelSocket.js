@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { getSocketTicket } from '../api/auth.js';
 
-function resolveWsUrl(token) {
+function resolveWsUrl(ticket) {
   const apiUrl = import.meta.env.VITE_API_URL;
   if (apiUrl) {
     // e.g. https://backend.example/api -> wss://backend.example/ws
     const u = new URL(apiUrl);
     const proto = u.protocol === 'https:' ? 'wss' : 'ws';
-    return `${proto}://${u.host}/ws?token=${encodeURIComponent(token)}`;
+    return `${proto}://${u.host}/ws?ticket=${encodeURIComponent(ticket)}`;
   }
   const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  return `${proto}://${window.location.host}/ws?token=${encodeURIComponent(token)}`;
+  return `${proto}://${window.location.host}/ws?ticket=${encodeURIComponent(ticket)}`;
 }
 
 // Keeps one WebSocket connection open for as long as `token` is set, and calls `onEvent` for
 // every message the server pushes (duel invites, opponent progress, duel completion, ...).
+//
+// The sign-in token is never put in the URL: the socket is opened with a ticket the server issues for it (api/auth.js getSocketTicket), good for one
+// connection within half a minute. If no ticket comes there is no socket, which is how a failed connection already looked: the page works without it.
 //
 // Returns a send function, because duel reactions are the first thing that travels the other
 // way. It is a ref-backed callback with a stable identity, so putting it in a dependency array
@@ -25,18 +29,26 @@ export function useDuelSocket(token, onEvent) {
 
   useEffect(() => {
     if (!token) return undefined;
-    const ws = new WebSocket(resolveWsUrl(token));
-    socketRef.current = ws;
-    ws.onmessage = (msg) => {
-      try {
-        handlerRef.current(JSON.parse(msg.data));
-      } catch {
-        // ignore malformed frames
-      }
-    };
+    let cancelled = false;
+    let ws = null;
+    getSocketTicket(token)
+      .then(({ ticket }) => {
+        if (cancelled) return;
+        ws = new WebSocket(resolveWsUrl(ticket));
+        socketRef.current = ws;
+        ws.onmessage = (msg) => {
+          try {
+            handlerRef.current(JSON.parse(msg.data));
+          } catch {
+            // ignore malformed frames
+          }
+        };
+      })
+      .catch(() => {});
     return () => {
+      cancelled = true;
       socketRef.current = null;
-      ws.close();
+      ws?.close();
     };
   }, [token]);
 

@@ -32,6 +32,8 @@ export async function requireAuth(req, res, next) {
     return next(err);
   }
   req.userId = userId;
+  // Which generation of sign-ins this request came in under, for what is minted from it (a socket ticket, lib/socketTickets.js).
+  req.tokenVersion = claim.version;
   next();
 }
 

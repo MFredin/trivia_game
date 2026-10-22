@@ -20,6 +20,12 @@ export function updateTheme(theme, token) {
   return request('/auth/theme', { method: 'PATCH', body: JSON.stringify({ theme }) }, token);
 }
 
+// A ticket for opening the WebSocket: good for one connection within half a minute, so the sign-in token never has to travel in a URL, where every proxy
+// and log on the way would write it down. Answers { ticket }.
+export function getSocketTicket(token) {
+  return request('/auth/socket-ticket', { method: 'POST' }, token);
+}
+
 export function getInviteCode(token) {
   return request('/auth/invite-code', {}, token);
 }

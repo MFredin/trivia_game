@@ -22,6 +22,9 @@ export async function boot() {
   return { pool };
 }
 
+/** Where the booted server's socket is, with `query` as the handshake's query string. */
+export const socketUrl = (query = '') => `ws://127.0.0.1:${server.address().port}/ws${query ? `?${query}` : ''}`;
+
 export async function shutdown() {
   await new Promise((resolve) => server.close(resolve));
   await pool.end();
@@ -64,7 +67,11 @@ export async function befriend(a, b) {
 
 // A connected, authenticated socket that collects every frame it is sent.
 export async function connectSocket(player) {
-  const ws = new WebSocket(`ws://127.0.0.1:${server.address().port}/ws?token=${player.token}`);
+  const { signSocketTicket } = await import('../../src/lib/socketTickets.js');
+  const { readAuthToken } = await import('../../src/lib/authTokens.js');
+  const claim = readAuthToken(player.token);
+  const ticket = signSocketTicket(claim.userId, claim.version);
+  const ws = new WebSocket(socketUrl(`ticket=${encodeURIComponent(ticket)}`));
   const frames = [];
   ws.on('message', (raw) => frames.push(JSON.parse(raw.toString())));
   await new Promise((resolve, reject) => {

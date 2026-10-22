@@ -29,3 +29,7 @@ The code in this repository and the deployed game built from it. The areas that 
 ## Supported versions
 
 Only `main`, which is what is deployed. There are no release branches.
+
+## If a secret may have leaked
+
+See [`docs/secret-rotation.md`](docs/secret-rotation.md): what each secret is worth, how to rotate it, and what to check afterwards.

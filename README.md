@@ -142,8 +142,8 @@ Copy `backend/.env.example` to `backend/.env`. Only the first three are needed l
 | Variable | Required | Purpose |
 |---|---|---|
 | `DATABASE_URL` | Yes | Postgres connection string. |
-| `QUESTION_TOKEN_SECRET` | Yes | Signs the single-use question tokens. |
-| `AUTH_TOKEN_SECRET` | Yes | Signs auth tokens. Must differ from the one above. |
+| `QUESTION_TOKEN_SECRET` | Yes | Signs the single-use question tokens. In production at least 32 characters (`npm run secrets:generate`). |
+| `AUTH_TOKEN_SECRET` | Yes | Signs auth tokens. Must differ from the one above, and meet the same rule. How to rotate them: [`docs/secret-rotation.md`](docs/secret-rotation.md). |
 | `PORT` | No | Defaults to 4000. |
 | `NODE_ENV` | Production | Set to `production` on Railway. |
 | `ALLOWED_ORIGIN` | Production | The frontend's public URL, to lock CORS down (comma-separate several). |

@@ -1,5 +1,5 @@
 import { WebSocketServer } from 'ws';
-import { readAuthToken } from './authTokens.js';
+import { redeemSocketTicket } from './socketTickets.js';
 import { markOnline, markOffline, getSockets } from './presenceRegistry.js';
 import { isDuelReaction, allowReaction } from './duelReactions.js';
 import { pool } from '../db/pool.js';
@@ -11,8 +11,8 @@ import { isActiveUser } from '../repo/users.js';
 // megabyte to JSON.parse.
 const MAX_FRAME_BYTES = 1024;
 
-// Browsers can't set custom headers on a WebSocket handshake, so the auth token travels as a
-// query param instead — same trust level as the header-based Bearer token used everywhere else.
+// Browsers can't set custom headers on a WebSocket handshake, so what proves who is connecting travels as a query param. It is a ticket (lib/socketTickets.js),
+// good for one connection within half a minute, and never the sign-in token: a URL is written down by every proxy and log on the way.
 export function attachWebSocketServer(httpServer) {
   const wss = new WebSocketServer({ noServer: true });
 
@@ -22,9 +22,9 @@ export function attachWebSocketServer(httpServer) {
       socket.destroy();
       return;
     }
-    const claim = readAuthToken(url.searchParams.get('token'));
+    const claim = redeemSocketTicket(url.searchParams.get('ticket'));
     const userId = claim?.userId;
-    // Same rule as requireAuth: a deleted account's token, or one from before a password change, still verifies.
+    // Same rule as requireAuth: a deleted account's ticket, or one from before a password change, still verifies.
     if (!claim || !(await isActiveUser(userId, claim.version).catch(() => false))) {
       socket.destroy();
       return;

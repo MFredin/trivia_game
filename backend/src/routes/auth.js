@@ -4,6 +4,7 @@ import express from 'express';
 import { pool } from '../db/pool.js';
 import { hashPassword, verifyPassword } from '../lib/passwords.js';
 import { signAuthToken } from '../lib/authTokens.js';
+import { signSocketTicket } from '../lib/socketTickets.js';
 import { requireAuth } from '../middleware/auth.js';
 import { rateLimit } from '../lib/rateLimiter.js';
 import { USER_COLUMNS, userView } from '../lib/userView.js';
@@ -121,6 +122,9 @@ router.get('/me', requireAuth, async (req, res) => {
   if (rows.length === 0) return res.status(404).json({ error: 'user_not_found' });
   return res.json({ user: userView(rows[0]) });
 });
+
+// A ticket for opening the WebSocket, so the sign-in token never has to travel in a URL (lib/socketTickets.js).
+router.post('/socket-ticket', requireAuth, (req, res) => res.json({ ticket: signSocketTicket(req.userId, req.tokenVersion) }));
 
 router.get('/invite-code', requireAuth, async (req, res) => {
   const { rows } = await pool.query('SELECT invite_code FROM users WHERE id = $1', [req.userId]);

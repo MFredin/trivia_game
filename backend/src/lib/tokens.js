@@ -4,16 +4,10 @@
 // served). An answer is accepted only with a matching token, so a client cannot answer a question it was never
 // served or claim a different serve time to get a bigger time bonus. (Answering the same question twice is refused
 // separately: services/answerFlow.js checks that it is still unanswered.) The secret is
-// QUESTION_TOKEN_SECRET, required at start-up. (Sign-in tokens are a different thing: lib/authTokens.js.)
+// QUESTION_TOKEN_SECRET, required at start-up and checked in lib/secrets.js. (Sign-in tokens are a different thing: lib/authTokens.js.)
 
 import crypto from 'node:crypto';
-import 'dotenv/config';
-
-const SERVER_SECRET = process.env.QUESTION_TOKEN_SECRET;
-
-if (!SERVER_SECRET) {
-  throw new Error('QUESTION_TOKEN_SECRET must be set');
-}
+import { QUESTION_TOKEN_SECRET as SERVER_SECRET } from './secrets.js';
 
 function hmac(sessionId, questionId, issuedAtIso) {
   return crypto

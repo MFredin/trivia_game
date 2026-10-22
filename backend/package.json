@@ -10,7 +10,10 @@
     "db:seed": "node src/db/seed.js",
     "audit:questions": "node scripts/question-bank-audit.mjs",
     "test": "QUESTION_TOKEN_SECRET=test-secret AUTH_TOKEN_SECRET=test-auth-secret node --test",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "secrets:generate": "node scripts/generate-secrets.mjs",
+    "sessions:revoke": "node scripts/revoke-sessions.mjs",
+    "audit:exposure": "node scripts/exposure-report.mjs"
   },
   "dependencies": {
     "@sentry/node": "^11.4.0",

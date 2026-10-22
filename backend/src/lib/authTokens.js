@@ -1,12 +1,7 @@
 import crypto from 'node:crypto';
-import 'dotenv/config';
+import { AUTH_TOKEN_SECRET } from './secrets.js';
 
-const AUTH_TOKEN_SECRET = process.env.AUTH_TOKEN_SECRET;
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
-
-if (!AUTH_TOKEN_SECRET) {
-  throw new Error('AUTH_TOKEN_SECRET must be set');
-}
 
 // `version` is users.token_version at the time of signing. A token is good only while it matches the account's
 // current number (see repo/users.js getAccountAccess), which is how a password change ends other sessions.

@@ -57,6 +57,7 @@ be able to read it. CI itself uses no secrets.
 | Both services → Settings → Source → **Wait for CI** | On | Without it Railway deploys on push without waiting for GitHub's checks, and a merge that bypassed a red check would ship |
 | `ALLOWED_ORIGIN` on the API | The frontend's origin, exact | Anything else blocks the site's own requests; see `.railway/railway.ts` |
 | Postgres → public TCP proxy | Off unless a person is actively using it | The database is reached over Railway's private network; a public endpoint is exposure for no benefit |
+| Every secret variable | Rotated if the host's environment may have been read; see [`secret-rotation.md`](secret-rotation.md) |
 | Postgres → backups | Enabled | The volume is the only copy of every account and score |
 | Variables | Set in Railway, never in the repository | `.railway/railway.ts` lists names only, with `preserve()` |
 | Optional | `SENTRY_DSN`, `VITE_SENTRY_DSN`, `RESEND_API_KEY`, `MAIL_FROM`, `APP_URL`, `VITE_PARENT_CONTACT_EMAIL` | Password reset email, error tracking and the under-13 contact are off until these are set; see the README's configuration table |
